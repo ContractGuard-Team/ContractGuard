@@ -1,0 +1,43 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Python / AI
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# C# / .NET
+bin/
+obj/
+.vs/
+*.user
+
+# React / Node.js
+node_modules/
+dist/
+coverage/
+
+# AWS CDK
+cdk.out/
+cdk.context.json
+
+# Local data and private reports
+real-contracts/
+test-reports/private/
+out/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
