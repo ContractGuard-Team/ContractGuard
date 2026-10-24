@@ -1,0 +1,12 @@
+# Data contract and trust boundary
+
+1. Backend authenticates user, authorizes tenant, creates job and binds contract version.
+2. Worker extracts `facts` and `evidence`, then returns an **untrusted** extraction payload.
+3. Backend validates payload against `contracts/extraction.schema.json`.
+4. Validator checks normalized fact keys/types, clause IDs, page numbers and evidence against trusted parsed text.
+5. Backend attaches trusted job/tenant/contract identifiers and executes business rules.
+6. Persist validated results with audit logs and least-privilege storage.
+
+`NOT_FOUND` means a completed search found no evidence; `UNKNOWN` means insufficient evidence.
+Neither automatically implies legal or contractual noncompliance.
+Do not store customer contracts or unredacted evidence in Git.

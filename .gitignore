@@ -41,3 +41,19 @@ out/
 Thumbs.db
 .vscode/*
 !.vscode/extensions.json
+
+# ContractGuard shared-project exclusions
+**/.venv/
+build/
+**/bin/
+**/obj/
+*.suo
+*.log
+*.tfstate
+*.tfstate.*
+security/out/
+worker/out/
+*.pcap
+*.pcapng
+*.sqlite
+*.db

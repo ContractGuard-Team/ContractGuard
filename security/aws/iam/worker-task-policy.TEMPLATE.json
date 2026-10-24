@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Sid":"ReadValidatedContracts","Effect":"Allow","Action":["s3:GetObject"],"Resource":["arn:aws:s3:::REPLACE_BUCKET/clean/*"]},
+    {"Sid":"WriteAnalysisResults","Effect":"Allow","Action":["s3:PutObject"],"Resource":["arn:aws:s3:::REPLACE_BUCKET/analysis/*"]},
+    {"Sid":"ReadRequestQueue","Effect":"Allow","Action":["sqs:ReceiveMessage","sqs:DeleteMessage","sqs:ChangeMessageVisibility","sqs:GetQueueAttributes"],"Resource":["arn:aws:sqs:REPLACE_REGION:REPLACE_ACCOUNT:analysis-requests"]},
+    {"Sid":"PublishResultQueue","Effect":"Allow","Action":["sqs:SendMessage"],"Resource":["arn:aws:sqs:REPLACE_REGION:REPLACE_ACCOUNT:analysis-results"]},
+    {"Sid":"UseApprovedBedrockModel","Effect":"Allow","Action":["bedrock:InvokeModel"],"Resource":["REPLACE_APPROVED_MODEL_OR_INFERENCE_PROFILE_ARNS"]},
+    {"Sid":"DecryptRequiredDocuments","Effect":"Allow","Action":["kms:Decrypt","kms:GenerateDataKey"],"Resource":["REPLACE_KMS_KEY_ARN"]}
+  ]
+}

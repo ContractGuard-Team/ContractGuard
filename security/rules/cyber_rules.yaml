@@ -1,0 +1,217 @@
+schema_version: 1.0.0
+rules:
+- id: CY-001
+  name: Incident notification deadline
+  domain: cybersecurity
+  fact_key: incident.notification_hours
+  policy_key: incident_notification_max_hours
+  operator: max
+  applicable_when: &id001
+    vendor_handles_sensitive_data: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-002
+  name: MFA for internal access
+  domain: cybersecurity
+  fact_key: access.mfa_required
+  policy_key: mfa_required
+  operator: eq
+  applicable_when:
+    vendor_accesses_internal_system: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-003
+  name: Encryption at rest
+  domain: data_privacy
+  fact_key: data.encryption_at_rest
+  policy_key: encryption_at_rest_required
+  operator: eq
+  applicable_when: *id001
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-004
+  name: Encryption in transit
+  domain: data_privacy
+  fact_key: data.encryption_in_transit
+  policy_key: encryption_in_transit_required
+  operator: eq
+  applicable_when: *id001
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-005
+  name: Security logging
+  domain: cybersecurity
+  fact_key: monitoring.security_logging_required
+  policy_key: security_logging_required
+  operator: eq
+  applicable_when:
+    vendor_accesses_internal_system: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-006
+  name: Vulnerability management
+  domain: cybersecurity
+  fact_key: vulnerability.management_required
+  policy_key: vulnerability_management_required
+  operator: eq
+  applicable_when:
+    critical_service: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-007
+  name: Patch SLA
+  domain: cybersecurity
+  fact_key: vulnerability.patch_sla_days
+  policy_key: patch_sla_max_days
+  operator: max
+  applicable_when:
+    critical_service: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-008
+  name: Security audit rights
+  domain: third_party
+  fact_key: audit.customer_security_audit_right
+  policy_key: security_audit_right_required
+  operator: eq
+  applicable_when:
+    critical_service: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-009
+  name: Penetration testing assurance
+  domain: cybersecurity
+  fact_key: assurance.pentest_required
+  policy_key: penetration_testing_required
+  operator: eq
+  applicable_when:
+    critical_service: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-010
+  name: Backup
+  domain: operational
+  fact_key: resilience.backup_required
+  policy_key: backup_required
+  operator: eq
+  applicable_when:
+    critical_service: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-011
+  name: Disaster recovery
+  domain: operational
+  fact_key: resilience.disaster_recovery_required
+  policy_key: disaster_recovery_required
+  operator: eq
+  applicable_when:
+    critical_service: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-012
+  name: Data retention period
+  domain: data_privacy
+  fact_key: data.retention_days
+  policy_key: data_retention_max_days
+  operator: max
+  applicable_when: *id001
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-013
+  name: Secure deletion after termination
+  domain: data_privacy
+  fact_key: data.deletion_days
+  policy_key: data_deletion_max_days
+  operator: max
+  applicable_when: *id001
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-014
+  name: Subcontractor approval
+  domain: third_party
+  fact_key: supplier.subcontractor_approval_required
+  policy_key: subcontractor_approval_required
+  operator: eq
+  applicable_when:
+    subcontractors_used: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-015
+  name: Flow-down security obligations
+  domain: third_party
+  fact_key: supplier.security_flowdown_required
+  policy_key: security_flowdown_required
+  operator: eq
+  applicable_when:
+    subcontractors_used: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-016
+  name: Vendor incident accountability
+  domain: third_party
+  fact_key: supplier.vendor_incident_liability_required
+  policy_key: vendor_incident_liability_required
+  operator: eq
+  applicable_when:
+    subcontractors_used: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-017
+  name: Access revocation at termination
+  domain: cybersecurity
+  fact_key: termination.access_revocation_required
+  policy_key: access_revocation_on_termination_required
+  operator: eq
+  applicable_when:
+    vendor_accesses_internal_system: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-018
+  name: Incident cooperation
+  domain: cybersecurity
+  fact_key: incident.cooperation_required
+  policy_key: incident_cooperation_required
+  operator: eq
+  applicable_when: *id001
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-019
+  name: Business continuity
+  domain: operational
+  fact_key: resilience.business_continuity_required
+  policy_key: business_continuity_required
+  operator: eq
+  applicable_when:
+    critical_service: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true
+- id: CY-020
+  name: Least privilege
+  domain: cybersecurity
+  fact_key: access.least_privilege_required
+  policy_key: least_privilege_required
+  operator: eq
+  applicable_when:
+    vendor_accesses_internal_system: true
+  severity_on_fail: HIGH
+  on_missing: NEEDS_REVIEW
+  evidence_required: true

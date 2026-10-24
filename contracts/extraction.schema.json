@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ContractGuard AI extraction to Risk Engine v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "tenant_id",
+    "contract_id",
+    "contract_version",
+    "document_complete",
+    "context",
+    "facts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "document_complete": {
+      "type": "boolean"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "vendor_handles_sensitive_data": {
+          "type": "boolean"
+        },
+        "vendor_accesses_internal_system": {
+          "type": "boolean"
+        },
+        "critical_service": {
+          "type": "boolean"
+        },
+        "subcontractors_used": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "vendor_handles_sensitive_data",
+        "vendor_accesses_internal_system",
+        "critical_service",
+        "subcontractors_used"
+      ],
+      "additionalProperties": false
+    },
+    "facts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "value",
+          "evidence"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "FOUND",
+              "NOT_FOUND",
+              "UNKNOWN"
+            ]
+          },
+          "value": {
+            "type": [
+              "integer",
+              "number",
+              "string",
+              "boolean",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "clause_id",
+                "page",
+                "quote"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "clause_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

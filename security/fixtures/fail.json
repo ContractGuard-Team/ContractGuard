@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "job_id": "job-demo-fail",
+  "tenant_id": "tenant-demo",
+  "contract_id": "CT-DEMO",
+  "contract_version": "v1",
+  "document_complete": true,
+  "context": {
+    "vendor_handles_sensitive_data": true,
+    "vendor_accesses_internal_system": true,
+    "critical_service": true,
+    "subcontractors_used": true
+  },
+  "facts": {
+    "incident.notification_hours": {
+      "status": "FOUND",
+      "value": 72,
+      "evidence": [
+        {
+          "clause_id": "CL-017",
+          "page": 4,
+          "quote": "notify within 72 hours"
+        }
+      ]
+    },
+    "access.mfa_required": {
+      "status": "FOUND",
+      "value": true,
+      "evidence": [
+        {
+          "clause_id": "CL-017",
+          "page": 4,
+          "quote": "require multi-factor authentication"
+        }
+      ]
+    },
+    "data.encryption_at_rest": {
+      "status": "FOUND",
+      "value": true,
+      "evidence": [
+        {
+          "clause_id": "CL-017",
+          "page": 4,
+          "quote": "encrypt customer data at rest"
+        }
+      ]
+    },
+    "supplier.security_flowdown_required": {
+      "status": "FOUND",
+      "value": false,
+      "evidence": [
+        {
+          "clause_id": "CL-017",
+          "page": 4,
+          "quote": "subcontractors without downstream obligations"
+        }
+      ]
+    },
+    "data.deletion_days": {
+      "status": "UNKNOWN",
+      "value": null,
+      "evidence": []
+    }
+  }
+}

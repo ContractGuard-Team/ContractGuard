@@ -1,0 +1,24 @@
+policy_id: DEMO-SAAS-SEC
+version: 1.0.0
+description: DEMO ONLY. Not law or a default for all contracts.
+requirements:
+  incident_notification_max_hours: 24
+  mfa_required: true
+  encryption_at_rest_required: true
+  encryption_in_transit_required: true
+  security_logging_required: true
+  vulnerability_management_required: true
+  patch_sla_max_days: 30
+  security_audit_right_required: true
+  penetration_testing_required: true
+  backup_required: true
+  disaster_recovery_required: true
+  data_retention_max_days: 365
+  data_deletion_max_days: 30
+  subcontractor_approval_required: true
+  security_flowdown_required: true
+  vendor_incident_liability_required: true
+  access_revocation_on_termination_required: true
+  incident_cooperation_required: true
+  business_continuity_required: true
+  least_privilege_required: true

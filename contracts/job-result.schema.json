@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ContractGuard trusted backend job result (starter)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "job_id",
+    "tenant_id",
+    "contract_id",
+    "contract_version",
+    "extraction"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_version": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
+      ]
+    },
+    "extraction": {
+      "$ref": "./extraction.schema.json"
+    }
+  }
+}
