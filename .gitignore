@@ -1,4 +1,3 @@
-
 # Environment variables and secrets
 .env
 .env.*
@@ -67,10 +66,8 @@ node_modules/
 # Archify
 .archify/
 
-# Claude configuration
+# AI configuration
 .claude/settings.local.json
-
-# Cấu hình công cụ AI cá nhân và bộ RDK: chỉ ở máy local. File agent dùng chung là AGENTS.md
 .claude/
 .mcp.json
 CLAUDE.md
