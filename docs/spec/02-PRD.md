@@ -11,8 +11,8 @@ prd_scope: Whole Product
 output_language: vi
 role_in_layer: Primary
 upstream: []
-version: "1.0"
-status: APPROVED
+version: "1.1"
+status: REVIEW
 authors:
   - "Agent"
 reviewers:
@@ -57,12 +57,12 @@ PRD này theo thực tiễn quản lý sản phẩm (SVPG, Aha!, Atlassian), n�
 | Product Name | ContractGuard |
 | Document Name | Product Requirements Document |
 | Document ID | CG-PRD |
-| Version | `1.0` |
+| Version | `1.1` |
 | Variant | Standard |
 | PRD Scope | Whole Product |
 | Role In Layer | Primary (không có StRS) |
 | Product Owner | SE của nhóm |
-| Status | `APPROVED` |
+| Status | `REVIEW` |
 | Approver | SE của nhóm |
 
 | Version | Date | Author | Changed Sections | Change Description | Status |
@@ -72,6 +72,7 @@ PRD này theo thực tiễn quản lý sản phẩm (SVPG, Aha!, Atlassian), n�
 | 0.3 | 2026-10-26 | Agent | §0, §3, §5, §7, §8, §9, §14 | Áp dụng phiếu trả lời OQ (`OQ-Answers.md`), đóng 7 OQ của PRD: chỉ tiêu BG-GEN-004; persona; giãn mục tiêu hiệu năng (DEC-GEN-022); Owner tổ chức có toàn quyền trên mọi hợp đồng (DEC-PRD-017); bỏ chia sẻ toàn tổ chức, US-SHARE-002 DEPRECATED (DEC-PRD-018); nghĩa vụ dữ liệu cá nhân ngoài phạm vi bản demo (DEC-PRD-019); MFA bằng OTP qua email; đánh giá RISK-GEN-006, RISK-GEN-008 | REVIEW |
 | 0.4 | 2026-10-27 | Agent | §3, §4, §5, §7, §8, §9, §14 | Mô hình không gian làm việc kiểu GitHub: thêm F-ORG-002 (không gian cá nhân, nhiều tổ chức), US-ORG-004, US-ORG-005, US-SHARE-005, F-CTR-009 (Won't); chia sẻ hợp đồng cá nhân cho mọi tài khoản; DEC-PRD-020, DEC-PRD-021 | REVIEW |
 | 1.0 | 2026-10-27 | Approver | Toàn bộ | Baseline tại Gate S5: Approver thông qua PRD (DEC-GEN-026); mọi mục REVIEW chuyển APPROVED | APPROVED |
+| 1.1 | 2026-10-27 | Agent | §7, §8, §14 | Bỏ MFA khỏi MVP. F-AUTH-003 Should → Won't, US-AUTH-004 DEPRECATED; thêm DEC-PRD-022 | REVIEW |
 
 ### 0.1 Tài liệu nguồn
 
@@ -279,7 +280,7 @@ Target Release:
 |---|---|---|---|---|---|---|---|---|
 | F-AUTH-001 | Tài khoản email | Đăng ký, đăng nhập bằng email và mật khẩu; xác thực email; quên mật khẩu | UCL-GEN-001, UCL-GEN-002, UCL-GEN-003, UCL-GEN-004 | BG-GEN-004 | STR-SEC-001 | Must | MVP | APPROVED |
 | F-AUTH-002 | Đăng nhập Google | Đăng nhập bằng tài khoản Google (OIDC) | UCL-GEN-001, UCL-GEN-002, UCL-GEN-003, UCL-GEN-004 | BG-GEN-004 | STR-SEC-001 | Should | MVP | APPROVED |
-| F-AUTH-003 | Xác thực đa yếu tố | MFA cho tài khoản bằng mã OTP gửi về email | UCL-GEN-001, UCL-GEN-002, UCL-GEN-003, UCL-GEN-004 | BG-GEN-004 | STR-SEC-001 | Should | MVP | APPROVED |
+| F-AUTH-003 | Xác thực đa yếu tố | MFA cho tài khoản. Sau MVP, ưu tiên Should: mỗi lần đăng nhập đều bắt buộc MFA bằng mã gửi qua email; không dùng ứng dụng xác thực bên thứ ba | UCL-GEN-001, UCL-GEN-002, UCL-GEN-003, UCL-GEN-004 | - | - | Won't | Sau MVP | REVIEW |
 | F-ORG-001 | Tổ chức và thành viên | Tạo tổ chức, mời thành viên qua email, vai trò Owner/Member cấp tổ chức | UCL-GEN-004 | BG-GEN-004 | STR-SHARE-001, STR-SEC-001 | Must | MVP | APPROVED |
 | F-ORG-002 | Không gian cá nhân và nhiều tổ chức | Không gian cá nhân có sẵn khi đăng ký; tạo hoặc tham gia nhiều tổ chức; chuyển giữa các không gian | UCL-GEN-001, UCL-GEN-002, UCL-GEN-004 | BG-GEN-004 | STR-CTR-001, STR-SEC-001 | Must | MVP | APPROVED |
 | F-SHARE-001 | Chia sẻ hợp đồng | Chia sẻ hợp đồng theo email (thành viên tổ chức với hợp đồng của tổ chức; mọi tài khoản với hợp đồng cá nhân), vai trò Owner/Member cấp hợp đồng, thu hồi quyền | UCL-GEN-002, UCL-GEN-004 | BG-GEN-004 | STR-SHARE-001 | Must | MVP | APPROVED |
@@ -353,15 +354,15 @@ Cột "Nguồn" giữ mã yêu cầu trong `docs/01-product-spec.md` (PS) để 
 
 | Attribute | Value |
 |---|---|
-| Description | MFA cho tài khoản; yếu tố thứ hai là mã OTP gửi về email (OQ-AUTH-001) |
+| Description | MFA cho tài khoản. Sau MVP, ưu tiên Should: mỗi lần đăng nhập đều bắt buộc MFA bằng mã gửi qua email; không dùng ứng dụng xác thực bên thứ ba. [CHANGE] 2026-10-27: bỏ MFA khỏi MVP (DEC-PRD-022). Trước đó: Should, yếu tố thứ hai là mã OTP gửi về email (OQ-AUTH-001) |
 | Personas | UCL-GEN-001, UCL-GEN-002, UCL-GEN-003, UCL-GEN-004 |
 | Goals | BG-GEN-004 |
 | Needs | STR-SEC-001 |
-| User Stories | US-AUTH-004 |
+| User Stories | US-AUTH-004 (DEPRECATED) |
 | Business Rules | None |
-| Priority | Should |
+| Priority | Won't |
 | Source | PS §6.1 ACC-09 |
-| Status | APPROVED |
+| Status | REVIEW |
 
 #### F-ORG-001 Tổ chức và thành viên
 
@@ -743,6 +744,7 @@ Các feature này nằm ngoài lần phát hành này. Chúng được ghi lại
 | F-CTR-007 | PS §6.2 CON-09 | DEC-GEN-009 |
 | F-CTR-008 | PS §6.2 CON-10 | DEC-GEN-009 |
 | F-CTR-009 | Approver 2026-10-27 | DEC-PRD-021 |
+| F-AUTH-003 | PS §6.1 ACC-09 | DEC-PRD-022. Bản sau MVP: ưu tiên Should, MFA qua email mỗi lần đăng nhập |
 
 ## 8. User Stories
 
@@ -801,11 +803,11 @@ Mẫu story và từ khóa tiêu chí nghiệm thu theo DEC-GEN-013. Story chỉ
 - **Feature**: F-AUTH-003
 - **Need**: STR-SEC-001
 - **Priority**: Should
-- **Status**: APPROVED
+- **Status**: DEPRECATED
 - **Source**: PS §6.1 ACC-09
 - **Acceptance Criteria**:
   1. Given tài khoản đã bật MFA, when người dùng đăng nhập bằng mật khẩu đúng, then hệ thống yêu cầu thêm yếu tố xác thực thứ hai trước khi cho vào.
-- **Notes**: Yếu tố thứ hai là mã OTP gửi về email (SRS FR-AUTH-013).
+- **Notes**: [DEPRECATED] Bỏ theo DEC-PRD-022: MFA không thuộc MVP. Giữ lại để lưu vết. Trước đó: yếu tố thứ hai là mã OTP gửi về email (SRS FR-AUTH-013).
 
 ### 8.2 Tổ chức và chia sẻ
 
@@ -1578,6 +1580,7 @@ Các quyết định cấp dự án (profile, bộ tài liệu, độ trễ, ưu
 | DEC-PRD-019 | Bản demo chưa xử lý nghĩa vụ pháp lý về bảo vệ dữ liệu cá nhân | 2026-10-26 | Approver | Trả lời OQ-PRIV-001: dự án đang là demo sản phẩm | STR-QUAL-010; SRS NFR-COMPL-001 (DEPRECATED), §11.8 | APPROVED |
 | DEC-PRD-020 | Mô hình không gian làm việc kiểu GitHub: mỗi tài khoản có sẵn một không gian cá nhân; người dùng tạo hoặc tham gia được nhiều tổ chức; mỗi hợp đồng thuộc đúng một không gian (không gian cá nhân của Owner, hoặc một tổ chức). Thay phần "mỗi người chỉ thuộc một tổ chức" của DEC-PRD-013 | 2026-10-27 | Approver | Người dùng dùng được hệ thống một mình, tạo tổ chức khi cần làm việc nhóm | F-ORG-001, F-ORG-002; SRS BR-ORG-004, BR-ORG-001 (DEPRECATED), FR-ORG-002 (DEPRECATED) | APPROVED |
 | DEC-PRD-021 | Chia sẻ theo loại không gian: hợp đồng của tổ chức chỉ chia sẻ cho thành viên tổ chức đó; hợp đồng cá nhân chia sẻ cho email của bất kỳ tài khoản đã đăng ký. Chuyển hợp đồng giữa các không gian và chuyển quyền Owner của hợp đồng cá nhân là Won't (F-CTR-009) | 2026-10-27 | Approver | Hợp đồng cá nhân cần nhờ được người review bên ngoài; giữ phạm vi MVP gọn | F-SHARE-001, F-SHARE-002, F-CTR-009, US-SHARE-005; SRS BR-SHARE-003, FR-SHARE-009, FR-SHARE-010 | APPROVED |
+| DEC-PRD-022 | F-AUTH-003 (MFA) không thuộc MVP, chuyển Won't. Lý do: không cần cho buổi demo. Định hướng sau MVP: ưu tiên Should; mỗi lần đăng nhập đều bắt buộc nhập mã gửi qua email; không dùng ứng dụng xác thực bên thứ ba | 2026-10-27 | Approver | F-AUTH-003, US-AUTH-004; SRS FR-AUTH-012, FR-AUTH-013, SEC-AUTH-004 |
 
 ### 14.3 Product Risks
 

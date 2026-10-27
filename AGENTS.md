@@ -7,17 +7,17 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 ## Trạng thái (cập nhật khi đổi giai đoạn)
 
 - PRD v1.0 và SRS v1.0 đã **baseline** (Gate S5, 2026-10-27). Sửa spec chỉ qua change request (`RDK/Agent/03-SRS/06-Change Request Workflow.md`).
-- Đang ở: system design (`docs/02-system-design.md`, mới xong bước 1) rồi code theo `docs/03-implementation-phases.md`.
+- Đang ở: system design. Bước 1 đã chốt; bước 2–8 có đề xuất trong `docs/04-system-design-decisions.md`, chờ Approver quyết định. Sau đó code theo `docs/03-implementation-phases.md`.
 - Frontend: React Router framework mode, `ssr: false`, build ra file tĩnh (DEC-GEN-027).
-- Chưa có code backend. `frontend/` là prototype dữ liệu giả (xem `frontend/DEMO-CLEANUP.md`).
+- `backend/` mới có khung ASP.NET Core (`ContractGuard.Api`). `frontend/` chưa có code.
 
 ## Đọc gì, theo thứ tự
 
 1. `docs/spec/00-Project-State.md`: quyết định (DEC-*), vị trí hiện tại. Đọc trước.
 2. `docs/03-implementation-phases.md`: phase và điểm cần chốt (§4).
-3. `docs/02-system-design.md`: ràng buộc, ước lượng.
+3. `docs/02-system-design.md`: ràng buộc, ước lượng, quyết định đã chốt. `docs/04-system-design-decisions.md`: phiếu quyết định bước 2–8.
 4. `docs/architecture/*.html`: sơ đồ tổng quan, luồng phân tích.
-5. `frontend/design.md`: style giao diện (token, font, component). Đọc trước khi làm UI.
+5. `docs/DESIGN.md`: hệ thống giao diện (token, font, component, quy tắc). Đọc trước khi làm UI; `docs/PRODUCT.md` là định hướng sản phẩm.
 
 **Không đọc cả `docs/spec/03-SRS.md` (6000+ dòng) hay `02-PRD.md`.** Tra theo ID:
 - `grep -n "FR-XXX-001" docs/spec/03-SRS.md`, rồi `Read` với offset và limit.
@@ -27,7 +27,7 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 
 ## Quy tắc
 
-- **System design: coach, đừng viết hộ.** Người dùng tự nháp từng bước; agent giải thích khái niệm, đưa câu hỏi, review, rồi mới ghi kết quả đã chốt.
+- **System design:** agent viết đề xuất kèm phương án và trade-off vào `docs/04-system-design-decisions.md`; Approver đọc và quyết định (dòng Quyết định để trống = đồng ý). Chỉ ghi vào `02-system-design.md` sau khi đã chốt.
 - **Không bao giờ tự đặt `APPROVED`.** Chỉ Approver (SE của nhóm) quyết định.
 - **Không sửa** `RDK/` (Requirements Documentation Kit, cài ở máy local bằng `npx req-doc-kit`, không có trên GitHub). Quy tắc làm spec nằm ở `RDK/Agent/AGENTS.md`.
 - AI chạy qua Amazon Bedrock; model chưa chốt, do eval quyết định (DEC-GEN-010, DEC-GEN-016).

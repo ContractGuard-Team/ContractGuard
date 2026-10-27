@@ -5268,73 +5268,69 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <path data-edge-from="hosting" data-edge-to="spa" data-edge-label="tải SPA" data-edge-key="1" data-edge-id="load-spa" data-composition-points="520,480;480,480;480,283;440,283" data-composition-crossover="halo" data-composition-independent="true" d="M 520 480 L 488 480 Q 480 480 480 472 L 480 291 Q 480 283 472 283 L 440 283" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:2">
-          <path data-graph-role="automatic-crossover-underlay" d="M 355 240 L 355 190 Q 355 182 363 182 L 592 182 Q 600 182 600 174 L 600 124" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="spa" data-edge-to="cognito" data-edge-label="đăng nhập" data-edge-key="2" data-edge-id="login" data-composition-points="355,240;355,182;600,182;600,124" data-composition-crossover="halo" data-composition-independent="true" d="M 355 240 L 355 190 Q 355 182 363 182 L 592 182 Q 600 182 600 174 L 600 124" class="a-security" data-animate="edge" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 355 240 L 355 120" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="spa" data-edge-to="google" data-edge-label="đăng nhập Google" data-edge-key="2" data-edge-id="google-login" data-composition-points="355,240;355,120" data-composition-crossover="halo" data-composition-independent="true" d="M 355 240 L 355 120" class="a-security" data-animate="edge" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:3">
-          <path data-graph-role="automatic-crossover-underlay" d="M 520 92 L 190 92" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="cognito" data-edge-to="google" data-edge-label="liên kết Google" data-edge-key="3" data-edge-id="federate" data-composition-points="520,92;190,92" data-composition-crossover="halo" data-composition-independent="true" d="M 520 92 L 190 92" class="a-security" data-animate="edge" style="--step:3" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 440 267.95 L 520 267.95" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="spa" data-edge-to="alb" data-edge-label="REST /api" data-edge-key="3" data-edge-id="rest" data-composition-points="440,267.95;520,267.95" data-composition-crossover="halo" data-composition-independent="true" d="M 440 267.95 L 520 267.95" class="a-emphasis" data-animate="edge" style="--step:3" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:4">
-          <path data-graph-role="automatic-crossover-underlay" d="M 440 267.95 L 520 267.95" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="spa" data-edge-to="alb" data-edge-label="REST + JWT" data-edge-key="4" data-edge-id="rest" data-composition-points="440,267.95;520,267.95" data-composition-crossover="halo" data-composition-independent="true" d="M 440 267.95 L 520 267.95" class="a-emphasis" data-animate="edge" style="--step:4" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 680 276 L 760 276" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="alb" data-edge-to="api" data-edge-key="4" data-edge-id="alb-api" data-composition-points="680,276;760,276" data-composition-crossover="halo" data-composition-independent="true" d="M 680 276 L 760 276" class="a-emphasis" data-animate="edge" style="--step:4" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:5">
-          <path data-graph-role="automatic-crossover-underlay" d="M 680 276 L 760 276" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="alb" data-edge-to="api" data-edge-key="5" data-edge-id="alb-api" data-composition-points="680,276;760,276" data-composition-crossover="halo" data-composition-independent="true" d="M 680 276 L 760 276" class="a-emphasis" data-animate="edge" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 845 240 L 845 124" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="api" data-edge-to="rds" data-edge-label="SQL (EF Core)" data-edge-key="5" data-edge-id="sql" data-composition-points="845,240;845,124" data-composition-crossover="halo" data-composition-independent="true" d="M 845 240 L 845 124" class="a-default" data-animate="edge" style="--step:5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:6">
-          <path data-graph-role="automatic-crossover-underlay" d="M 845 240 L 845 124" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="api" data-edge-to="rds" data-edge-label="SQL (EF Core)" data-edge-key="6" data-edge-id="sql" data-composition-points="845,240;845,124" data-composition-crossover="halo" data-composition-independent="true" d="M 845 240 L 845 124" class="a-default" data-animate="edge" style="--step:6" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 845 320 L 845 450" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="api" data-edge-to="ses" data-edge-label="gửi email" data-edge-key="6" data-edge-id="send-mail" data-composition-points="845,320;845,450" data-composition-crossover="halo" data-composition-independent="true" d="M 845 320 L 845 450" class="a-default" data-animate="edge" style="--step:6" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:7">
-          <path data-graph-role="automatic-crossover-underlay" d="M 845 320 L 845 450" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="api" data-edge-to="ses" data-edge-label="gửi email" data-edge-key="7" data-edge-id="send-mail" data-composition-points="845,320;845,450" data-composition-crossover="halo" data-composition-independent="true" d="M 845 320 L 845 450" class="a-default" data-animate="edge" style="--step:7" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 914 240 L 914 202 Q 914 194 922 194 L 1010 194" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="api" data-edge-to="sqsReq" data-edge-label="tạo job" data-edge-key="7" data-edge-id="enqueue" data-composition-points="914,240;914,194;1010,194" data-composition-crossover="halo" data-composition-independent="true" d="M 914 240 L 914 202 Q 914 194 922 194 L 1010 194" class="a-dashed" data-animate="edge" style="--step:7" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:8">
-          <path data-graph-role="automatic-crossover-underlay" d="M 914 240 L 914 202 Q 914 194 922 194 L 1010 194" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="api" data-edge-to="sqsReq" data-edge-label="tạo job" data-edge-key="8" data-edge-id="enqueue" data-composition-points="914,240;914,194;1010,194" data-composition-crossover="halo" data-composition-independent="true" d="M 914 240 L 914 202 Q 914 194 922 194 L 1010 194" class="a-dashed" data-animate="edge" style="--step:8" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1190 194 L 1258 194 Q 1266 194 1266 202 L 1266 240" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="sqsReq" data-edge-to="worker" data-edge-label="nhận job" data-edge-key="8" data-edge-id="consume" data-composition-points="1190,194;1266,194;1266,240" data-composition-crossover="halo" data-composition-independent="true" d="M 1190 194 L 1258 194 Q 1266 194 1266 202 L 1266 240" class="a-dashed" data-animate="edge" style="--step:8" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:9">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1190 194 L 1258 194 Q 1266 194 1266 202 L 1266 240" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="sqsReq" data-edge-to="worker" data-edge-label="nhận job" data-edge-key="9" data-edge-id="consume" data-composition-points="1190,194;1266,194;1266,240" data-composition-crossover="halo" data-composition-independent="true" d="M 1190 194 L 1258 194 Q 1266 194 1266 202 L 1266 240" class="a-dashed" data-animate="edge" style="--step:9" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1266 320 L 1266 348 Q 1266 356 1258 356 L 1190 356" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="worker" data-edge-to="sqsRes" data-edge-label="kết quả" data-edge-key="9" data-edge-id="publish-result" data-composition-points="1266,320;1266,356;1190,356" data-composition-crossover="halo" data-composition-independent="true" d="M 1266 320 L 1266 348 Q 1266 356 1258 356 L 1190 356" class="a-dashed" data-animate="edge" style="--step:9" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:10">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1266 320 L 1266 348 Q 1266 356 1258 356 L 1190 356" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="worker" data-edge-to="sqsRes" data-edge-label="kết quả" data-edge-key="10" data-edge-id="publish-result" data-composition-points="1266,320;1266,356;1190,356" data-composition-crossover="halo" data-composition-independent="true" d="M 1266 320 L 1266 348 Q 1266 356 1258 356 L 1190 356" class="a-dashed" data-animate="edge" style="--step:10" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1010 356 L 922 356 Q 914 356 914 348 L 914 320" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="sqsRes" data-edge-to="api" data-edge-label="BackgroundService" data-edge-key="10" data-edge-id="read-result" data-composition-points="1010,356;914,356;914,320" data-composition-crossover="halo" data-composition-independent="true" d="M 1010 356 L 922 356 Q 914 356 914 348 L 914 320" class="a-dashed" data-animate="edge" style="--step:10" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:11">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1010 356 L 922 356 Q 914 356 914 348 L 914 320" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="sqsRes" data-edge-to="api" data-edge-label="BackgroundService" data-edge-key="11" data-edge-id="read-result" data-composition-points="1010,356;914,356;914,320" data-composition-crossover="halo" data-composition-independent="true" d="M 1010 356 L 922 356 Q 914 356 914 348 L 914 320" class="a-dashed" data-animate="edge" style="--step:11" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1330 240 L 1330 124" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="worker" data-edge-to="bedrock" data-edge-label="phân loại, đánh giá" data-edge-key="11" data-edge-id="llm" data-composition-points="1330,240;1330,124" data-composition-crossover="halo" data-composition-independent="true" d="M 1330 240 L 1330 124" class="a-default" data-animate="edge" style="--step:11" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:12">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1330 240 L 1330 124" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="worker" data-edge-to="bedrock" data-edge-label="phân loại, đánh giá" data-edge-key="12" data-edge-id="llm" data-composition-points="1330,240;1330,124" data-composition-crossover="halo" data-composition-independent="true" d="M 1330 240 L 1330 124" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1410 280 L 1490 280" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="worker" data-edge-to="textract" data-edge-label="OCR" data-edge-key="12" data-edge-id="ocr" data-composition-points="1410,280;1490,280" data-composition-crossover="halo" data-composition-independent="true" d="M 1410 280 L 1490 280" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:13">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1410 280 L 1490 280" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="worker" data-edge-to="textract" data-edge-label="OCR" data-edge-key="13" data-edge-id="ocr" data-composition-points="1410,280;1490,280" data-composition-crossover="halo" data-composition-independent="true" d="M 1410 280 L 1490 280" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1330 320 L 1330 480" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="worker" data-edge-to="s3" data-edge-label="đọc file, ghi JSON" data-edge-key="13" data-edge-id="worker-s3" data-composition-points="1330,320;1330,480" data-composition-crossover="halo" data-composition-independent="true" d="M 1330 320 L 1330 480" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:14">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1330 320 L 1330 480" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="worker" data-edge-to="s3" data-edge-label="đọc file, ghi JSON" data-edge-key="14" data-edge-id="worker-s3" data-composition-points="1330,320;1330,480" data-composition-crossover="halo" data-composition-independent="true" d="M 1330 320 L 1330 480" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        </g>
-        <g data-graph-role="automatic-crossover" style="--step:15">
           <path data-graph-role="automatic-crossover-underlay" d="M 355 312 L 355 556 Q 355 564 363 564 L 1202 564 Q 1210 564 1210 556 L 1210 540" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="spa" data-edge-to="s3" data-edge-label="upload bằng presigned URL" data-edge-key="15" data-edge-id="upload" data-composition-points="355,312;355,564;1210,564;1210,540" data-composition-crossover="halo" data-composition-independent="true" d="M 355 312 L 355 556 Q 355 564 363 564 L 1202 564 Q 1210 564 1210 556 L 1210 540" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-edge-from="spa" data-edge-to="s3" data-edge-label="upload bằng presigned URL" data-edge-key="14" data-edge-id="upload" data-composition-points="355,312;355,564;1210,564;1210,540" data-composition-crossover="halo" data-composition-independent="true" d="M 355 312 L 355 556 Q 355 564 363 564 L 1202 564 Q 1210 564 1210 556 L 1210 540" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
 
         <!-- Components -->
         <g id="node-google" data-node-id="google" data-node-label="Google" tabindex="0" role="button" aria-label="Focus Google, đăng nhập OIDC, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="đăng nhập OIDC" data-node-context="Architecture component">
           <title>Google · đăng nhập OIDC · Architecture component</title>
-          <rect x="40" y="60" width="150" height="60" rx="8" class="c-mask"/>
-          <rect x="40" y="60" width="150" height="60" rx="8" class="c-external" data-animate="node" style="--step:4" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(46 66) scale(0.6875)">
+          <rect x="270" y="60" width="170" height="60" rx="8" class="c-mask"/>
+          <rect x="270" y="60" width="170" height="60" rx="8" class="c-external" data-animate="node" style="--step:3" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(276 66) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="115" y="88" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Google</text>
-        <text data-detail="context" x="115" y="104" class="t-muted" font-size="9" text-anchor="middle">đăng nhập OIDC</text>
+          <text data-node-label="" data-detail-anchor="" x="355" y="88" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Google</text>
+        <text data-detail="context" x="355" y="104" class="t-muted" font-size="9" text-anchor="middle">đăng nhập OIDC</text>
         </g>
 
         <g id="node-users" data-node-id="users" data-node-label="Người dùng" tabindex="0" role="button" aria-label="Focus Người dùng, trình duyệt desktop, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="trình duyệt desktop" data-node-context="Architecture component">
@@ -5364,23 +5360,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="355" y="304" class="t-frontend" font-size="7" text-anchor="middle">shadcn/ui, PDF.js, Recharts</text>
         </g>
 
-        <g id="node-cognito" data-node-id="cognito" data-node-label="Amazon Cognito" tabindex="0" role="button" aria-label="Focus Amazon Cognito, OIDC, JWT · dự kiến (D1), AWS ap-southeast-1 (Singapore)" aria-pressed="false" data-node-kind="security" data-node-sublabel="OIDC, JWT · dự kiến (D1)" data-node-tag="dự kiến (D1)" data-node-context="AWS ap-southeast-1 (Singapore)">
-          <title>Amazon Cognito · OIDC, JWT · dự kiến (D1) · AWS ap-southeast-1 (Singapore) · dự kiến (D1)</title>
-          <rect x="520" y="60" width="160" height="64" rx="8" class="c-mask"/>
-          <rect x="520" y="60" width="160" height="64" rx="8" class="c-security" data-animate="node" style="--step:3" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(526 66) scale(0.6875)">
-            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
-            <path d="m5.8 8 1.5 1.5 3-3"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="600" y="90" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Amazon Cognito</text>
-        <text data-detail="context" x="600" y="106" class="t-muted" font-size="9" text-anchor="middle">OIDC, JWT · dự kiến (D1)</text>
-        <text data-detail="fine" x="600" y="116" class="t-security" font-size="7" text-anchor="middle">dự kiến (D1)</text>
-        </g>
-
         <g id="node-alb" data-node-id="alb" data-node-label="ALB" tabindex="0" role="button" aria-label="Focus ALB, HTTPS :443, AWS ap-southeast-1 (Singapore) › Public subnet, không NAT" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="HTTPS :443" data-node-context="AWS ap-southeast-1 (Singapore) › Public subnet, không NAT">
           <title>ALB · HTTPS :443 · AWS ap-southeast-1 (Singapore) › Public subnet, không NAT</title>
           <rect x="520" y="240" width="160" height="72" rx="8" class="c-mask"/>
-          <rect x="520" y="240" width="160" height="72" rx="8" class="c-cloud" data-animate="node" style="--step:5" stroke-width="1.5"/>
+          <rect x="520" y="240" width="160" height="72" rx="8" class="c-cloud" data-animate="node" style="--step:4" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(526 246) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
@@ -5402,7 +5385,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-rds" data-node-id="rds" data-node-label="RDS PostgreSQL" tabindex="0" role="button" aria-label="Focus RDS PostgreSQL, + pgvector, private subnet, AWS ap-southeast-1 (Singapore) › Private subnet" aria-pressed="false" data-node-kind="database" data-node-sublabel="+ pgvector, private subnet" data-node-tag="single-AZ, Graviton" data-node-context="AWS ap-southeast-1 (Singapore) › Private subnet">
           <title>RDS PostgreSQL · + pgvector, private subnet · AWS ap-southeast-1 (Singapore) › Private subnet · single-AZ, Graviton</title>
           <rect x="760" y="60" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="760" y="60" width="170" height="64" rx="8" class="c-database" data-animate="node" style="--step:7" stroke-width="1.5"/>
+          <rect x="760" y="60" width="170" height="64" rx="8" class="c-database" data-animate="node" style="--step:6" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(766 66) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
@@ -5412,34 +5395,33 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="845" y="116" class="t-database" font-size="7" text-anchor="middle">single-AZ, Graviton</text>
         </g>
 
-        <g id="node-api" data-node-id="api" data-node-label="API C# .NET 10" tabindex="0" role="button" aria-label="Focus API C# .NET 10, ASP.NET Core, Fargate ARM, AWS ap-southeast-1 (Singapore) › Public subnet, không NAT" aria-pressed="false" data-node-kind="backend" data-node-sublabel="ASP.NET Core, Fargate ARM" data-node-tag="EF Core, rule engine YAML" data-node-context="AWS ap-southeast-1 (Singapore) › Public subnet, không NAT">
-          <title>API C# .NET 10 · ASP.NET Core, Fargate ARM · AWS ap-southeast-1 (Singapore) › Public subnet, không NAT · EF Core, rule engine YAML</title>
+        <g id="node-api" data-node-id="api" data-node-label="API C# .NET 10" tabindex="0" role="button" aria-label="Focus API C# .NET 10, ASP.NET Core, Fargate ARM, AWS ap-southeast-1 (Singapore) › Public subnet, không NAT" aria-pressed="false" data-node-kind="backend" data-node-sublabel="ASP.NET Core, Fargate ARM" data-node-tag="EF Core, Identity, rule YAML" data-node-context="AWS ap-southeast-1 (Singapore) › Public subnet, không NAT">
+          <title>API C# .NET 10 · ASP.NET Core, Fargate ARM · AWS ap-southeast-1 (Singapore) › Public subnet, không NAT · EF Core, Identity, rule YAML</title>
           <rect x="760" y="240" width="170" height="80" rx="8" class="c-mask"/>
-          <rect x="760" y="240" width="170" height="80" rx="8" class="c-backend" data-animate="node" style="--step:6" stroke-width="1.5"/>
+          <rect x="760" y="240" width="170" height="80" rx="8" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(766 246) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="845" y="278" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">API C# .NET 10</text>
         <text data-detail="context" x="845" y="294" class="t-muted" font-size="9" text-anchor="middle">ASP.NET Core, Fargate ARM</text>
-        <text data-detail="fine" x="845" y="312" class="t-backend" font-size="7" text-anchor="middle">EF Core, rule engine YAML</text>
+        <text data-detail="fine" x="845" y="312" class="t-backend" font-size="7" text-anchor="middle">EF Core, Identity, rule YAML</text>
         </g>
 
-        <g id="node-ses" data-node-id="ses" data-node-label="Amazon SES" tabindex="0" role="button" aria-label="Focus Amazon SES, email, OTP · dự kiến (D2), AWS ap-southeast-1 (Singapore)" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="email, OTP · dự kiến (D2)" data-node-tag="dự kiến (D2)" data-node-context="AWS ap-southeast-1 (Singapore)">
-          <title>Amazon SES · email, OTP · dự kiến (D2) · AWS ap-southeast-1 (Singapore) · dự kiến (D2)</title>
-          <rect x="760" y="450" width="170" height="64" rx="8" class="c-mask"/>
-          <rect x="760" y="450" width="170" height="64" rx="8" class="c-cloud" data-animate="node" style="--step:8" stroke-width="1.5"/>
+        <g id="node-ses" data-node-id="ses" data-node-label="Amazon SES" tabindex="0" role="button" aria-label="Focus Amazon SES, email xác thực, đặt lại mật khẩu, mời, AWS ap-southeast-1 (Singapore)" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="email xác thực, đặt lại mật khẩu, mời" data-node-context="AWS ap-southeast-1 (Singapore)">
+          <title>Amazon SES · email xác thực, đặt lại mật khẩu, mời · AWS ap-southeast-1 (Singapore)</title>
+          <rect x="760" y="450" width="200" height="64" rx="8" class="c-mask"/>
+          <rect x="760" y="450" width="200" height="64" rx="8" class="c-cloud" data-animate="node" style="--step:7" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(766 456) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="845" y="480" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Amazon SES</text>
-        <text data-detail="context" x="845" y="496" class="t-muted" font-size="9" text-anchor="middle">email, OTP · dự kiến (D2)</text>
-        <text data-detail="fine" x="845" y="506" class="t-cloud" font-size="7" text-anchor="middle">dự kiến (D2)</text>
+          <text data-node-label="" data-detail-anchor="" x="860" y="480" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Amazon SES</text>
+        <text data-detail="context" x="860" y="496" class="t-muted" font-size="8.6" text-anchor="middle">email xác thực, đặt lại mật khẩu, mời</text>
         </g>
 
         <g id="node-sqsReq" data-node-id="sqsReq" data-node-label="SQS analysis-requests" tabindex="0" role="button" aria-label="Focus SQS analysis-requests, có dead-letter queue, AWS ap-southeast-1 (Singapore)" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="có dead-letter queue" data-node-context="AWS ap-southeast-1 (Singapore)">
           <title>SQS analysis-requests · có dead-letter queue · AWS ap-southeast-1 (Singapore)</title>
           <rect x="1010" y="150" width="180" height="60" rx="8" class="c-mask"/>
-          <rect x="1010" y="150" width="180" height="60" rx="8" class="c-messagebus" data-animate="node" style="--step:9" stroke-width="1.5"/>
+          <rect x="1010" y="150" width="180" height="60" rx="8" class="c-messagebus" data-animate="node" style="--step:8" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(1016 156) scale(0.6875)">
             <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
             <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
@@ -5453,7 +5435,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-sqsRes" data-node-id="sqsRes" data-node-label="SQS analysis-results" tabindex="0" role="button" aria-label="Focus SQS analysis-results, có dead-letter queue, AWS ap-southeast-1 (Singapore)" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="có dead-letter queue" data-node-context="AWS ap-southeast-1 (Singapore)">
           <title>SQS analysis-results · có dead-letter queue · AWS ap-southeast-1 (Singapore)</title>
           <rect x="1010" y="340" width="180" height="60" rx="8" class="c-mask"/>
-          <rect x="1010" y="340" width="180" height="60" rx="8" class="c-messagebus" data-animate="node" style="--step:11" stroke-width="1.5"/>
+          <rect x="1010" y="340" width="180" height="60" rx="8" class="c-messagebus" data-animate="node" style="--step:10" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(1016 346) scale(0.6875)">
             <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
             <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
@@ -5491,7 +5473,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g id="node-worker" data-node-id="worker" data-node-label="Worker Python 3.12" tabindex="0" role="button" aria-label="Focus Worker Python 3.12, Fargate Spot, scale 0→N, AWS ap-southeast-1 (Singapore) › Public subnet" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Fargate Spot, scale 0→N" data-node-tag="Docling, Pydantic, boto3" data-node-context="AWS ap-southeast-1 (Singapore) › Public subnet">
           <title>Worker Python 3.12 · Fargate Spot, scale 0→N · AWS ap-southeast-1 (Singapore) › Public subnet · Docling, Pydantic, boto3</title>
           <rect x="1250" y="240" width="160" height="80" rx="8" class="c-mask"/>
-          <rect x="1250" y="240" width="160" height="80" rx="8" class="c-backend" data-animate="node" style="--step:10" stroke-width="1.5"/>
+          <rect x="1250" y="240" width="160" height="80" rx="8" class="c-backend" data-animate="node" style="--step:9" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1256 246) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
@@ -5520,56 +5502,52 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <rect x="458.2" y="361.5" width="43.6" height="14" rx="3" class="c-mask"/>
           <text x="480" y="371.5" class="t-edge-default" font-size="8" text-anchor="middle">tải SPA</text>
         </g>
-        <g data-detail="context" data-edge-from="spa" data-edge-to="cognito" data-edge-label="đăng nhập" data-edge-key="2" data-edge-id="login">
-          <rect x="450.9" y="162" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
-          <text x="477.5" y="172" class="t-edge-security" font-size="8" text-anchor="middle">đăng nhập</text>
+        <g data-detail="context" data-edge-from="spa" data-edge-to="google" data-edge-label="đăng nhập Google" data-edge-key="2" data-edge-id="google-login">
+          <rect x="311.6" y="220" width="86.8" height="14" rx="3" class="c-mask"/>
+          <text x="355" y="230" class="t-edge-security" font-size="8" text-anchor="middle">đăng nhập Google</text>
         </g>
-        <g data-detail="context" data-edge-from="cognito" data-edge-to="google" data-edge-label="liên kết Google" data-edge-key="3" data-edge-id="federate">
-          <rect x="314" y="72" width="82" height="14" rx="3" class="c-mask"/>
-          <text x="355" y="82" class="t-edge-security" font-size="8" text-anchor="middle">liên kết Google</text>
-        </g>
-        <g data-detail="context" data-edge-from="spa" data-edge-to="alb" data-edge-label="REST + JWT" data-edge-key="4" data-edge-id="rest">
-          <rect x="451" y="247.95" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="480" y="257.95" class="t-edge-emphasis" font-size="8" text-anchor="middle">REST + JWT</text>
+        <g data-detail="context" data-edge-from="spa" data-edge-to="alb" data-edge-label="REST /api" data-edge-key="3" data-edge-id="rest">
+          <rect x="453.4" y="247.95" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
+          <text x="480" y="257.95" class="t-edge-emphasis" font-size="8" text-anchor="middle">REST /api</text>
         </g>
 
-        <g data-detail="context" data-edge-from="api" data-edge-to="rds" data-edge-label="SQL (EF Core)" data-edge-key="6" data-edge-id="sql">
+        <g data-detail="context" data-edge-from="api" data-edge-to="rds" data-edge-label="SQL (EF Core)" data-edge-key="5" data-edge-id="sql">
           <rect x="808.8" y="220" width="72.4" height="14" rx="3" class="c-mask"/>
           <text x="845" y="230" class="t-edge-default" font-size="8" text-anchor="middle">SQL (EF Core)</text>
         </g>
-        <g data-detail="context" data-edge-from="api" data-edge-to="ses" data-edge-label="gửi email" data-edge-key="7" data-edge-id="send-mail">
+        <g data-detail="context" data-edge-from="api" data-edge-to="ses" data-edge-label="gửi email" data-edge-key="6" data-edge-id="send-mail">
           <rect x="785.8" y="378" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
           <text x="812.4" y="388" class="t-edge-default" font-size="8" text-anchor="middle">gửi email</text>
         </g>
-        <g data-detail="context" data-edge-from="api" data-edge-to="sqsReq" data-edge-label="tạo job" data-edge-key="8" data-edge-id="enqueue">
+        <g data-detail="context" data-edge-from="api" data-edge-to="sqsReq" data-edge-label="tạo job" data-edge-key="7" data-edge-id="enqueue">
           <rect x="940.2" y="174" width="43.6" height="14" rx="3" class="c-mask"/>
           <text x="962" y="184" class="t-edge-dashed" font-size="8" text-anchor="middle">tạo job</text>
         </g>
-        <g data-detail="context" data-edge-from="sqsReq" data-edge-to="worker" data-edge-label="nhận job" data-edge-key="9" data-edge-id="consume">
+        <g data-detail="context" data-edge-from="sqsReq" data-edge-to="worker" data-edge-label="nhận job" data-edge-key="8" data-edge-id="consume">
           <rect x="1241.8" y="197" width="48.4" height="14" rx="3" class="c-mask"/>
           <text x="1266" y="207" class="t-edge-dashed" font-size="8" text-anchor="middle">nhận job</text>
         </g>
-        <g data-detail="context" data-edge-from="worker" data-edge-to="sqsRes" data-edge-label="kết quả" data-edge-key="10" data-edge-id="publish-result">
+        <g data-detail="context" data-edge-from="worker" data-edge-to="sqsRes" data-edge-label="kết quả" data-edge-key="9" data-edge-id="publish-result">
           <rect x="1206.2" y="336" width="43.6" height="14" rx="3" class="c-mask"/>
           <text x="1228" y="346" class="t-edge-dashed" font-size="8" text-anchor="middle">kết quả</text>
         </g>
-        <g data-detail="context" data-edge-from="sqsRes" data-edge-to="api" data-edge-label="BackgroundService" data-edge-key="11" data-edge-id="read-result">
+        <g data-detail="context" data-edge-from="sqsRes" data-edge-to="api" data-edge-label="BackgroundService" data-edge-key="10" data-edge-id="read-result">
           <rect x="868.2" y="318" width="91.6" height="14" rx="3" class="c-mask"/>
           <text x="914" y="328" class="t-edge-dashed" font-size="8" text-anchor="middle">BackgroundService</text>
         </g>
-        <g data-detail="context" data-edge-from="worker" data-edge-to="bedrock" data-edge-label="phân loại, đánh giá" data-edge-key="12" data-edge-id="llm">
+        <g data-detail="context" data-edge-from="worker" data-edge-to="bedrock" data-edge-label="phân loại, đánh giá" data-edge-key="11" data-edge-id="llm">
           <rect x="1222.8000000000002" y="175" width="101.2" height="14" rx="3" class="c-mask"/>
           <text x="1273.4" y="185" class="t-edge-default" font-size="8" text-anchor="middle">phân loại, đánh giá</text>
         </g>
-        <g data-detail="context" data-edge-from="worker" data-edge-to="textract" data-edge-label="OCR" data-edge-key="13" data-edge-id="ocr">
+        <g data-detail="context" data-edge-from="worker" data-edge-to="textract" data-edge-label="OCR" data-edge-key="12" data-edge-id="ocr">
           <rect x="1435" y="260" width="30" height="14" rx="3" class="c-mask"/>
           <text x="1450" y="270" class="t-edge-default" font-size="8" text-anchor="middle">OCR</text>
         </g>
-        <g data-detail="context" data-edge-from="worker" data-edge-to="s3" data-edge-label="đọc file, ghi JSON" data-edge-key="14" data-edge-id="worker-s3">
+        <g data-detail="context" data-edge-from="worker" data-edge-to="s3" data-edge-label="đọc file, ghi JSON" data-edge-key="13" data-edge-id="worker-s3">
           <rect x="1227.6" y="393" width="96.39999999999999" height="14" rx="3" class="c-mask"/>
           <text x="1275.8" y="403" class="t-edge-default" font-size="8" text-anchor="middle">đọc file, ghi JSON</text>
         </g>
-        <g data-detail="context" data-edge-from="spa" data-edge-to="s3" data-edge-label="upload bằng presigned URL" data-edge-key="15" data-edge-id="upload">
+        <g data-detail="context" data-edge-from="spa" data-edge-to="s3" data-edge-label="upload bằng presigned URL" data-edge-key="14" data-edge-id="upload">
           <rect x="717.5" y="544" width="130" height="14" rx="3" class="c-mask"/>
           <text x="782.5" y="554" class="t-edge-emphasis" font-size="8" text-anchor="middle">upload bằng presigned URL</text>
         </g>
@@ -5614,17 +5592,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <rect x="459" y="607" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
             <text x="481" y="616" class="t-muted" font-size="10" font-weight="500">Dịch vụ AWS</text>
           </g>
-          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Xác thực" data-legend-x="593" data-legend-baseline="616" data-legend-width="93">
-            <rect x="593" y="607" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
-            <text x="615" y="616" class="t-muted" font-size="10" font-weight="500">Xác thực</text>
+          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="Hàng đợi" data-legend-x="593" data-legend-baseline="616" data-legend-width="93">
+            <rect x="593" y="607" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
+            <text x="615" y="616" class="t-muted" font-size="10" font-weight="500">Hàng đợi</text>
           </g>
-          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="Hàng đợi" data-legend-x="708" data-legend-baseline="616" data-legend-width="93">
-            <rect x="708" y="607" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
-            <text x="730" y="616" class="t-muted" font-size="10" font-weight="500">Hàng đợi</text>
-          </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="Bên ngoài AWS" data-legend-x="823" data-legend-baseline="616" data-legend-width="124">
-            <rect x="823" y="607" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="845" y="616" class="t-muted" font-size="10" font-weight="500">Bên ngoài AWS</text>
+          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="Bên ngoài AWS" data-legend-x="708" data-legend-baseline="616" data-legend-width="124">
+            <rect x="708" y="607" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
+            <text x="730" y="616" class="t-muted" font-size="10" font-weight="500">Bên ngoài AWS</text>
           </g>
         </g>
       </svg>
@@ -5834,21 +5808,21 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>Bảo mật và vận hành</h3>
         </div>
         <ul>
+          <li>Đăng nhập: ASP.NET Core Identity trong API, cookie httpOnly; không MFA trong MVP</li>
           <li>S3 mã hóa SSE-KMS; secret trong Secrets Manager</li>
-          <li>OpenTelemetry gửi sang CloudWatch và X-Ray, job_id là correlation ID</li>
-          <li>Triển khai: AWS CDK (C#), GitHub Actions, ECR</li>
+          <li>Log JSON có job_id lên CloudWatch; triển khai bằng AWS CDK (C#), GitHub Actions, ECR</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot amber"></div>
-          <h3>Chưa chốt (xem docs/03-implementation-phases.md §4)</h3>
+          <h3>Còn mở (xem docs/02-system-design.md §4)</h3>
         </div>
         <ul>
-          <li>D1: Cognito hay auth tự viết (khóa theo email, OTP email của SRS)</li>
-          <li>D2: SES ra khỏi sandbox; D3, D4: chatbot gọi Bedrock và đọc pgvector ở đâu, streaming bằng gì</li>
-          <li>D5: worker chạy sẵn hay scale từ 0</li>
+          <li>SD-14: chatbot tạm theo hướng C# đọc pgvector và gọi Bedrock; chốt lại trước phase 4</li>
+          <li>SD-10: mở rộng extraction.schema.json cần AI, IA, SE cùng duyệt</li>
+          <li>Model AI do nhóm AI chọn qua eval</li>
         </ul>
       </div>
     </div>

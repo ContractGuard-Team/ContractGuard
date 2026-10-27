@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ContractGuard.Api/ContractGuard.Api.csproj" />
+    <Project Path="src/ContractGuard.Application/ContractGuard.Application.csproj" />
+    <Project Path="src/ContractGuard.Domain/ContractGuard.Domain.csproj" />
+    <Project Path="src/ContractGuard.Infrastructure/ContractGuard.Infrastructure.csproj" />
+  </Folder>
+</Solution>
