@@ -1,0 +1,451 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ContractGuard — Tổng quan hệ thống",
+    "locale": "vi",
+    "output": ".archify/architecture-system-overview-20261027-100846/system-overview.html",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "Giao diện"
+        },
+        "backend": {
+          "label": "Service do nhóm viết"
+        },
+        "database": {
+          "label": "Lưu trữ"
+        },
+        "cloud": {
+          "label": "Dịch vụ AWS"
+        },
+        "security": {
+          "label": "Xác thực"
+        },
+        "messagebus": {
+          "label": "Hàng đợi"
+        },
+        "external": {
+          "label": "Bên ngoài AWS"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "google",
+      "type": "external",
+      "label": "Google",
+      "sublabel": "đăng nhập OIDC",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        150,
+        60
+      ]
+    },
+    {
+      "id": "users",
+      "type": "external",
+      "label": "Người dùng",
+      "sublabel": "trình duyệt desktop",
+      "pos": [
+        40,
+        240
+      ],
+      "size": [
+        150,
+        60
+      ]
+    },
+    {
+      "id": "spa",
+      "type": "frontend",
+      "label": "React SPA",
+      "sublabel": "React Router (SPA), Tailwind",
+      "tag": "shadcn/ui, PDF.js, Recharts",
+      "pos": [
+        270,
+        240
+      ],
+      "size": [
+        170,
+        72
+      ]
+    },
+    {
+      "id": "cognito",
+      "type": "security",
+      "label": "Amazon Cognito",
+      "sublabel": "OIDC, JWT · dự kiến (D1)",
+      "tag": "dự kiến (D1)",
+      "pos": [
+        520,
+        60
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "alb",
+      "type": "cloud",
+      "label": "ALB",
+      "sublabel": "HTTPS :443",
+      "pos": [
+        520,
+        240
+      ],
+      "size": [
+        160,
+        72
+      ]
+    },
+    {
+      "id": "hosting",
+      "type": "cloud",
+      "label": "CloudFront + S3",
+      "sublabel": "phát file tĩnh của SPA",
+      "pos": [
+        520,
+        450
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "rds",
+      "type": "database",
+      "label": "RDS PostgreSQL",
+      "sublabel": "+ pgvector, private subnet",
+      "tag": "single-AZ, Graviton",
+      "pos": [
+        760,
+        60
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API C# .NET 10",
+      "sublabel": "ASP.NET Core, Fargate ARM",
+      "tag": "EF Core, rule engine YAML",
+      "pos": [
+        760,
+        240
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "ses",
+      "type": "cloud",
+      "label": "Amazon SES",
+      "sublabel": "email, OTP · dự kiến (D2)",
+      "tag": "dự kiến (D2)",
+      "pos": [
+        760,
+        450
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "sqsReq",
+      "type": "messagebus",
+      "label": "SQS analysis-requests",
+      "sublabel": "có dead-letter queue",
+      "pos": [
+        1010,
+        150
+      ],
+      "size": [
+        180,
+        60
+      ]
+    },
+    {
+      "id": "sqsRes",
+      "type": "messagebus",
+      "label": "SQS analysis-results",
+      "sublabel": "có dead-letter queue",
+      "pos": [
+        1010,
+        340
+      ],
+      "size": [
+        180,
+        60
+      ]
+    },
+    {
+      "id": "s3",
+      "type": "database",
+      "label": "S3 (SSE-KMS)",
+      "sublabel": "file gốc + extraction.json",
+      "pos": [
+        1010,
+        480
+      ],
+      "size": [
+        400,
+        60
+      ]
+    },
+    {
+      "id": "bedrock",
+      "type": "cloud",
+      "label": "Amazon Bedrock",
+      "sublabel": "LLM + embedding",
+      "tag": "model chọn qua eval",
+      "pos": [
+        1250,
+        60
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Worker Python 3.12",
+      "sublabel": "Fargate Spot, scale 0→N",
+      "tag": "Docling, Pydantic, boto3",
+      "pos": [
+        1250,
+        240
+      ],
+      "size": [
+        160,
+        80
+      ]
+    },
+    {
+      "id": "textract",
+      "type": "cloud",
+      "label": "Amazon Textract",
+      "sublabel": "OCR cho bản scan",
+      "pos": [
+        1490,
+        250
+      ],
+      "size": [
+        150,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "AWS ap-southeast-1 (Singapore)",
+      "wraps": [
+        "cognito",
+        "alb",
+        "hosting",
+        "rds",
+        "api",
+        "ses",
+        "sqsReq",
+        "sqsRes",
+        "s3",
+        "bedrock",
+        "worker",
+        "textract"
+      ],
+      "pad": 24
+    },
+    {
+      "kind": "security-group",
+      "label": "Private subnet",
+      "wraps": [
+        "rds"
+      ],
+      "pad": 12
+    },
+    {
+      "kind": "security-group",
+      "label": "Public subnet, không NAT",
+      "wraps": [
+        "alb",
+        "api"
+      ],
+      "pad": 12
+    },
+    {
+      "kind": "security-group",
+      "label": "Public subnet",
+      "wraps": [
+        "worker"
+      ],
+      "pad": 12
+    }
+  ],
+  "connections": [
+    {
+      "id": "use-web",
+      "from": "users",
+      "to": "spa",
+      "label": "dùng web",
+      "variant": "emphasis"
+    },
+    {
+      "id": "load-spa",
+      "from": "hosting",
+      "to": "spa",
+      "label": "tải SPA",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "login",
+      "from": "spa",
+      "to": "cognito",
+      "label": "đăng nhập",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "federate",
+      "from": "cognito",
+      "to": "google",
+      "label": "liên kết Google",
+      "variant": "security"
+    },
+    {
+      "id": "rest",
+      "from": "spa",
+      "to": "alb",
+      "label": "REST + JWT",
+      "variant": "emphasis"
+    },
+    {
+      "id": "alb-api",
+      "from": "alb",
+      "to": "api",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sql",
+      "from": "api",
+      "to": "rds",
+      "label": "SQL (EF Core)"
+    },
+    {
+      "id": "send-mail",
+      "from": "api",
+      "to": "ses",
+      "label": "gửi email"
+    },
+    {
+      "id": "enqueue",
+      "from": "api",
+      "to": "sqsReq",
+      "label": "tạo job",
+      "variant": "dashed"
+    },
+    {
+      "id": "consume",
+      "from": "sqsReq",
+      "to": "worker",
+      "label": "nhận job",
+      "variant": "dashed"
+    },
+    {
+      "id": "publish-result",
+      "from": "worker",
+      "to": "sqsRes",
+      "label": "kết quả",
+      "variant": "dashed"
+    },
+    {
+      "id": "read-result",
+      "from": "sqsRes",
+      "to": "api",
+      "label": "BackgroundService",
+      "variant": "dashed"
+    },
+    {
+      "id": "llm",
+      "from": "worker",
+      "to": "bedrock",
+      "label": "phân loại, đánh giá"
+    },
+    {
+      "id": "ocr",
+      "from": "worker",
+      "to": "textract",
+      "label": "OCR"
+    },
+    {
+      "id": "worker-s3",
+      "from": "worker",
+      "to": "s3",
+      "label": "đọc file, ghi JSON"
+    },
+    {
+      "id": "upload",
+      "from": "spa",
+      "to": "s3",
+      "label": "upload bằng presigned URL",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Luồng chính",
+      "items": [
+        "SPA xin presigned URL từ API rồi đẩy file thẳng lên S3; file lớn không đi qua service C#",
+        "API tạo job, đẩy vào analysis-requests; worker parse, trích xuất, ghi extraction.json lên S3 và báo qua analysis-results",
+        "BackgroundService của API validate schema, chấm điểm bằng rule engine, lưu finding vào PostgreSQL; UI gọi GET /jobs/{id} vài giây một lần"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Ranh giới trách nhiệm",
+      "items": [
+        "Service C# là nơi duy nhất ghi database",
+        "Worker Python không chứa business logic và không chạm database",
+        "Thư mục /contracts chứa JSON Schema dùng chung cho hai bên"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Bảo mật và vận hành",
+      "items": [
+        "S3 mã hóa SSE-KMS; secret trong Secrets Manager",
+        "OpenTelemetry gửi sang CloudWatch và X-Ray, job_id là correlation ID",
+        "Triển khai: AWS CDK (C#), GitHub Actions, ECR"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Chưa chốt (xem docs/03-implementation-phases.md §4)",
+      "items": [
+        "D1: Cognito hay auth tự viết (khóa theo email, OTP email của SRS)",
+        "D2: SES ra khỏi sandbox; D3, D4: chatbot gọi Bedrock và đọc pgvector ở đâu, streaming bằng gì",
+        "D5: worker chạy sẵn hay scale từ 0"
+      ]
+    }
+  ]
+}
