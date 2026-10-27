@@ -69,3 +69,10 @@ node_modules/
 
 # Claude configuration
 .claude/settings.local.json
+
+# Cấu hình công cụ AI cá nhân và bộ RDK: chỉ ở máy local. File agent dùng chung là AGENTS.md
+.claude/
+.mcp.json
+CLAUDE.md
+/package.json
+/package-lock.json

@@ -1,4 +1,6 @@
-# ContractGuard
+# ContractGuard: hướng dẫn cho AI agent
+
+File chung cho mọi agent và thành viên, không riêng Claude. Công cụ cần file tên khác thì trỏ về đây.
 
 Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.NET + React), 3 AI (Python), 1 IA (bảo mật). Demo đầu 12/2026. Trả lời bằng tiếng Việt.
 
@@ -25,15 +27,15 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 
 ## Quy tắc
 
-- **System design: coach, đừng viết hộ.** Người dùng tự nháp từng bước; Claude giải thích khái niệm, đưa câu hỏi, review, rồi mới ghi kết quả đã chốt.
-- **Không bao giờ tự đặt `APPROVED`.** Chỉ Approver (người dùng) quyết định.
-- **Không sửa** `RDK/` (Requirements Documentation Kit, cài bằng `npx req-doc-kit`, bị gitignore). Quy tắc làm spec nằm ở `RDK/Agent/AGENTS.md`.
+- **System design: coach, đừng viết hộ.** Người dùng tự nháp từng bước; agent giải thích khái niệm, đưa câu hỏi, review, rồi mới ghi kết quả đã chốt.
+- **Không bao giờ tự đặt `APPROVED`.** Chỉ Approver (SE của nhóm) quyết định.
+- **Không sửa** `RDK/` (Requirements Documentation Kit, cài ở máy local bằng `npx req-doc-kit`, không có trên GitHub). Quy tắc làm spec nằm ở `RDK/Agent/AGENTS.md`.
 - AI chạy qua Amazon Bedrock; model chưa chốt, do eval quyết định (DEC-GEN-010, DEC-GEN-016).
 - Service C# là nơi duy nhất ghi DB; worker Python không chạm DB; `/contracts` chứa JSON Schema dùng chung.
 
 ## Kiểm tra spec
 
-Script kiểm tra (`validate.py`, `check_spec.py`, `regen.py`...) hiện nằm ở thư mục tạm của phiên, chưa vào repo.
+Script kiểm tra (`validate.py`, `check_spec.py`, `regen.py`...) chưa vào repo.
 
 ## Repo nhóm
 
