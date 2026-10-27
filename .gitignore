@@ -58,14 +58,14 @@ worker/out/
 *.sqlite
 *.db
 
-# ContractGuard: tài liệu, công cụ và sơ đồ
+# ContractGuard
 .playwright-mcp/
 
-# Bộ RDK cài bằng `npx req-doc-kit` (khai báo trong package.json), không commit bản sao
+# RDK
 RDK/
 node_modules/
-# Archify: chỉ giữ ở máy local; HTML cuối nằm ở docs/architecture/
+# Archify
 .archify/
 
-# Cấu hình riêng của từng máy
+# Claude configuration
 .claude/settings.local.json
