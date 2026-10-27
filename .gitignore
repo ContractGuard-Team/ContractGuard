@@ -64,9 +64,8 @@ worker/out/
 # Bộ RDK cài bằng `npx req-doc-kit` (khai báo trong package.json), không commit bản sao
 RDK/
 node_modules/
-# Archify: chỉ giữ candidate.json (nguồn sơ đồ); HTML cuối nằm ở docs/architecture/
-.archify/*/*
-!.archify/*/candidate.json
+# Archify: chỉ giữ ở máy local; HTML cuối nằm ở docs/architecture/
+.archify/
 
 # Cấu hình riêng của từng máy
 .claude/settings.local.json
