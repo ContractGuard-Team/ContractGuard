@@ -32,7 +32,8 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             var database = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-            options.UseNpgsql(database.ConnectionString);
+            options.UseNpgsql(database.ConnectionString)
+            .UseSnakeCaseNamingConvention();
         });
 
         services.AddHealthChecks()
