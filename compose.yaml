@@ -1,0 +1,51 @@
+name: contractguard
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg18
+    environment:
+      POSTGRES_DB: contractguard
+      POSTGRES_USER: contractguard
+      POSTGRES_PASSWORD: contractguard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U contractguard -d contractguard" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  localstack:
+    image: localstack/localstack:2026.10.4
+    environment:
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:?Set LOCALSTACK_AUTH_TOKEN in .env}
+      SERVICES: s3,sqs
+      AWS_DEFAULT_REGION: ap-southeast-1
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./infra/local/localstack/init/ready.d:/etc/localstack/init/ready.d:ro
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - |
+          import json, sys, urllib.request as u
+          r = json.load(u.urlopen("http://localhost:4566/_localstack/init/ready", timeout=2))
+          ok = r["completed"] and all(s["state"] == "SUCCESSFUL" for s in r["scripts"])
+          sys.exit(0 if ok else 1)
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.32.0
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  postgres-data:

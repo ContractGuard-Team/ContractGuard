@@ -233,7 +233,7 @@ Phân tích, phương án và trade-off của từng mục ở [04-system-design
 | SD-03 | Một domain: CloudFront phục vụ SPA từ S3 và chuyển `/api/*` về ALB; lỗi 403/404 trả `index.html` |
 | SD-04 | **ASP.NET Core Identity** trong service C#: khóa 5 lần / 15 phút theo email, token đặt lại mật khẩu, đăng nhập Google; phiên bằng cookie httpOnly `Secure` `SameSite=Lax`, chống CSRF cho request ghi. Không dùng Cognito. Không có MFA trong MVP (DEC-PRD-022) |
 | SD-05 | Lọc theo không gian bằng global query filter của EF Core + kiểm tra quyền theo tài nguyên; bộ test cách ly trong CI |
-| SD-06 | RDS PostgreSQL 16 + pgvector, `db.t4g.micro`, single-AZ; migration bằng EF Core; chỉ mục HNSW |
+| SD-06 | RDS PostgreSQL 18 + pgvector, `db.t4g.micro`, single-AZ; migration bằng EF Core; chỉ mục HNSW. Đổi từ 16 sang 18 ngày 2026-10-29 vì lúc này chưa có dữ liệu, và bản 18 được hỗ trợ đến 11/2030 |
 | SD-07 | Một bucket, prefix `quarantine/`, `clean/{workspace}/{contract}/{version}/`, `results/{job_id}/`; SSE-KMS khóa AWS quản lý + S3 Bucket Key; tắt versioning |
 | SD-08 | Presigned POST giới hạn 20 MB; GuardDuty Malware Protection for S3 quét `quarantine/`; worker kiểm tra loại file thật, số trang, làm sạch tài liệu; local bỏ qua quét bằng cờ cấu hình |
 | SD-09 | REST `/api/v1` + OpenAPI sinh tự động, sinh kiểu TypeScript cho frontend; lỗi theo Problem Details kèm mã ERR-* |

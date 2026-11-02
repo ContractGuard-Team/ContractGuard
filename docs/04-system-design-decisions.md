@@ -23,7 +23,7 @@
 | SD-03 | Cổng vào và domain | Một domain: CloudFront → S3 (SPA) và `/api/*` → ALB | Phase 1 |
 | SD-04 | Xác thực | ASP.NET Core Identity tự quản, cookie httpOnly | Phase 1 |
 | SD-05 | Phân quyền và cách ly không gian | Lọc theo không gian ở EF Core + kiểm tra quyền theo tài nguyên | Phase 1 |
-| SD-06 | Database | RDS PostgreSQL 16 + pgvector, một instance nhỏ | Phase 0 |
+| SD-06 | Database | RDS PostgreSQL 18 + pgvector, một instance nhỏ | Phase 0 |
 | SD-07 | File storage | Một bucket, tách prefix `quarantine/` và `clean/`, SSE-KMS khóa AWS quản lý | Phase 1 |
 | SD-08 | Upload và quét mã độc | Presigned POST giới hạn kích thước; GuardDuty Malware Protection for S3 | Phase 1–2 |
 | SD-09 | API giữa frontend và backend | REST + OpenAPI, sinh client TypeScript | Phase 1 |
@@ -167,13 +167,13 @@ Threat model của IA (`security/docs/THREAT_MODEL.md`, T01) đang giả định
 
 | Phương án | Ưu | Nhược | Chi phí |
 |---|---|---|---|
-| **A. RDS PostgreSQL 16 + pgvector, `db.t4g.micro`, single-AZ** | Một hệ thống cho cả quan hệ và vector; có thể nằm trong free tier; Postgres chạy local bằng Docker | Luôn bật; dừng instance được nhưng AWS tự bật lại sau 7 ngày | ~$15/tháng |
+| **A. RDS PostgreSQL 18 + pgvector, `db.t4g.micro`, single-AZ** | Một hệ thống cho cả quan hệ và vector; có thể nằm trong free tier; Postgres chạy local bằng Docker | Luôn bật; dừng instance được nhưng AWS tự bật lại sau 7 ngày | ~$15/tháng |
 | B. Aurora Serverless v2 (có thể giảm về 0) | Tự giảm về 0 khi không dùng | Lần đầu sau khi ngủ chậm vài giây; giá mỗi đơn vị cao hơn; cấu hình phức tạp hơn | Thấp khi không dùng, cao khi chạy |
 | C. Postgres + một vector database riêng (OpenSearch, Qdrant) | Tìm kiếm vector mạnh hơn | Thừa với ~1.000 phiên bản hợp đồng; thêm một hệ thống phải vận hành | +$20 trở lên |
 
 **Đề xuất:** A. Bảng theo SRS §9 (tên tiếng Anh, DEC-GEN-025); migration bằng EF Core; chỉ mục HNSW cho embedding. Số chiều vector do nhóm AI chốt khi chọn model embedding.
 
-**Quyết định:**
+**Quyết định:** A. Ngày 2026-10-29 đổi bản PostgreSQL từ 16 sang 18, vì lúc này chưa có dữ liệu và bản 18 được hỗ trợ lâu hơn. pgvector chỉ dùng tính năng có từ 0.8.1 trở xuống, vì đó là bản RDS PG 18 có lúc ra mắt.
 
 ### SD-07 File storage **[Chặn phase 1]**
 
