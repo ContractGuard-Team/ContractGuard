@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contractguard.local/contracts/analysis-request.v1.schema.json",
+  "title": "ContractGuard analysis job request v1 (DRAFT, needs AI + IA + SE review)",
+  "description": "Written by the backend to s3://<bucket>/results/{job_id}/request.json before it sends analysis_requested. Trusted: the worker copies the ids into its extraction and never invents them.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "tenant_id",
+    "contract_id",
+    "contract_version",
+    "source_file_key",
+    "clean_file_key",
+    "result_key",
+    "declared_file_type",
+    "output_language",
+    "context",
+    "limits"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "job_id": { "type": "string", "format": "uuid" },
+    "tenant_id": { "type": "string", "minLength": 1, "description": "organization_id, or 'personal:<user_account_id>' for a personal contract." },
+    "contract_id": { "type": "string", "format": "uuid" },
+    "contract_version": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+    "source_file_key": { "type": "string", "pattern": "^(quarantine|clean)/", "description": "Uploaded file. Under quarantine/ until checked (SD-08)." },
+    "clean_file_key": { "type": "string", "pattern": "^clean/", "description": "Where the worker must write the sanitized file." },
+    "result_key": { "type": "string", "pattern": "^results/", "description": "Where the worker must write extraction.v2 JSON." },
+    "declared_file_type": { "enum": ["pdf", "docx", "jpg", "png"], "description": "From the file extension; the worker checks the real type (FR-UPL-003)." },
+    "output_language": { "enum": ["vi", "en"] },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["own_party", "contract_type", "has_personal_data"],
+      "description": "ENT-DATA-007 as confirmed by the user.",
+      "properties": {
+        "own_party": { "enum": ["buyer", "seller"] },
+        "contract_type": { "enum": ["service_agreement", "vendor_agreement", "purchase_agreement", "msa", "sow", "other"] },
+        "has_personal_data": { "type": "boolean" },
+        "counterparty_name": { "type": ["string", "null"] },
+        "counterparty_offering": { "type": ["string", "null"] },
+        "service_criticality": { "enum": ["low", "medium", "high", null] }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_pages", "max_bytes"],
+      "properties": {
+        "max_pages": { "const": 100 },
+        "max_bytes": { "const": 20971520 }
+      }
+    }
+  }
+}

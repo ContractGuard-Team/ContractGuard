@@ -73,3 +73,6 @@ node_modules/
 CLAUDE.md
 /package.json
 /package-lock.json
+
+# Công cụ thiết kế fk: file sinh ra, chỉ ở máy local
+.fk-skills/

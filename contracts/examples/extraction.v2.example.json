@@ -1,0 +1,201 @@
+{
+  "schema_version": "2.0.0",
+  "job_id": "{{JOB_ID}}",
+  "tenant_id": "{{TENANT_ID}}",
+  "contract_id": "{{CONTRACT_ID}}",
+  "contract_version": "{{CONTRACT_VERSION}}",
+  "document_complete": true,
+  "document": {
+    "file_type": "pdf",
+    "page_count": 3,
+    "language": "en",
+    "is_scanned": false
+  },
+  "output_language": "vi",
+  "clauses": [
+    {
+      "clause_id": "cl-001",
+      "order": 1,
+      "number": "1",
+      "heading": "Scope of Services",
+      "text": "Provider shall make the Cloud Service available to Customer in accordance with the Documentation and the Order Form.",
+      "clause_type": "C01",
+      "location": { "page_start": 1, "page_end": 1, "regions": [{ "page": 1, "x": 0.1, "y": 0.18, "width": 0.8, "height": 0.08 }] }
+    },
+    {
+      "clause_id": "cl-002",
+      "order": 2,
+      "number": "2",
+      "heading": "Fees and Payment",
+      "text": "Customer shall pay all fees within thirty (30) days of the invoice date. Provider may increase fees once per year by giving thirty (30) days notice.",
+      "clause_type": "C02",
+      "location": { "page_start": 1, "page_end": 1, "regions": [{ "page": 1, "x": 0.1, "y": 0.3, "width": 0.8, "height": 0.1 }] }
+    },
+    {
+      "clause_id": "cl-003",
+      "order": 3,
+      "number": "3",
+      "heading": "Security",
+      "text": "Provider will implement appropriate security measures to protect Customer Data.",
+      "clause_type": "C16",
+      "location": { "page_start": 1, "page_end": 1, "regions": [{ "page": 1, "x": 0.1, "y": 0.45, "width": 0.8, "height": 0.06 }] }
+    },
+    {
+      "clause_id": "cl-004",
+      "order": 4,
+      "number": "4",
+      "heading": "Security Incidents",
+      "text": "Provider will notify Customer promptly after becoming aware of a Security Incident affecting Customer Data.",
+      "clause_type": "C17",
+      "location": { "page_start": 2, "page_end": 2, "regions": [{ "page": 2, "x": 0.1, "y": 0.12, "width": 0.8, "height": 0.06 }] }
+    },
+    {
+      "clause_id": "cl-005",
+      "order": 5,
+      "number": "5",
+      "heading": "Subcontractors",
+      "text": "Provider may engage subcontractors at its discretion to provide the Cloud Service.",
+      "clause_type": "C19",
+      "location": { "page_start": 2, "page_end": 2, "regions": [{ "page": 2, "x": 0.1, "y": 0.22, "width": 0.8, "height": 0.05 }] }
+    },
+    {
+      "clause_id": "cl-006",
+      "order": 6,
+      "number": "6",
+      "heading": "Limitation of Liability",
+      "text": "In no event shall Provider be liable for any loss of data or any damages arising from a Security Incident.",
+      "clause_type": "C07",
+      "location": { "page_start": 2, "page_end": 2, "regions": [{ "page": 2, "x": 0.1, "y": 0.32, "width": 0.8, "height": 0.07 }] }
+    },
+    {
+      "clause_id": "cl-007",
+      "order": 7,
+      "number": "7",
+      "heading": "Term and Termination",
+      "text": "This Agreement renews automatically for successive one-year terms. Upon termination Provider may retain Customer Data for its internal purposes.",
+      "clause_type": "C06",
+      "location": { "page_start": 2, "page_end": 3, "regions": [{ "page": 2, "x": 0.1, "y": 0.85, "width": 0.8, "height": 0.1 }, { "page": 3, "x": 0.1, "y": 0.05, "width": 0.8, "height": 0.04 }] }
+    },
+    {
+      "clause_id": "cl-008",
+      "order": 8,
+      "number": "8",
+      "heading": "Governing Law",
+      "text": "This Agreement is governed by the laws of Singapore. Disputes shall be resolved by arbitration at SIAC.",
+      "clause_type": "C10",
+      "location": { "page_start": 3, "page_end": 3, "regions": [{ "page": 3, "x": 0.1, "y": 0.15, "width": 0.8, "height": 0.06 }] }
+    }
+  ],
+  "metadata": {
+    "parties": ["Example Cloud Pte. Ltd.", "Công ty TNHH Ví Dụ"],
+    "contract_type": "service_agreement",
+    "contract_value": 120000000,
+    "currency": "VND",
+    "effective_date": "2026-01-01",
+    "expiry_date": "2026-12-31",
+    "governing_law": "Singapore"
+  },
+  "findings": [
+    {
+      "finding_id": "f-001",
+      "finding_kind": "problematic_clause",
+      "title": "Sự cố bảo mật bị loại trừ khỏi trách nhiệm bồi thường",
+      "primary_domain": "cybersecurity",
+      "secondary_domains": ["legal"],
+      "category": "Trách nhiệm khi xảy ra sự cố",
+      "severity": "critical",
+      "clause_id": "cl-006",
+      "evidence": [{ "clause_id": "cl-006", "page": 2, "quote": "In no event shall Provider be liable for any loss of data or any damages arising from a Security Incident." }],
+      "why": "Điều khoản loại trừ hoàn toàn trách nhiệm của nhà cung cấp khi dữ liệu bị lộ hoặc mất do sự cố bảo mật.",
+      "impact": "Bên mình tự chịu toàn bộ thiệt hại, kể cả chi phí xử lý sự cố và bồi thường cho chủ thể dữ liệu.",
+      "recommendation": "Đàm phán để sự cố bảo mật do lỗi nhà cung cấp không nằm trong phần loại trừ, hoặc có mức trần bồi thường riêng cao hơn.",
+      "references": [{ "source": "NIST SP 800-161r1", "reference_number": "SR-3" }],
+      "check_code": "CY-12"
+    },
+    {
+      "finding_id": "f-002",
+      "finding_kind": "problematic_clause",
+      "title": "Thời hạn thông báo sự cố không cụ thể",
+      "primary_domain": "cybersecurity",
+      "secondary_domains": [],
+      "category": "Thông báo sự cố",
+      "severity": "high",
+      "clause_id": "cl-004",
+      "evidence": [{ "clause_id": "cl-004", "page": 2, "quote": "Provider will notify Customer promptly after becoming aware of a Security Incident" }],
+      "why": "\"Promptly\" không có con số cụ thể nên không đo được việc tuân thủ.",
+      "impact": "Bên mình có thể biết sự cố quá muộn để đáp ứng nghĩa vụ báo cáo với cơ quan quản lý.",
+      "recommendation": "Yêu cầu thời hạn thông báo cụ thể, ví dụ trong vòng 24 hoặc 72 giờ.",
+      "references": [],
+      "check_code": "CY-08"
+    },
+    {
+      "finding_id": "f-003",
+      "finding_kind": "problematic_clause",
+      "title": "Nhà cung cấp được giữ dữ liệu sau khi chấm dứt",
+      "primary_domain": "data_privacy",
+      "secondary_domains": ["legal"],
+      "category": "Xóa hoặc trả dữ liệu",
+      "severity": "high",
+      "clause_id": "cl-007",
+      "evidence": [{ "clause_id": "cl-007", "page": 3, "quote": "Upon termination Provider may retain Customer Data for its internal purposes." }],
+      "why": "Không có nghĩa vụ xóa hoặc trả dữ liệu, còn cho phép dùng dữ liệu cho mục đích nội bộ.",
+      "impact": "Dữ liệu của bên mình tiếp tục nằm ngoài tầm kiểm soát sau khi hợp đồng kết thúc.",
+      "recommendation": "Yêu cầu trả hoặc xóa dữ liệu trong thời hạn cụ thể sau khi chấm dứt và có xác nhận xóa bằng văn bản.",
+      "references": [],
+      "check_code": "PR-05"
+    },
+    {
+      "finding_id": "f-004",
+      "finding_kind": "missing_clause",
+      "title": "Không có quyền kiểm toán bảo mật",
+      "primary_domain": "third_party",
+      "secondary_domains": ["cybersecurity"],
+      "category": "Quyền kiểm toán",
+      "severity": "medium",
+      "clause_id": null,
+      "evidence": [],
+      "missing_description": "Đã tìm điều khoản về quyền kiểm toán, đánh giá hoặc yêu cầu báo cáo SOC 2/ISO 27001 nhưng không thấy.",
+      "why": "Bên mình không có cách kiểm chứng các biện pháp bảo mật mà nhà cung cấp cam kết.",
+      "impact": "Khó phát hiện sớm điểm yếu bảo mật của nhà cung cấp.",
+      "recommendation": "Bổ sung quyền kiểm toán định kỳ hoặc quyền nhận báo cáo kiểm toán độc lập hằng năm.",
+      "references": [{ "source": "ISO/IEC 27001:2022", "reference_number": "A.5.22" }],
+      "check_code": "TP-03"
+    }
+  ],
+  "checks": [
+    { "check_code": "CY-01", "check_status": "partial", "clause_ids": ["cl-003"], "finding_id": null, "note": "Only 'appropriate security measures'." },
+    { "check_code": "CY-02", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-03", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-04", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-05", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-06", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-07", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-08", "check_status": "partial", "clause_ids": ["cl-004"], "finding_id": "f-002" },
+    { "check_code": "CY-09", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-10", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-11", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "CY-12", "check_status": "missing", "clause_ids": ["cl-006"], "finding_id": "f-001" },
+    { "check_code": "PR-01", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "PR-02", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "PR-03", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "PR-04", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "PR-05", "check_status": "partial", "clause_ids": ["cl-007"], "finding_id": "f-003" },
+    { "check_code": "TP-01", "check_status": "partial", "clause_ids": ["cl-005"], "finding_id": null },
+    { "check_code": "TP-02", "check_status": "missing", "clause_ids": [], "finding_id": null },
+    { "check_code": "TP-03", "check_status": "missing", "clause_ids": [], "finding_id": "f-004" }
+  ],
+  "facts": {
+    "incident.notification_hours": {
+      "status": "UNKNOWN",
+      "value": null,
+      "evidence": [{ "clause_id": "cl-004", "page": 2, "quote": "notify Customer promptly" }]
+    }
+  },
+  "injection_warnings": [],
+  "overall_recommendation": "Chưa nên ký khi chưa đàm phán lại trách nhiệm cho sự cố bảo mật và nghĩa vụ xóa dữ liệu khi chấm dứt.",
+  "trace": {
+    "model_version": "example-model",
+    "prompt_version": "example-prompts-0",
+    "pipeline_version": "example"
+  }
+}

@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Phiên bản | 0.2 — Bước 1: ràng buộc và ước lượng quy mô (sửa giả định eval, hoãn chọn model) |
-| Ngày | 2026-10-21 |
+| Phiên bản | 0.5 — Chốt bước 1 (Q1–Q3) và bước 2–8 (§4); SD-04 đổi sang ASP.NET Core Identity |
+| Ngày | 2026-10-27 |
 | Đầu vào | [01-product-spec.md](01-product-spec.md) v1.2 |
 | Cách làm | Từng bước. Mỗi bước kết thúc bằng các câu hỏi thảo luận, chốt xong mới sang bước sau. |
 
@@ -11,14 +11,14 @@
 
 | Bước | Nội dung | Trạng thái |
 |---|---|---|
-| 1 | Ràng buộc và ước lượng quy mô (back-of-the-envelope) | **Đang thảo luận** |
-| 2 | Kiến trúc tổng thể: các thành phần, ranh giới service, luồng chính | Chưa làm |
-| 3 | Mô hình dữ liệu: database, file storage, vector, multi-tenancy | Chưa làm |
-| 4 | Thiết kế API và hợp đồng dữ liệu giữa C# và Python (`extraction.json`) | Chưa làm |
-| 5 | Đi sâu: pipeline phân tích bất đồng bộ (queue, retry, trạng thái job) | Chưa làm |
-| 6 | Đi sâu: chatbot (RAG, streaming, chống prompt injection) | Chưa làm |
-| 7 | Đi sâu: phân quyền, cách ly tenant, upload an toàn | Chưa làm |
-| 8 | Vận hành: triển khai, quan sát, chi phí, môi trường dev/staging | Chưa làm |
+| 1 | Ràng buộc và ước lượng quy mô (back-of-the-envelope) | Đã chốt 2026-10-27 (§3) |
+| 2 | Kiến trúc tổng thể: các thành phần, ranh giới service, luồng chính | Đã chốt 2026-10-27 (§4) |
+| 3 | Mô hình dữ liệu: database, file storage, vector, multi-tenancy | Đã chốt 2026-10-27 (§4) |
+| 4 | Thiết kế API và hợp đồng dữ liệu giữa C# và Python (`extraction.json`) | Đã chốt 2026-10-27 (§4) |
+| 5 | Đi sâu: pipeline phân tích bất đồng bộ (queue, retry, trạng thái job) | Đã chốt 2026-10-27 (§4) |
+| 6 | Đi sâu: chatbot (RAG, streaming, chống prompt injection) | Tạm chốt (SD-14 chốt lại trước phase 4) |
+| 7 | Đi sâu: phân quyền, cách ly tenant, upload an toàn | Đã chốt 2026-10-27 (§4) |
+| 8 | Vận hành: triển khai, quan sát, chi phí, môi trường dev/staging | Đã chốt 2026-10-27 (§4) |
 
 ---
 
@@ -210,3 +210,41 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 - **Q1. Độ trễ hay chi phí?** Có giữ một worker luôn chạy sẵn (thêm khoảng $10–30/tháng) để đạt 45 giây không? Hay chấp nhận job đầu tiên chậm 1–2 phút, chỉ bật worker chạy sẵn vào giờ demo?
 - **Q2. Môi trường:** có đồng ý dev local 3 tháng đầu và chỉ dựng AWS từ khoảng tuần 12 không?
 - **Q3. Mục tiêu độ trễ:** có nới NFR thành p50 ≤ 60 giây và p95 ≤ 2 phút (khi worker đã chạy sẵn) cho thực tế hơn không?
+
+### Kết quả (chốt 2026-10-27)
+
+| Câu | Quyết định | Hệ quả |
+|---|---|---|
+| Q1 | **Không** giữ worker chạy sẵn. Worker scale từ 0. | Job đầu tiên sau khi worker ngủ chờ thêm 1–3 phút. Không vi phạm NFR-PERF-001..003 vì các mục tiêu này đo khi worker đã chạy sẵn. Cách giữ buổi demo nhanh: xem SD-12. |
+| Q2 | Dev local trước, **dựng AWS sau**; thời điểm chưa chốt. | Môi trường local phải chạy được toàn bộ luồng (SD-17). |
+| Q3 | Đã giãn mục tiêu độ trễ: text 20 trang p50 ≤ 2 phút, p95 ≤ 5 phút; bản scan ≤ 50 trang p50 ≤ 5 phút; chatbot chữ đầu tiên p50 ≤ 15 giây (DEC-GEN-022, SRS NFR-PERF-001..004). | Thay mục tiêu 45 giây ở §2.6. |
+| Rủi ro §2.9 | Region Singapore có model cần dùng (xác nhận của Approver). Credit, quota và đếm token là việc của **nhóm AI**. | Theo dõi ở `04-system-design-decisions.md`, mục "Việc của các nhóm khác". |
+
+---
+
+## 4. Quyết định bước 2–8 (chốt 2026-10-27)
+
+Phân tích, phương án và trade-off của từng mục ở [04-system-design-decisions.md](04-system-design-decisions.md). Mục không ghi quyết định riêng nghĩa là Approver đồng ý đề xuất.
+
+| # | Quyết định |
+|---|---|
+| SD-01 | Modular monolith C# (`backend/`) + worker Python (`worker/`) + SQS. Module nội bộ C#: Auth, Workspace, Contract, Analysis, Chat, Export |
+| SD-02 | ECS Fargate ARM: API 1 task luôn bật; worker Fargate Spot 0→N |
+| SD-03 | Một domain: CloudFront phục vụ SPA từ S3 và chuyển `/api/*` về ALB; lỗi 403/404 trả `index.html` |
+| SD-04 | **ASP.NET Core Identity** trong service C#: khóa 5 lần / 15 phút theo email, token đặt lại mật khẩu, đăng nhập Google; phiên bằng cookie httpOnly `Secure` `SameSite=Lax`, chống CSRF cho request ghi. Không dùng Cognito. Không có MFA trong MVP (DEC-PRD-022) |
+| SD-05 | Lọc theo không gian bằng global query filter của EF Core + kiểm tra quyền theo tài nguyên; bộ test cách ly trong CI |
+| SD-06 | RDS PostgreSQL 18 + pgvector, `db.t4g.micro`, single-AZ; migration bằng EF Core; chỉ mục HNSW. Đổi từ 16 sang 18 ngày 2026-10-29 vì lúc này chưa có dữ liệu, và bản 18 được hỗ trợ đến 11/2030 |
+| SD-07 | Một bucket, prefix `quarantine/`, `clean/{workspace}/{contract}/{version}/`, `results/{job_id}/`; SSE-KMS khóa AWS quản lý + S3 Bucket Key; tắt versioning |
+| SD-08 | Presigned POST giới hạn 20 MB; GuardDuty Malware Protection for S3 quét `quarantine/`; worker kiểm tra loại file thật, số trang, làm sạch tài liệu; local bỏ qua quét bằng cờ cấu hình |
+| SD-09 | REST `/api/v1` + OpenAPI sinh tự động, sinh kiểu TypeScript cho frontend; lỗi theo Problem Details kèm mã ERR-* |
+| SD-10 | Mở rộng `contracts/extraction.schema.json` (tăng `schema_version`): thêm `clauses`, `findings`, `checks`, `metadata`, `injection_warnings`, embedding; sinh lớp C# và Pydantic. Worker đề xuất finding kèm trích dẫn; C# kiểm tra trích dẫn rồi chấm điểm. Cần AI, IA, SE cùng duyệt |
+| SD-11 | Message SQS chỉ chứa `job_id`, loại sự kiện, đường dẫn S3; tiến trình và kết quả cùng đi qua `analysis-results` |
+| SD-12 | Worker là ECS service 0→3 task, scale theo số message; mỗi task ~4 job song song; lịch tự bật 1 task trong giờ demo và giờ test |
+| SD-13 | SQS `maxReceiveCount = 3` rồi DLQ, visibility 15 phút có gia hạn; retry có backoff cho Bedrock; C# giữ máy trạng thái, idempotent theo `job_id`; job im lặng quá 20 phút thì `failed` |
+| SD-14 | **Tạm theo A** (C# truy xuất pgvector và gọi Bedrock, prompt trong `prompts/` do nhóm AI quản lý). Giữ B (service chat Python) làm phương án dự phòng. Chốt lại trước phase 4 |
+| SD-15 | Server-Sent Events cho chat, có tín hiệu giữ kết nối; tiến trình phân tích vẫn gọi `GET /jobs/{id}` định kỳ |
+| SD-16 | Amazon SES; local dùng Mailpit; xác minh sẵn email nhóm hoặc xin ra khỏi sandbox sớm; cần một domain |
+| SD-17 | Local: Docker Compose (PostgreSQL + pgvector, LocalStack, Mailpit), Bedrock gọi thật. AWS: một môi trường staging dùng cho demo, dựng khi luồng demo chạy được ở local. |
+| SD-18 | AWS CDK (C#); GitHub Actions đăng nhập AWS qua OIDC; workflow riêng cho `backend/`, `worker/`, `frontend/` theo đường dẫn |
+| SD-19 | Log JSON có `job_id`, `user_id`, không có nội dung hợp đồng, lên CloudWatch; ghi chi phí mỗi lần gọi model; trace để sau |
+| SD-20 | AWS Budgets cảnh báo 50%, 80%; tắt API và dừng RDS ngoài giờ test; **trước khi triển khai lên AWS phải nhắc mọi thành viên cấu hình billing và cảnh báo trên tài khoản của mình** |

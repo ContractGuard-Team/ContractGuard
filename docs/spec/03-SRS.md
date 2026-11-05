@@ -10,8 +10,8 @@ tier: 2
 output_language: vi
 upstream:
   - "02-PRD.md"
-version: "1.0"
-status: APPROVED
+version: "1.1"
+status: REVIEW
 authors:
   - "Agent"
 reviewers:
@@ -170,8 +170,8 @@ tags:
 | Upstream Documents | `02-PRD.md` v1.0 (Gate S2 thông qua 2026-10-24 với v0.2; v0.3 áp dụng trả lời OQ 2026-10-26; v0.4 thêm mô hình không gian làm việc 2026-10-27; v1.0 baseline tại Gate S5 2026-10-27). Không có BRS, BRD, StRS (DEC-GEN-005). |
 | Document Name | Software Requirements Specification |
 | Document ID | CG-SRS |
-| Version | `1.0` |
-| Status | `APPROVED` |
+| Version | `1.1` |
+| Status | `REVIEW` |
 | Author | Agent |
 | Reviewer | Thành viên AI và IA |
 | Approver | SE của nhóm |
@@ -193,6 +193,7 @@ tags:
 | 0.9 | 2026-10-26 | Agent | §0–§17 | Áp dụng phiếu trả lời OQ (`OQ-Answers.md`), đóng mọi OQ. Owner tổ chức có toàn quyền trên mọi hợp đồng (DEC-PRD-017); bỏ chia sẻ toàn tổ chức, FR-SHARE-005 DEPRECATED (DEC-PRD-018); nghĩa vụ dữ liệu cá nhân ngoài phạm vi bản demo, NFR-COMPL-001 DEPRECATED (DEC-PRD-019); giãn mục tiêu hiệu năng (DEC-GEN-022); MFA bằng OTP qua email; thêm SEC-AUTH-006, SEC-AUTH-007, FR-AUTH-014, FR-AUTH-015, ERR-AUTH-005, ERR-AUTH-006, ERR-CTR-003, TR-CTR-008, TR-CTR-009; khóa đăng nhập theo email và giới hạn quên mật khẩu (DEC-GEN-024) | REVIEW |
 | 0.10 | 2026-10-27 | Agent | §1–§9, §11–§16 | Mô hình không gian làm việc kiểu GitHub (DEC-PRD-020, DEC-PRD-021): không gian cá nhân, nhiều tổ chức, chia sẻ hợp đồng cá nhân cho mọi tài khoản; thêm BR-ORG-004, FR-ORG-013, FR-ORG-014, FR-SHARE-009, FR-SHARE-010, UC-ORG-004, ERR-SHARE-002, CDC-DATA-006, VAL-DATA-015; BR-ORG-001, FR-ORG-002, VAL-DATA-006, ERR-ORG-001, EF-ORG-001 chuyển DEPRECATED. §9 dùng tên tiếng Anh cho entity, thuộc tính, bảng, data item, mã enum và ERD (DEC-GEN-025) | REVIEW |
 | 1.0 | 2026-10-27 | Approver | Toàn bộ | Baseline tại Gate S5: Approver thông qua SRS (DEC-GEN-026), MC9 và RS3 là known issues; mọi mục REVIEW chuyển APPROVED | APPROVED |
+| 1.1 | 2026-10-27 | Agent | §1, §2, §3, §5, §6, §8, §9, §10, §12, §14, §16 | Bỏ MFA khỏi MVP (DEC-PRD-022). F-AUTH-003 → Won't; FR-AUTH-012, FR-AUTH-013, SEC-AUTH-004, AF-AUTH-002, ATTR-DATA-005 DEPRECATED; FR-AUTH-006, FR-AUTH-007 sửa và về REVIEW | REVIEW |
 
 ### 0.3 Review And Approval
 
@@ -317,7 +318,7 @@ Các feature `Won't` của PRD, không cam kết trong lần phát hành này: F
 | FCAJ | Abbreviation | Tên chương trình thực tập cung cấp credit AWS cho nhóm | DI 2026-10-21 |
 | KB | Abbreviation | Cơ sở tri thức (knowledge base) | PS §7.7 |
 | LLM | Acronym | Large Language Model (mô hình ngôn ngữ lớn) | Chuẩn ngành |
-| MFA | Acronym | Multi-Factor Authentication (xác thực đa yếu tố). Trong ContractGuard, yếu tố thứ hai là mã OTP (mã dùng một lần) gửi về email của tài khoản | Chuẩn ngành; OQ-AUTH-001 |
+| MFA | Acronym | Multi-Factor Authentication (xác thực đa yếu tố). Không thuộc MVP; sau MVP là mã gửi qua email ở mỗi lần đăng nhập (DEC-PRD-022) | Chuẩn ngành |
 | MVP | Acronym | Minimum Viable Product, ở đây là lần phát hành gồm các feature Must và Should | PS §6 |
 | OCR | Acronym | Optical Character Recognition (nhận dạng ký tự từ ảnh) | Chuẩn ngành |
 | OIDC | Acronym | OpenID Connect, giao thức đăng nhập dùng cho đăng nhập Google | Chuẩn ngành |
@@ -407,7 +408,7 @@ DIA-GEN-001 - Sơ đồ ngữ cảnh:
 
 | Function Group ID | Function Group | Description | Related Features |
 |---|---|---|---|
-| PF-GEN-001 | Tài khoản và truy cập | Đăng ký, đăng nhập, MFA; không gian cá nhân, tổ chức và thành viên; chia sẻ hợp đồng theo email | F-AUTH-001, F-AUTH-002, F-AUTH-003, F-ORG-001, F-ORG-002, F-SHARE-001 |
+| PF-GEN-001 | Tài khoản và truy cập | Đăng ký, đăng nhập; không gian cá nhân, tổ chức và thành viên; chia sẻ hợp đồng theo email | F-AUTH-001, F-AUTH-002, F-ORG-001, F-ORG-002, F-SHARE-001 |
 | PF-GEN-002 | Quản lý hợp đồng | Upload và khai báo ngữ cảnh, metadata, thư viện, trạng thái duyệt, phiên bản, xóa, nhật ký hoạt động | F-CTR-001, F-CTR-002, F-CTR-003, F-CTR-004, F-CTR-005, F-CTR-006, F-AUD-001 |
 | PF-GEN-003 | Phân tích hợp đồng | Bảo vệ đầu vào; đọc file kể cả OCR; tách và phân loại điều khoản; điều phối và theo dõi tiến trình phân tích | F-SEC-001, F-ANA-001, F-ANA-002 |
 | PF-GEN-004 | Đánh giá và chấm điểm rủi ro | Finding trên 7 nhóm, điều khoản thiếu, căn cứ tham khảo, nhóm N/A, bộ 20 check, điểm rủi ro; chấm theo chính sách nội bộ (Could) | F-RISK-001, F-RISK-002, F-RISK-003, F-POL-001 |
@@ -519,7 +520,7 @@ Ghi chú:
 |---|---|---|---|---|---|---|---|
 | EXT-INTG-001 | Amazon Bedrock | AWS | Model AI cho phân tích hợp đồng và chatbot (CON-GEN-001) | Nội dung điều khoản, ngữ cảnh hợp đồng, câu hỏi chat | Kết quả phân loại, đánh giá rủi ro, câu trả lời chat | §10.2 | Không có thì không phân tích và không chat được |
 | EXT-INTG-002 | Dịch vụ OCR | Chọn ở thiết kế hệ thống; gợi ý Amazon Textract (OQ-GEN-013) | Nhận dạng văn bản trên PDF scan và ảnh | Ảnh trang hợp đồng | Văn bản kèm vị trí trên trang | §10.2 | Không có thì không đọc được bản scan và ảnh (DEP-GEN-002) |
-| EXT-INTG-003 | Dịch vụ gửi email | Chọn ở thiết kế hệ thống; gợi ý Amazon SES (OQ-GEN-013) | Gửi email xác thực, đặt lại mật khẩu, mã OTP, lời mời tham gia tổ chức | Địa chỉ email, nội dung email | Kết quả gửi | §10.2 | Không có thì không đăng ký và mời thành viên được (DEP-GEN-005) |
+| EXT-INTG-003 | Dịch vụ gửi email | Chọn ở thiết kế hệ thống; gợi ý Amazon SES (OQ-GEN-013) | Gửi email xác thực, đặt lại mật khẩu, lời mời tham gia tổ chức | Địa chỉ email, nội dung email | Kết quả gửi | §10.2 | Không có thì không đăng ký và mời thành viên được (DEP-GEN-005) |
 | EXT-INTG-004 | Google (OIDC) | Google | Đăng nhập bằng tài khoản Google (F-AUTH-002) | Yêu cầu xác thực | Danh tính người dùng (email) | §10.2 | Không có thì chỉ đăng nhập được bằng email và mật khẩu (DEP-GEN-007) |
 
 ## 4. Business Context
@@ -596,7 +597,7 @@ Mục này dùng lại mã `F-*` của PRD §7, không tạo feature mới. Mô 
 |---|---|---|---|---|---|---|---|---|
 | F-AUTH-001 | Tài khoản email | Đăng ký, đăng nhập bằng email và mật khẩu, xác thực email, quên mật khẩu | ACT-GEN-001 | BG-GEN-004 | STR-SEC-001 | Must | MVP | APPROVED |
 | F-AUTH-002 | Đăng nhập Google | Đăng nhập bằng tài khoản Google (OIDC) | ACT-GEN-001 | BG-GEN-004 | STR-SEC-001 | Should | MVP | APPROVED |
-| F-AUTH-003 | Xác thực đa yếu tố | MFA cho tài khoản bằng mã OTP gửi về email | ACT-GEN-002, ACT-GEN-003 | BG-GEN-004 | STR-SEC-001 | Should | MVP | APPROVED |
+| F-AUTH-003 | Xác thực đa yếu tố | Như PRD | - | - | - | Won't | Sau MVP | REVIEW |
 | F-ORG-001 | Tổ chức và thành viên | Tạo tổ chức, mời và xóa thành viên, vai trò Owner/Member cấp tổ chức | ACT-GEN-002 | BG-GEN-004 | STR-SHARE-001, STR-SEC-001 | Must | MVP | APPROVED |
 | F-ORG-002 | Không gian cá nhân và nhiều tổ chức | Không gian cá nhân có sẵn, tạo hoặc tham gia nhiều tổ chức, chuyển không gian | ACT-GEN-003 | BG-GEN-004 | STR-CTR-001, STR-SEC-001 | Must | MVP | APPROVED |
 | F-SHARE-001 | Chia sẻ hợp đồng | Chia sẻ theo email, thu hồi, chuyển quyền Owner hợp đồng | ACT-GEN-004 | BG-GEN-004 | STR-SHARE-001 | Must | MVP | APPROVED |
@@ -642,7 +643,7 @@ Bảng dưới bổ sung phần SRS thêm vào cho từng feature trong phạm v
 |---|---|---|---|---|
 | F-AUTH-001 | UC-AUTH-001, UC-AUTH-002, UC-AUTH-003 | - | FR-AUTH-001, FR-AUTH-002, FR-AUTH-003, FR-AUTH-004, FR-AUTH-005, FR-AUTH-006, FR-AUTH-007, FR-AUTH-008, FR-AUTH-009, FR-AUTH-010, FR-AUTH-014, FR-AUTH-015 | Chính sách mật khẩu và hành vi khi chưa xác thực email được làm rõ ở §8 |
 | F-AUTH-002 | UC-AUTH-002 | - | FR-AUTH-011 | Email và Google dùng chung một tài khoản theo email (OQ-AUTH-001) |
-| F-AUTH-003 | UC-AUTH-002 | - | FR-AUTH-012, FR-AUTH-013 | Yếu tố thứ hai là mã OTP qua email (OQ-AUTH-001) |
+| F-AUTH-003 | - | - | FR-AUTH-012, FR-AUTH-013 | Won't (DEC-PRD-022); FR-AUTH-012, FR-AUTH-013 DEPRECATED. Sau MVP, ưu tiên Should: mỗi lần đăng nhập đều bắt buộc MFA bằng mã gửi qua email; không dùng ứng dụng xác thực bên thứ ba |
 | F-ORG-001 | UC-ORG-001, UC-ORG-002, UC-ORG-003 | BR-ORG-001, BR-ORG-002, BR-ORG-003 | FR-ORG-001, FR-ORG-002, FR-ORG-003, FR-ORG-004, FR-ORG-005, FR-ORG-006, FR-ORG-007, FR-ORG-008, FR-ORG-009, FR-ORG-010, FR-ORG-011, FR-ORG-012 | Member tổ chức xem được email và vai trò của các thành viên (OQ-ORG-001); MVP không có chức năng xóa tổ chức (OQ-ORG-002) |
 | F-ORG-002 | UC-ORG-004 | BR-ORG-004 | FR-ORG-013, FR-ORG-014 | Mô hình không gian kiểu GitHub (DEC-PRD-020); hợp đồng cá nhân có `organization_id` rỗng (§9.1) |
 | F-SHARE-001 | UC-SHARE-001, UC-SHARE-002 | BR-ORG-003, BR-SHARE-001, BR-SHARE-002, BR-SHARE-003, BR-SHARE-004 | FR-SHARE-001, FR-SHARE-002, FR-SHARE-003, FR-SHARE-004, FR-SHARE-005, FR-SHARE-006, FR-SHARE-007, FR-SHARE-008, FR-SHARE-009, FR-SHARE-010 | Owner tổ chức có mọi quyền của Owner hợp đồng trên mọi hợp đồng của tổ chức (DEC-PRD-017). FR-SHARE-005 đã DEPRECATED (DEC-PRD-018) |
@@ -683,7 +684,7 @@ Nguồn chung: PS §2.2, §6; PRD §6 (OPS-GEN-001..006), §8 (user stories). C�
 | Use Case ID | Use Case Name | Primary Actor | Goal | Related Feature | Priority | Status |
 |---|---|---|---|---|---|---|
 | UC-AUTH-001 | Đăng ký tài khoản email | ACT-GEN-001 | Có tài khoản đã xác thực email | F-AUTH-001 | Must | APPROVED |
-| UC-AUTH-002 | Đăng nhập | ACT-GEN-001 | Vào hệ thống | F-AUTH-001, F-AUTH-002, F-AUTH-003 | Must | APPROVED |
+| UC-AUTH-002 | Đăng nhập | ACT-GEN-001 | Vào hệ thống | F-AUTH-001, F-AUTH-002 | Must | APPROVED |
 | UC-AUTH-003 | Đặt lại mật khẩu | ACT-GEN-001 | Lấy lại quyền truy cập tài khoản | F-AUTH-001 | Must | APPROVED |
 | UC-ORG-001 | Tạo tổ chức | ACT-GEN-003 (trở thành ACT-GEN-002) | Có tổ chức để làm việc chung về hợp đồng | F-ORG-001 | Must | APPROVED |
 | UC-ORG-002 | Mời và tham gia tổ chức | ACT-GEN-002 | Đồng nghiệp trở thành thành viên tổ chức | F-ORG-001 | Must | APPROVED |
@@ -786,7 +787,7 @@ None.
 ###### AF-AUTH-002 Tài khoản bật MFA
 
 - **Starts At**: Step 2
-- **Condition**: Mật khẩu đúng và tài khoản đã bật MFA (F-AUTH-003, Should). Hệ thống gửi mã OTP tới email của tài khoản và kiểm tra mã người dùng nhập trước khi tiếp tục.
+- **Condition**: [DEPRECATED] Bỏ theo DEC-PRD-022: MFA không thuộc MVP. Giữ lại để lưu vết. Trước đó: mật khẩu đúng và tài khoản đã bật MFA thì hệ thống gửi mã OTP tới email và kiểm tra mã.
 - **Returns To**: Step 3
 
 ##### Exception Flows
@@ -794,7 +795,7 @@ None.
 ###### EF-AUTH-002 Sai thông tin đăng nhập
 
 - **Occurs At**: Step 2
-- **Condition**: Email hoặc mật khẩu không đúng, hoặc yếu tố MFA không đúng.
+- **Condition**: Email hoặc mật khẩu không đúng.
 - **Resulting State**: Không tạo phiên; hệ thống hiển thị thông báo đăng nhập thất bại.
 
 ###### EF-AUTH-003 Tài khoản bị tạm khóa đăng nhập
@@ -2237,14 +2238,14 @@ Các yêu cầu chức năng (`FR`) chuyển từ feature, user story (PRD §7, 
 | FR-AUTH-003 | Gửi email xác thực | Khi một tài khoản email được tạo, hệ thống phải gửi tới địa chỉ đó email chứa liên kết xác thực. | PS §6.1 ACC-01 | Must | Test | APPROVED |
 | FR-AUTH-004 | Xác thực email | Khi người dùng mở liên kết xác thực còn hiệu lực, hệ thống phải đánh dấu email của tài khoản là đã xác thực. | PS §6.1 ACC-01 | Must | Test | APPROVED |
 | FR-AUTH-005 | Chính sách mật khẩu | Nếu mật khẩu có ít hơn 8 ký tự hoặc không có cả chữ và số, thì hệ thống phải từ chối mật khẩu và hiển thị yêu cầu của chính sách. | PRD US-AUTH-001 (ghi chú: chính sách mật khẩu được làm rõ ở SRS) | Must | Test | APPROVED |
-| FR-AUTH-006 | Đăng nhập bằng email | Khi người dùng gửi đúng email và mật khẩu, hệ thống phải tạo phiên đăng nhập cho tài khoản đó. | PS §6.1 ACC-01 | Must | Test | APPROVED |
-| FR-AUTH-007 | Đăng nhập thất bại | Nếu email, mật khẩu hoặc yếu tố xác thực thứ hai không đúng, thì hệ thống phải từ chối tạo phiên và hiển thị thông báo đăng nhập thất bại. | UC-AUTH-002 EF-AUTH-002 | Must | Test | APPROVED |
+| FR-AUTH-006 | Đăng nhập bằng email | Khi người dùng gửi đúng email và mật khẩu, hệ thống phải tạo phiên đăng nhập cho tài khoản đó. | PS §6.1 ACC-01 | Must | Test | REVIEW |
+| FR-AUTH-007 | Đăng nhập thất bại | Nếu email hoặc mật khẩu không đúng, thì hệ thống phải từ chối tạo phiên và hiển thị thông báo đăng nhập thất bại. | UC-AUTH-002 EF-AUTH-002 | Must | Test | REVIEW |
 | FR-AUTH-008 | Đăng nhập khi chưa xác thực email | Trong khi email của tài khoản chưa được xác thực, hệ thống phải từ chối đăng nhập vào tài khoản đó và hiển thị hướng dẫn xác thực email. | PRD US-AUTH-001 (ghi chú: hành vi khi chưa xác thực email được làm rõ ở SRS) | Must | Test | APPROVED |
 | FR-AUTH-009 | Gửi liên kết đặt lại mật khẩu | Khi người dùng yêu cầu đặt lại mật khẩu cho một email đã đăng ký, hệ thống phải gửi liên kết đặt lại mật khẩu tới email đó. | PS §6.1 ACC-01 | Must | Test | APPROVED |
 | FR-AUTH-010 | Đặt mật khẩu mới | Khi người dùng gửi mật khẩu mới thỏa chính sách qua liên kết đặt lại còn hiệu lực, hệ thống phải thay mật khẩu của tài khoản bằng mật khẩu mới. | PS §6.1 ACC-01 | Must | Test | APPROVED |
 | FR-AUTH-011 | Đăng nhập bằng Google | Khi người dùng hoàn tất xác thực với Google, hệ thống phải tạo phiên đăng nhập cho tài khoản gắn với email của tài khoản Google đó. | PS §6.1 ACC-02 | Should | Test | APPROVED |
-| FR-AUTH-012 | Bật MFA | Hệ thống phải cho phép người dùng đã đăng nhập bật MFA cho tài khoản của mình. | PS §6.1 ACC-09 | Should | Test | APPROVED |
-| FR-AUTH-013 | Yêu cầu MFA khi đăng nhập | Trong khi tài khoản đã bật MFA, hệ thống phải gửi mã OTP tới email của tài khoản và chỉ tạo phiên đăng nhập khi người dùng nhập đúng mã trong vòng 10 phút kể từ khi gửi. | PS §6.1 ACC-09 | Should | Test | APPROVED |
+| FR-AUTH-012 | Bật MFA | Hệ thống phải cho phép người dùng đã đăng nhập bật MFA cho tài khoản của mình. | PS §6.1 ACC-09 | Should | Test | DEPRECATED |
+| FR-AUTH-013 | Yêu cầu MFA khi đăng nhập | Trong khi tài khoản đã bật MFA, hệ thống phải gửi mã OTP tới email của tài khoản và chỉ tạo phiên đăng nhập khi người dùng nhập đúng mã trong vòng 10 phút kể từ khi gửi. | PS §6.1 ACC-09 | Should | Test | DEPRECATED |
 | FR-AUTH-014 | Giới hạn gửi email đặt lại mật khẩu | Nếu một tài khoản yêu cầu đặt lại mật khẩu trong vòng 3 phút sau lần gửi trước, hoặc đã được gửi 5 email đặt lại mật khẩu trong 1 giờ gần nhất, thì hệ thống phải không gửi thêm email và vẫn hiển thị cùng thông báo như khi gửi thành công. | DEC-GEN-024 | Must | Test | APPROVED |
 | FR-AUTH-015 | Đồng hồ đếm ngược gửi lại email | Khi yêu cầu đặt lại mật khẩu được gửi, hệ thống phải hiển thị đồng hồ đếm ngược 3 phút trước khi cho gửi lại và giữ nguyên đồng hồ khi người dùng tải lại trang hoặc mở tab khác của cùng trình duyệt. | DEC-GEN-024 | Should | Test | APPROVED |
 | FR-ORG-001 | Tạo tổ chức | Khi người dùng đã đăng nhập xác nhận tạo tổ chức, hệ thống phải tạo tổ chức với người dùng đó là Owner tổ chức. | PS §6.1 ACC-03 | Must | Test | APPROVED |
@@ -2464,21 +2465,21 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 
 - **Statement**: Khi người dùng gửi đúng email và mật khẩu, hệ thống phải tạo phiên đăng nhập cho tài khoản đó.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: PS §6.1 ACC-01
 - **Rationale**: Người dùng vào được hệ thống.
 - **Parent**: F-AUTH-001, US-AUTH-001, UC-AUTH-002
 - **Verification Method**: Test
 - **Acceptance Criteria**:
-  1. Given tài khoản tồn tại và chưa bật MFA, when người dùng gửi đúng email và mật khẩu, then hệ thống phải tạo phiên đăng nhập và đưa người dùng vào thư viện hợp đồng.
+  1. Given tài khoản tồn tại và email đã xác thực, when người dùng gửi đúng email và mật khẩu, then hệ thống phải tạo phiên đăng nhập và đưa người dùng vào thư viện hợp đồng.
 - **Dependencies**: FR-AUTH-008
-- **Notes**: None
+- **Notes**: [CHANGE] 2026-10-27: bỏ MFA khỏi MVP (DEC-PRD-022). Bỏ điều kiện "chưa bật MFA" ở tiêu chí nghiệm thu.
 
 #### FR-AUTH-007 Đăng nhập thất bại
 
-- **Statement**: Nếu email, mật khẩu hoặc yếu tố xác thực thứ hai không đúng, thì hệ thống phải từ chối tạo phiên và hiển thị thông báo đăng nhập thất bại.
+- **Statement**: Nếu email hoặc mật khẩu không đúng, thì hệ thống phải từ chối tạo phiên và hiển thị thông báo đăng nhập thất bại.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: UC-AUTH-002 EF-AUTH-002
 - **Rationale**: Chặn truy cập trái phép.
 - **Parent**: F-AUTH-001, UC-AUTH-002
@@ -2486,7 +2487,7 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 - **Acceptance Criteria**:
   1. Given tài khoản tồn tại, when người dùng gửi sai mật khẩu, then hệ thống phải không tạo phiên và hiển thị thông báo đăng nhập thất bại.
 - **Dependencies**: None
-- **Notes**: None
+- **Notes**: [CHANGE] 2026-10-27: bỏ MFA khỏi MVP (DEC-PRD-022). Bỏ "yếu tố xác thực thứ hai" khỏi câu yêu cầu.
 
 #### FR-AUTH-008 Đăng nhập khi chưa xác thực email
 
@@ -2550,7 +2551,7 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 
 - **Statement**: Hệ thống phải cho phép người dùng đã đăng nhập bật MFA cho tài khoản của mình.
 - **Priority**: Should
-- **Status**: APPROVED
+- **Status**: DEPRECATED
 - **Source**: PS §6.1 ACC-09
 - **Rationale**: Giảm nguy cơ tài khoản bị chiếm.
 - **Parent**: F-AUTH-003, US-AUTH-004
@@ -2558,13 +2559,13 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 - **Acceptance Criteria**:
   1. Given người dùng đã đăng nhập và chưa bật MFA, when bật MFA, then hệ thống phải lưu trạng thái MFA đã bật cho tài khoản.
 - **Dependencies**: None
-- **Notes**: Yếu tố thứ hai là mã OTP gửi về email của tài khoản (OQ-AUTH-001).
+- **Notes**: [DEPRECATED] Bỏ theo DEC-PRD-022: MFA không thuộc MVP. Giữ lại để lưu vết.
 
 #### FR-AUTH-013 Yêu cầu MFA khi đăng nhập
 
 - **Statement**: Trong khi tài khoản đã bật MFA, hệ thống phải gửi mã OTP tới email của tài khoản và chỉ tạo phiên đăng nhập khi người dùng nhập đúng mã trong vòng 10 phút kể từ khi gửi.
 - **Priority**: Should
-- **Status**: APPROVED
+- **Status**: DEPRECATED
 - **Source**: PS §6.1 ACC-09
 - **Rationale**: Mật khẩu bị lộ không đủ để vào hệ thống.
 - **Parent**: F-AUTH-003, US-AUTH-004, UC-AUTH-002
@@ -2573,7 +2574,7 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
   1. Given tài khoản đã bật MFA, when người dùng gửi đúng mật khẩu nhưng chưa nhập mã OTP, then hệ thống phải không tạo phiên đăng nhập.
   2. Given mã OTP đã gửi quá 10 phút, when người dùng nhập mã đó, then hệ thống phải không tạo phiên đăng nhập và cho gửi mã mới.
 - **Dependencies**: FR-AUTH-012
-- **Notes**: None
+- **Notes**: [DEPRECATED] Bỏ theo DEC-PRD-022: MFA không thuộc MVP. Giữ lại để lưu vết.
 
 #### FR-AUTH-014 Giới hạn gửi email đặt lại mật khẩu
 
@@ -4555,7 +4556,7 @@ Mô hình dữ liệu ở đây đặc tả dữ liệu hệ thống phải lưu
 | Entity ID | Entity Name | Business Definition | Description | Primary Owner | Created By | Used By | Related Features | Status |
 |---|---|---|---|---|---|---|---|---|
 | ENT-DATA-001 | `Organization` | Một tổ chức (doanh nghiệp hoặc nhóm) do người dùng tạo để làm việc chung; là một không gian làm việc | Chứa thành viên, lời mời và hợp đồng của tổ chức | Owner tổ chức | ACT-GEN-003 (người tạo trở thành Owner tổ chức) | Chức năng trong không gian tổ chức | F-ORG-001, F-ORG-002 | APPROVED |
-| ENT-DATA-002 | `UserAccount` | Một người dùng định danh bằng email | Email, thông tin đăng nhập, trạng thái xác thực email, cài đặt MFA, ngôn ngữ giao diện. Mỗi tài khoản có sẵn một không gian cá nhân (BR-ORG-004) | Người dùng | ACT-GEN-001 | Xác thực, phân quyền, không gian cá nhân | F-AUTH-001, F-AUTH-002, F-AUTH-003, F-ORG-002, F-VIEW-001 | APPROVED |
+| ENT-DATA-002 | `UserAccount` | Một người dùng định danh bằng email | Email, thông tin đăng nhập, trạng thái xác thực email, ngôn ngữ giao diện. Mỗi tài khoản có sẵn một không gian cá nhân (BR-ORG-004) | Người dùng | ACT-GEN-001 | Xác thực, phân quyền, không gian cá nhân | F-AUTH-001, F-AUTH-002, F-AUTH-003, F-ORG-002, F-VIEW-001 | APPROVED |
 | ENT-DATA-003 | `Membership` | Quan hệ giữa tài khoản và tổ chức kèm vai trò | Vai trò Owner hoặc Member; mỗi cặp tài khoản và tổ chức có tối đa một bản ghi; một tài khoản thuộc được nhiều tổ chức (DEC-PRD-020) | Owner tổ chức | Hệ thống (khi tạo tổ chức hoặc tham gia) | Phân quyền, danh sách không gian | F-ORG-001, F-ORG-002 | APPROVED |
 | ENT-DATA-004 | `Invitation` | Lời mời một email tham gia tổ chức | Email được mời, người mời, thời điểm gửi, thời hạn hiệu lực, trạng thái | Owner tổ chức | ACT-GEN-002 | Tham gia tổ chức | F-ORG-001 | APPROVED |
 | ENT-DATA-005 | `Contract` | Một hồ sơ hợp đồng trong thư viện của một không gian | Tên, Owner hợp đồng, không gian (tổ chức hoặc cá nhân), trạng thái duyệt | Owner hợp đồng | ACT-GEN-003 | Thư viện, chia sẻ, mọi chức năng hợp đồng | F-CTR-001, F-CTR-003, F-CTR-004, F-CTR-006, F-ORG-002 | APPROVED |
@@ -4787,7 +4788,7 @@ erDiagram
 | ATTR-DATA-002 | ENT-DATA-002 | `email` | Địa chỉ email, định danh duy nhất | Text | Yes | No | No | Confidential | VAL-DATA-001 |
 | ATTR-DATA-003 | ENT-DATA-002 | `password_credential` | Dữ liệu để kiểm tra mật khẩu; rỗng với tài khoản tạo bằng Google chưa đặt mật khẩu | Text | No | Yes | No | Restricted | SEC-AUTH-002 |
 | ATTR-DATA-004 | ENT-DATA-002 | `is_email_verified` | Email đã được xác thực hay chưa | Boolean | Yes | Yes | No | Internal | None |
-| ATTR-DATA-005 | ENT-DATA-002 | `is_mfa_enabled` | Tài khoản bật MFA hay chưa | Boolean | Yes | Yes | No | Internal | None |
+| ATTR-DATA-005 | ENT-DATA-002 | `is_mfa_enabled` [DEPRECATED] | [DEPRECATED] Không dùng; MFA không thuộc MVP (DEC-PRD-022) | Boolean | Yes | Yes | No | Internal | None |
 | ATTR-DATA-006 | ENT-DATA-002 | `ui_language` | Ngôn ngữ người dùng chọn | Enum | Yes | Yes | No | Internal | DATA-DATA-014 |
 | ATTR-DATA-007 | ENT-DATA-003 | `org_role` | Vai trò cấp tổ chức | Enum | Yes | Yes | No | Internal | BR-ORG-003 |
 | ATTR-DATA-008 | ENT-DATA-004 | `invited_email` | Địa chỉ nhận lời mời | Text | Yes | No | No | Confidential | None |
@@ -4895,7 +4896,7 @@ erDiagram
 | ENT-DATA-010 `AnalysisRun` | Theo trạng thái lần phân tích (§13) | Bắt đầu phân tích | Theo bước của pipeline | Khi hoàn tất hoặc thất bại | Không có | Khi hợp đồng bị xóa; kết quả cũ bị thay khi chạy lại thành công (OQ-ANA-001) | Không khôi phục | FR-ANA-001, FR-ANA-005, FR-ANA-015 |
 | ENT-DATA-014 `Finding` | Theo trạng thái xử lý (§13) | Lần phân tích hoàn tất | Đổi trạng thái xử lý, ghi chú | Không quy định | Không có | Khi hợp đồng bị xóa | Không khôi phục | FR-RISK-004, FR-VIEW-013 |
 | ENT-DATA-004 `Invitation` | Đã gửi, đã chấp nhận (§13) | Owner tổ chức mời | Khi được chấp nhận | Khi chấp nhận hoặc hết hạn | Không có | Khi được chấp nhận hoặc hết hạn 7 ngày (OQ-ORG-003) | Gửi lời mời mới | FR-ORG-003, FR-ORG-005 |
-| ENT-DATA-002 `UserAccount` | Chưa xác thực, đã xác thực (§13) | Đăng ký; không gian cá nhân có ngay (FR-ORG-013) | Xác thực email, đổi mật khẩu, bật MFA | Không quy định | Không có | Khi người dùng yêu cầu; xóa thủ công (OQ-DATA-003) | Không quy định | FR-AUTH-001, FR-AUTH-004 |
+| ENT-DATA-002 `UserAccount` | Chưa xác thực, đã xác thực (§13) | Đăng ký; không gian cá nhân có ngay (FR-ORG-013) | Xác thực email, đổi mật khẩu | Không quy định | Không có | Khi người dùng yêu cầu; xóa thủ công (OQ-DATA-003) | Không quy định | FR-AUTH-001, FR-AUTH-004 |
 
 ### 9.9 Data Retention And Deletion
 
@@ -4970,7 +4971,7 @@ Không áp dụng. ContractGuard là ứng dụng web, không giao tiếp với 
 | IF-COM-001 | Mọi kết nối giữa trình duyệt và hệ thống phải được mã hóa | HTTPS | NFR-SEC-002 | Do thiết kế hệ thống quyết định | Không | Không | Inspection |
 | IF-COM-002 | Câu trả lời chatbot phải hiển thị dần trong khi đang được tạo (streaming), để chữ đầu tiên xuất hiện trong thời gian NFR-PERF-004 | Do thiết kế hệ thống quyết định | NFR-SEC-002 | Văn bản | NFR-PERF-004 | ERR-CHAT-001 | Test |
 | IF-COM-003 | Trình duyệt phải nhận được thay đổi bước của tiến trình phân tích trong khi phân tích đang chạy (FR-ANA-002) | Do thiết kế hệ thống quyết định (polling hay WebSocket, SD Phụ lục B #7) | NFR-SEC-002 | Do thiết kế hệ thống quyết định | Không | Không | Test |
-| IF-COM-004 | Hệ thống phải gửi email xác thực, đặt lại mật khẩu, mã OTP và lời mời qua IF-INTG-003 | Email | Liên kết xác thực, liên kết đặt lại mật khẩu và mã OTP hiệu lực 10 phút; link mời hiệu lực 7 ngày (OQ-AUTH-001, OQ-ORG-003) | Email | Không | ERR-INTG-001 | Test |
+| IF-COM-004 | Hệ thống phải gửi email xác thực, đặt lại mật khẩu và lời mời qua IF-INTG-003 | Email | Liên kết xác thực, liên kết đặt lại mật khẩu và mã OTP hiệu lực 10 phút; link mời hiệu lực 7 ngày (OQ-AUTH-001, OQ-ORG-003) | Email | Không | ERR-INTG-001 | Test |
 
 ## 11. Non-Functional Requirements
 
@@ -5587,7 +5588,7 @@ Không áp dụng. Lỗi hoặc dùng sai sản phẩm không gây nguy hại v�
 | SEC-AUTH-001 | Hệ thống phải chỉ cho phép dùng các chức năng khác ngoài đăng ký, đăng nhập, đặt lại mật khẩu, xác thực email và mở link mời khi có phiên đăng nhập hợp lệ. | PS §6.1 (quyền gắn với tài khoản); PS §8 (phân quyền phía server) | Test | APPROVED |
 | SEC-AUTH-002 | Hệ thống phải lưu mật khẩu chỉ ở dạng băm bằng thuật toán băm mật khẩu chuyên dụng, hoặc giao việc lưu mật khẩu cho dịch vụ xác thực managed; thiết kế hệ thống chọn cách làm. | OQ-AUTH-002 | Inspection | APPROVED |
 | SEC-AUTH-003 | Hệ thống phải kết thúc phiên đăng nhập khi người dùng đăng xuất hoặc sau 7 ngày không hoạt động. | OQ-AUTH-002 | Test | APPROVED |
-| SEC-AUTH-004 | Ở nơi tài khoản bật MFA, hệ thống phải áp dụng FR-AUTH-013. | PS §6.1 ACC-09 | Test | APPROVED |
+| SEC-AUTH-004 | [DEPRECATED] Ở nơi tài khoản bật MFA, hệ thống phải áp dụng FR-AUTH-013. Bỏ theo DEC-PRD-022 | PS §6.1 ACC-09 | Test | DEPRECATED |
 | SEC-AUTH-005 | Hệ thống phải chấp nhận danh tính từ Google theo IF-INTG-004 cho đăng nhập bằng Google (FR-AUTH-011). | PS §6.1 ACC-02 | Test | APPROVED |
 | SEC-AUTH-006 | Nếu một email có 5 lần đăng nhập sai liên tiếp, thì hệ thống phải từ chối đăng nhập bằng mật khẩu cho email đó trong 15 phút; việc đếm và khóa thực hiện ở phía server, và chức năng đặt lại mật khẩu vẫn dùng được trong thời gian khóa. | OQ-AUTH-002; DEC-GEN-024 | Test | APPROVED |
 | SEC-AUTH-007 | Hệ thống phải giới hạn số request theo địa chỉ IP ở mức tối đa 30 request/phút cho đăng nhập và 10 request/phút cho đặt lại mật khẩu, và từ chối phần vượt ngưỡng (ERR-AUTH-006). | DEC-GEN-024 | Test | APPROVED |
@@ -5614,7 +5615,7 @@ Email cảnh báo khi tài khoản bị nhập sai mật khẩu nhiều lần: W
 | Role Or Actor | Resource | View | Create | Update | Delete | Approve | Configure | Scope |
 |---|---|---:|---:|---:|---:|---:|---:|---|
 | Khách (ACT-GEN-001) | Tài khoản | No | Yes | No | No | No | No | Tài khoản của chính mình |
-| Người dùng đã đăng nhập | Tài khoản của mình (mật khẩu, MFA, ngôn ngữ) | Yes | No | Yes | No (xóa tài khoản theo yêu cầu, xử lý thủ công, OQ-DATA-003) | No | No | Tài khoản của chính mình |
+| Người dùng đã đăng nhập | Tài khoản của mình (mật khẩu, ngôn ngữ) | Yes | No | Yes | No (xóa tài khoản theo yêu cầu, xử lý thủ công, OQ-DATA-003) | No | No | Tài khoản của chính mình |
 | Người dùng đã đăng nhập | Tổ chức mới | No | Yes | No | No | No | No | Tổ chức do mình tạo |
 | Người dùng đã đăng nhập | Không gian cá nhân: hợp đồng cá nhân của mình (mọi quyền như Owner hợp đồng, trừ chuyển quyền Owner) | Yes | Yes | Yes | Yes | Yes | Yes | Không gian cá nhân của mình |
 | Người dùng đã đăng nhập | Danh sách không gian (cá nhân và các tổ chức mình là thành viên) | Yes | No | No | No | No | No | Tài khoản của chính mình |
@@ -5741,8 +5742,8 @@ stateDiagram-v2
 |---|---|---|---|---|---|---|---|---|---|
 | ERR-AUTH-001 | Validation | Email đã được đăng ký | Kiểm tra trùng email | Từ chối đăng ký | Thông báo email đã được đăng ký | Không tạo tài khoản | Không | Không | FR-AUTH-002 |
 | ERR-AUTH-002 | Validation | Mật khẩu vi phạm chính sách | Kiểm tra chính sách | Từ chối mật khẩu | Hiển thị yêu cầu chính sách | Không đổi | Người dùng nhập lại | Không | FR-AUTH-005 |
-| ERR-AUTH-003 | Authentication | Sai email, mật khẩu hoặc yếu tố MFA | Kiểm tra thông tin đăng nhập | Không tạo phiên | Thông báo đăng nhập thất bại | Không đổi | Người dùng thử lại; sai 5 lần liên tiếp với cùng email thì email đó bị khóa 15 phút (SEC-AUTH-006) | Ghi log sự kiện bảo mật, không ghi mật khẩu (OQ-AUTH-002) | FR-AUTH-007 |
-| ERR-AUTH-004 | Validation | Liên kết xác thực, liên kết đặt lại mật khẩu hoặc mã OTP hết hiệu lực (quá 10 phút) | Kiểm tra thời hạn | Từ chối | Thông báo liên kết hoặc mã không còn hiệu lực | Không đổi | Yêu cầu liên kết hoặc mã mới | Không | FR-AUTH-004, FR-AUTH-010, FR-AUTH-013 |
+| ERR-AUTH-003 | Authentication | Sai email hoặc mật khẩu | Kiểm tra thông tin đăng nhập | Không tạo phiên | Thông báo đăng nhập thất bại | Không đổi | Người dùng thử lại; sai 5 lần liên tiếp với cùng email thì email đó bị khóa 15 phút (SEC-AUTH-006) | Ghi log sự kiện bảo mật, không ghi mật khẩu (OQ-AUTH-002) | FR-AUTH-007 |
+| ERR-AUTH-004 | Validation | Liên kết xác thực hoặc liên kết đặt lại mật khẩu hết hiệu lực (quá 10 phút) | Kiểm tra thời hạn | Từ chối | Thông báo liên kết hoặc mã không còn hiệu lực | Không đổi | Yêu cầu liên kết hoặc mã mới | Không | FR-AUTH-004, FR-AUTH-010, FR-AUTH-013 |
 | ERR-AUTH-005 | Security | Email đang bị tạm khóa đăng nhập | Bộ đếm đăng nhập sai theo email ở phía server (SEC-AUTH-006) | Từ chối đăng nhập bằng mật khẩu | Thông báo tạm khóa, thử lại sau 15 phút hoặc đặt lại mật khẩu | Không đổi | Thử lại sau 15 phút hoặc dùng FR-AUTH-009 | Ghi log sự kiện bảo mật | FR-AUTH-007 |
 | ERR-AUTH-006 | Security | Vượt ngưỡng request theo IP | Rate limit theo IP ở phía server (SEC-AUTH-007) | Từ chối request, trả lỗi quá nhiều request (HTTP 429) | Thông báo thao tác quá nhanh, thử lại sau | Không đổi | Thử lại sau 1 phút | Ghi log sự kiện bảo mật | FR-AUTH-007, FR-AUTH-009 |
 | ERR-UPL-001 | Validation | Định dạng không được hỗ trợ | FR-UPL-001 | Từ chối file | Lý do định dạng | Không tạo hợp đồng | Người dùng chọn file khác | Không | FR-UPL-002 |
@@ -5829,14 +5830,14 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-AUTH-003 | Gửi email xác thực | PS §6.1 ACC-01 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-001 | F-AUTH-001, US-AUTH-001, UC-AUTH-001 | F-AUTH-001, UC-AUTH-001 | Test | APPROVED |
 | FR-AUTH-004 | Xác thực email | PS §6.1 ACC-01 | §8.2 | BG-GEN-004, STR-SEC-001 | F-AUTH-001, UC-AUTH-001 | F-AUTH-001, UC-AUTH-001 | Test | APPROVED |
 | FR-AUTH-005 | Chính sách mật khẩu | PRD US-AUTH-001 (ghi chú: chính sách mật khẩu được làm rõ ở SRS) | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-001 | F-AUTH-001, US-AUTH-001, UC-AUTH-001, UC-AUTH-003 | F-AUTH-001, UC-AUTH-001, UC-AUTH-003 | Test | APPROVED |
-| FR-AUTH-006 | Đăng nhập bằng email | PS §6.1 ACC-01 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-001 | F-AUTH-001, US-AUTH-001, UC-AUTH-002 | F-AUTH-001, UC-AUTH-002 | Test | APPROVED |
-| FR-AUTH-007 | Đăng nhập thất bại | UC-AUTH-002 EF-AUTH-002 | §8.2 | BG-GEN-004, STR-SEC-001 | F-AUTH-001, UC-AUTH-002 | F-AUTH-001, UC-AUTH-002 | Test | APPROVED |
+| FR-AUTH-006 | Đăng nhập bằng email | PS §6.1 ACC-01 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-001 | F-AUTH-001, US-AUTH-001, UC-AUTH-002 | F-AUTH-001, UC-AUTH-002 | Test | REVIEW |
+| FR-AUTH-007 | Đăng nhập thất bại | UC-AUTH-002 EF-AUTH-002 | §8.2 | BG-GEN-004, STR-SEC-001 | F-AUTH-001, UC-AUTH-002 | F-AUTH-001, UC-AUTH-002 | Test | REVIEW |
 | FR-AUTH-008 | Đăng nhập khi chưa xác thực email | PRD US-AUTH-001 (ghi chú: hành vi khi chưa xác thực email được làm rõ ở SRS) | §8.2 | BG-GEN-004, STR-SEC-001 | F-AUTH-001, UC-AUTH-002 | F-AUTH-001, UC-AUTH-002 | Test | APPROVED |
 | FR-AUTH-009 | Gửi liên kết đặt lại mật khẩu | PS §6.1 ACC-01 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-002 | F-AUTH-001, US-AUTH-002, UC-AUTH-003 | F-AUTH-001, UC-AUTH-003 | Test | APPROVED |
 | FR-AUTH-010 | Đặt mật khẩu mới | PS §6.1 ACC-01 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-002 | F-AUTH-001, US-AUTH-002, UC-AUTH-003 | F-AUTH-001, UC-AUTH-003 | Test | APPROVED |
 | FR-AUTH-011 | Đăng nhập bằng Google | PS §6.1 ACC-02 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-003 | F-AUTH-002, US-AUTH-003, UC-AUTH-002 | F-AUTH-002, UC-AUTH-002 | Test | APPROVED |
-| FR-AUTH-012 | Bật MFA | PS §6.1 ACC-09 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-004 | F-AUTH-003, US-AUTH-004 | F-AUTH-003 | Test | APPROVED |
-| FR-AUTH-013 | Yêu cầu MFA khi đăng nhập | PS §6.1 ACC-09 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-004 | F-AUTH-003, US-AUTH-004, UC-AUTH-002 | F-AUTH-003, UC-AUTH-002 | Test | APPROVED |
+| FR-AUTH-012 | Bật MFA | PS §6.1 ACC-09 | §8.2 | US-AUTH-004 | F-AUTH-003, US-AUTH-004 | F-AUTH-003 | Test | DEPRECATED |
+| FR-AUTH-013 | Yêu cầu MFA khi đăng nhập | PS §6.1 ACC-09 | §8.2 | US-AUTH-004 | F-AUTH-003, US-AUTH-004, UC-AUTH-002 | F-AUTH-003, UC-AUTH-002 | Test | DEPRECATED |
 | FR-AUTH-014 | Giới hạn gửi email đặt lại mật khẩu | DEC-GEN-024 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-002 | F-AUTH-001, US-AUTH-002, UC-AUTH-003 | F-AUTH-001, UC-AUTH-003 | Test | APPROVED |
 | FR-AUTH-015 | Đồng hồ đếm ngược gửi lại email | DEC-GEN-024 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-002 | F-AUTH-001, US-AUTH-002, UC-AUTH-003 | F-AUTH-001, UC-AUTH-003 | Test | APPROVED |
 | FR-ORG-001 | Tạo tổ chức | PS §6.1 ACC-03 | §8.2 | BG-GEN-004, STR-SHARE-001, STR-SEC-001, US-ORG-001 | F-ORG-001, US-ORG-001, UC-ORG-001 | F-ORG-001, UC-ORG-001 | Test | APPROVED |

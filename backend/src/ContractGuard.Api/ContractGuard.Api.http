@@ -1,0 +1,3 @@
+@ContractGuard.Api_HostAddress = http://localhost:5080
+
+Get {{ContractGuard.Api_HostAddress}}/health/live

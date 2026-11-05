@@ -33,7 +33,7 @@
 | 3 | Xem kết quả và báo cáo | F-VIEW-001, F-VIEW-002, F-EXP-001 | Must | - |
 | 4 | Chatbot | F-CHAT-001 | Must | Bước 6 |
 | 5 | Quản lý và cộng tác | F-ORG-001, F-ORG-002 (nhiều tổ chức), F-SHARE-001, F-CTR-003, F-CTR-004, F-CTR-005, F-CTR-006, F-AUD-001, phần còn lại của F-AUTH-001 | Must (F-AUD-001 là Should) | Bước 7 |
-| 6 | Các feature Should | F-AUTH-002, F-AUTH-003, F-VIEW-003, F-CHAT-002, F-CHAT-003, F-EXP-002 | Should | - |
+| 6 | Các feature Should | F-AUTH-002, F-VIEW-003, F-CHAT-002, F-CHAT-003, F-EXP-002 | Should | - |
 | 7 | Triển khai AWS và chuẩn bị demo | - | Must | Bước 8 |
 | 8 | Nếu còn thời gian | F-CMP-001, F-POL-001 | Could | - |
 
@@ -158,7 +158,7 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 
 | Track | Việc |
 |---|---|
-| SE | Đăng nhập Google (F-AUTH-002), MFA bằng OTP qua email (F-AUTH-003) |
+| SE | Đăng nhập Google (F-AUTH-002) |
 | SE | Đánh dấu trạng thái xử lý finding kèm ghi chú (F-VIEW-003) |
 | SE | Tùy chọn báo cáo: ngôn ngữ và phạm vi finding (F-EXP-002) |
 | AI, SE | Gợi ý câu hỏi (F-CHAT-002), lịch sử chat (F-CHAT-003) |
@@ -171,6 +171,7 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 |---|---|
 | SE | Dựng staging ở `ap-southeast-1` bằng CDK, deploy bằng GitHub Actions và ECR |
 | SE | Chính sách bật/tắt để tiết kiệm credit (SD §2.7); quyết định worker chạy sẵn hay scale từ 0 (SD Q1) |
+| Cả nhóm | Trước khi dựng AWS: mọi thành viên cấu hình billing và cảnh báo ngân sách trên tài khoản của mình (SD-20) |
 | SE | OpenTelemetry gửi sang CloudWatch và X-Ray, dùng `job_id` làm correlation ID |
 | SE | Đọc IP thật qua `X-Forwarded-For` sau ALB để rate limit hoạt động đúng |
 | SE | Dọn code demo của frontend theo [frontend/DEMO-CLEANUP.md](../frontend/DEMO-CLEANUP.md) |
@@ -194,7 +195,6 @@ Bảng gồm mọi feature Must, Should, Could đang dùng trong PRD §7.1. Feat
 |---|---|---|
 | F-AUTH-001 Tài khoản email | Must | 1 (lõi), 5 (khóa đăng nhập, rate limit) |
 | F-AUTH-002 Đăng nhập Google | Should | 6 |
-| F-AUTH-003 Xác thực đa yếu tố | Should | 6 |
 | F-ORG-001 Tổ chức và thành viên | Must | 5 |
 | F-ORG-002 Không gian cá nhân và nhiều tổ chức | Must | 1 (không gian cá nhân), 5 (nhiều tổ chức) |
 | F-SHARE-001 Chia sẻ hợp đồng | Must | 5 |
@@ -224,11 +224,13 @@ Bảng gồm mọi feature Must, Should, Could đang dùng trong PRD §7.1. Feat
 
 ## 4. Điểm cần chốt ở system design trước khi code
 
+Đề xuất và trade-off cho từng điểm nằm ở [04-system-design-decisions.md](04-system-design-decisions.md): D1 → SD-04, D2 → SD-16, D3 → SD-14, D4 → SD-15, D5 → SD-12, D6 → SD-08.
+
 Đây là những chỗ file Tech stack và SRS chưa khớp nhau, hoặc chưa có quyết định. Nhóm tự chốt khi làm system design. Sơ đồ ở `docs/architecture/` đánh dấu các chỗ này là "dự kiến".
 
 | # | Câu hỏi | Vì sao cần chốt | Trước phase | Bước SD |
 |---|---|---|---|---|
-| D1 | Tự viết auth trong service C# hay dùng Amazon Cognito? | SRS yêu cầu khóa đăng nhập theo email 5 lần / 15 phút, cooldown quên mật khẩu 3 phút, tối đa 5 email/giờ, OTP qua email. Các luật này khó làm đúng chỉ bằng cấu hình Cognito. | 1 | 7 |
+| D1 | ~~Tự viết auth hay Cognito?~~ **Đã chốt: ASP.NET Core Identity** (SD-04, DEC-GEN-028). Không có MFA trong MVP (DEC-PRD-022) | - | 1 | 7 |
 | D2 | Dịch vụ gửi email: Amazon SES hay dịch vụ khác? Ra khỏi sandbox thế nào? | Tài khoản SES mới ở chế độ sandbox, chỉ gửi được tới địa chỉ đã xác minh | 1 | 8 |
 | D3 | Ai gọi Bedrock cho chatbot và ai đọc pgvector? | File Tech stack quy định worker không chạm database, nhưng chatbot cần tìm điều khoản trong pgvector | 4 | 6 |
 | D4 | Chat streaming bằng gì: SSE, WebSocket (SignalR) hay polling? | Mục tiêu chữ đầu tiên ≤ 15 giây; file Tech stack ghi MVP chưa cần WebSocket | 4 | 6 |

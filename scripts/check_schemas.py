@@ -10,6 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 FILES = [
     ROOT / "contracts" / "extraction.schema.json",
     ROOT / "contracts" / "job-result.schema.json",
+    ROOT / "contracts" / "extraction.v2.schema.json",
+    ROOT / "contracts" / "queue-messages.v1.schema.json",
+    ROOT / "contracts" / "analysis-request.v1.schema.json",
     ROOT / "security" / "schemas" / "security-findings.schema.json",
 ]
 

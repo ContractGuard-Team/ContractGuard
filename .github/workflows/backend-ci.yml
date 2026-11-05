@@ -1,0 +1,69 @@
+name: backend
+
+# Runs only when the backend, the shared contracts or this file change (SD-18: one workflow per area).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "contracts/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "contracts/**"
+      - ".github/workflows/backend-ci.yml"
+
+permissions:
+  contents: read
+
+# A new push to the same branch cancels the run that is still going.
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Format, build, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: backend/global.json
+
+      # NuGet packages are cached between runs, keyed on every project file.
+      - uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Check formatting
+        run: dotnet format --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      # Integration tests start PostgreSQL with Testcontainers; GitHub's Ubuntu runners have Docker.
+      - name: Test
+        run: dotnet test --no-build -c Release
+
+  image:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build API and migrator images
+        run: |
+          docker build -f backend/Dockerfile --target api -t contractguard-api:ci .
+          docker build -f backend/Dockerfile --target migrator -t contractguard-migrate:ci .
