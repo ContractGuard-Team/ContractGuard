@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens from docs/DESIGN.md ("The Annotated Margin").
+ * Every --color-x becomes Tailwind classes bg-x, text-x, border-x...; --text-x becomes text-x
+ * with its own line height and weight. Use these names, never raw colors in components.
+ */
+@theme {
+  /* Fonts: Be Vietnam Pro is the voice of the system, Source Serif 4 the voice of the contract. */
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-contract: "Source Serif 4 Variable", Georgia, serif;
+
+  /* Primary: action, selection and focus only (The Action-Only Rule). */
+  --color-review-ink: oklch(0.45 0.074 200);
+  --color-review-ink-hover: oklch(0.395 0.072 200);
+  --color-review-ink-pressed: oklch(0.36 0.07 200);
+  --color-review-ink-wash: oklch(0.94 0.026 200);
+
+  /* Neutrals: cold desk, white sheet, darker rail (The Cold Desk Rule). */
+  --color-desk: oklch(0.958 0.006 200);
+  --color-sheet: oklch(1 0 0);
+  --color-rail: oklch(0.937 0.008 200);
+  --color-rule: oklch(0.89 0.008 200);
+  --color-rule-strong: oklch(0.8 0.01 205);
+  --color-ink: oklch(0.235 0.014 225);
+  --color-ink-secondary: oklch(0.4 0.014 225);
+  --color-ink-muted: oklch(0.505 0.012 225);
+
+  /* Severity: never alone, always with a shape and a word (The Never-Alone Rule). */
+  --color-severity-critical: oklch(0.43 0.15 22);
+  --color-severity-critical-wash: oklch(0.94 0.035 22);
+  --color-severity-high: oklch(0.52 0.165 40);
+  --color-severity-high-wash: oklch(0.95 0.035 45);
+  --color-severity-medium: oklch(0.51 0.1 68);
+  --color-severity-medium-mark: oklch(0.66 0.13 75);
+  --color-severity-medium-wash: oklch(0.955 0.045 88);
+  --color-severity-low: oklch(0.5 0.075 150);
+  --color-severity-low-wash: oklch(0.955 0.03 150);
+
+  /* Type scale in px, no clamp() (DESIGN §3). */
+  --text-headline: 22px;
+  --text-headline--line-height: 1.3;
+  --text-headline--font-weight: 600;
+  --text-title: 16px;
+  --text-title--line-height: 1.4;
+  --text-title--font-weight: 600;
+  --text-body: 14px;
+  --text-body--line-height: 1.5;
+  --text-button: 14px;
+  --text-button--line-height: 1;
+  --text-button--font-weight: 600;
+  --text-label: 13px;
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 500;
+  --text-caption: 12.5px;
+  --text-caption--line-height: 1.45;
+  --text-contract: 16px;
+  --text-contract--line-height: 1.75;
+
+  /* Radius: 3px sheet, 4px small, 6px controls. */
+  --radius-sheet: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  /* The only custom shadow: the contract sheet lying on the desk (The Paper Only Rule). */
+  --shadow-sheet: 0 1px 2px oklch(0.2 0.02 220 / 0.06), 0 10px 28px -14px oklch(0.2 0.02 220 / 0.22);
+
+  /* Motion: 150-200 ms, ease-out-quart. */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* Layout sizes. */
+  --spacing-sidebar: 232px;
+  --spacing-sidebar-collapsed: 56px;
+  --spacing-sheet: 680px;
+  --spacing-margin-note: 244px;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-desk);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Focus: 2px review-ink ring, offset 2px, on everything clickable (DESIGN §5). */
+  :focus-visible {
+    outline: 2px solid var(--color-review-ink);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 1ms !important;
+      animation-duration: 1ms !important;
+    }
+  }
+}

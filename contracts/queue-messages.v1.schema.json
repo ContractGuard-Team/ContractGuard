@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contractguard.local/contracts/queue-messages.v1.schema.json",
+  "title": "ContractGuard SQS message bodies v1 (DRAFT, needs AI + IA + SE review)",
+  "description": "SD-11: messages carry only ids, an event type and S3 keys. Everything large lives in S3. Messages are delivered at least once; consumers must be idempotent per job_id.",
+  "oneOf": [
+    { "$ref": "#/$defs/analysisRequested" },
+    { "$ref": "#/$defs/ping" },
+    { "$ref": "#/$defs/progress" },
+    { "$ref": "#/$defs/completed" },
+    { "$ref": "#/$defs/failed" },
+    { "$ref": "#/$defs/pong" }
+  ],
+  "$defs": {
+    "jobId": { "type": "string", "format": "uuid" },
+    "analysisRequested": {
+      "description": "Queue analysis-requests, backend -> worker. The job details are in request_key (analysis-request.v1.schema.json).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id", "request_key"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "analysis_requested" },
+        "job_id": { "$ref": "#/$defs/jobId" },
+        "request_key": { "type": "string", "pattern": "^results/[0-9a-f-]{36}/request\\.json$" }
+      }
+    },
+    "ping": {
+      "description": "Queue analysis-requests, backend -> worker, development only. The worker answers with pong.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "ping" },
+        "job_id": { "$ref": "#/$defs/jobId" }
+      }
+    },
+    "progress": {
+      "description": "Queue analysis-results, worker -> backend. Steps of FR-ANA-002.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id", "step"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "progress" },
+        "job_id": { "$ref": "#/$defs/jobId" },
+        "step": { "enum": ["reading_file", "splitting_clauses", "evaluating", "scoring"] }
+      }
+    },
+    "completed": {
+      "description": "Queue analysis-results, worker -> backend. result_key points to an extraction.v2 document.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id", "result_key"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "completed" },
+        "job_id": { "$ref": "#/$defs/jobId" },
+        "result_key": { "type": "string", "pattern": "^results/[0-9a-f-]{36}/[A-Za-z0-9_.-]+\\.json$" }
+      }
+    },
+    "failed": {
+      "description": "Queue analysis-results, worker -> backend, after the worker's own retries (FR-ANA-003). error_code uses SRS ERR-* codes when the cause is known, e.g. ERR-UPL-004 for more than 100 pages.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id", "failure_reason"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "failed" },
+        "job_id": { "$ref": "#/$defs/jobId" },
+        "failure_reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "error_code": { "type": "string", "pattern": "^ERR-[A-Z]+-[0-9]{3}$" }
+      }
+    },
+    "pong": {
+      "description": "Queue analysis-results, worker -> backend, answer to ping.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "pong" },
+        "job_id": { "$ref": "#/$defs/jobId" }
+      }
+    }
+  }
+}

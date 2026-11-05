@@ -5,4 +5,8 @@
     <Project Path="src/ContractGuard.Domain/ContractGuard.Domain.csproj" />
     <Project Path="src/ContractGuard.Infrastructure/ContractGuard.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ContractGuard.IntegrationTests/ContractGuard.IntegrationTests.csproj" />
+    <Project Path="tests/ContractGuard.UnitTests/ContractGuard.UnitTests.csproj" />
+  </Folder>
 </Solution>

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -11,11 +11,25 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Shared contract with the Python worker, compiled into the assembly so the API never runs
+         with a schema that differs from the one it was built and tested against. -->
+    <EmbeddedResource Include="..\..\..\contracts\extraction.v2.schema.json" LogicalName="extraction.v2.schema.json" Link="Analysis\extraction.v2.schema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ContractGuard.UnitTests" />
+    <InternalsVisibleTo Include="ContractGuard.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ContractGuard.Application\ContractGuard.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="4.0.104.8" />
+    <PackageReference Include="AWSSDK.SQS" Version="4.0.100.22" />
     <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageReference Include="JsonSchema.Net" Version="9.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.14" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />

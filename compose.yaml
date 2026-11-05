@@ -47,5 +47,54 @@ services:
       - "1025:1025"
       - "8025:8025"
 
+  # ---- Profile "app": the API in a container --------------------------------------------
+  # Not started by a plain `docker compose up`, so `dotnet run` on port 5080 keeps working
+  # during development. Start everything with: docker compose --profile app up -d --build
+
+  migrate:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: migrator
+    environment:
+      # The bundle builds the DbContext through the API's own configuration (like `dotnet ef`),
+      # so it reads the connection string from the same setting as the API.
+      Database__ConnectionString: Host=postgres;Port=5432;Database=contractguard;Username=contractguard;Password=contractguard
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # Inside the compose network services reach each other by service name, not localhost.
+      Database__ConnectionString: Host=postgres;Port=5432;Database=contractguard;Username=contractguard;Password=contractguard
+      Aws__ServiceUrl: http://localstack:4566
+      # Presigned URLs are opened by the browser on the host, which knows only localhost.
+      Aws__PublicServiceUrl: http://localhost:4566
+    ports:
+      - "8080:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      localstack:
+        condition: service_healthy
+    healthcheck:
+      # The aspnet image has no curl; bash can open a TCP socket through /dev/tcp.
+      test:
+        - CMD
+        - bash
+        - -c
+        - exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health/live HTTP/1.0\r\n\r\n' >&3 && grep -q '200 OK' <&3
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
 volumes:
   postgres-data:
