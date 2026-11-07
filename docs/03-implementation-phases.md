@@ -96,7 +96,8 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 | AI | 20 check Cyber/Privacy/Third-party với trạng thái PASS/PARTIAL/MISSING/N/A (F-RISK-002) |
 | AI | Trích metadata: các bên, giá trị, ngày, luật áp dụng (F-CTR-002) |
 | AI | Chạy eval hằng tuần, theo dõi recall, precision, chi phí và độ trễ (SC-GEN-001, SC-GEN-002) |
-| SE | Rule engine C# khai báo bằng YAML, chấm điểm 0–100 theo nhóm và theo cả hợp đồng, có điều chỉnh theo ngữ cảnh (F-RISK-003) |
+| AI, IA | Code Python trong worker tính điểm 0–100 theo nhóm và theo cả hợp đồng từ cấu hình có version, có điều chỉnh theo ngữ cảnh; IA viết nội dung rule và trọng số (F-RISK-003, SD-10) |
+| SE | Kiểm tra giới hạn của điểm và mức rủi ro, lưu và hiển thị |
 | SE | Lưu truy vết của từng finding: clause ID, vị trí, `schema_version`, phiên bản prompt, model, phiên bản rule |
 | SE | Người dùng sửa được metadata trên UI |
 | IA | Quét mã độc, làm sạch tài liệu, phát hiện và cảnh báo prompt injection (F-SEC-001) |
@@ -112,8 +113,8 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 
 | Track | Việc |
 |---|---|
-| SE | Dashboard: tổng quan điểm, số finding theo severity, khuyến nghị tổng, danh sách và chi tiết finding (F-VIEW-001); nối trang Overview, FindingsPanel, Checklist |
-| SE | Document viewer: hiển thị bằng PDF.js, tô điều khoản theo severity, liên kết hai chiều giữa điều khoản và finding (F-VIEW-002); nối trang DocumentView |
+| SE | Dashboard: tổng quan điểm, số finding theo severity, khuyến nghị tổng, danh sách và chi tiết finding (F-VIEW-001); nối trang Overview, Checklist. Finding hiện ở ghi chú lề cạnh văn bản, không đặt trong panel phải (panel chỉ có chat). Khi làm P3-02 phải chốt cách hiện ghi chú lề lúc vùng giữa không đủ rộng cho cột 244px |
+| SE | Document viewer: xem và tải file gốc đã có từ Phase 1 (PDF.js qua `react-pdf`, `docx-preview`); còn tô điều khoản theo severity, liên kết hai chiều giữa điều khoản và finding (F-VIEW-002); nối trang DocumentView |
 | SE | Xuất báo cáo PDF và DOCX; báo lỗi khi tạo báo cáo thất bại (F-EXP-001) |
 
 **Tiêu chí xong:** chạy OPS-GEN-001 và OPS-GEN-005 trên hợp đồng mẫu mà không lỗi.
@@ -158,7 +159,7 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 
 | Track | Việc |
 |---|---|
-| SE | Đăng nhập Google (F-AUTH-002) |
+| SE | Đăng nhập Google (F-AUTH-002). Tài khoản mới lấy tên từ Google, không có thì lấy phần trước `@`; tài khoản đã có giữ tên cũ |
 | SE | Đánh dấu trạng thái xử lý finding kèm ghi chú (F-VIEW-003) |
 | SE | Tùy chọn báo cáo: ngôn ngữ và phạm vi finding (F-EXP-002) |
 | AI, SE | Gợi ý câu hỏi (F-CHAT-002), lịch sử chat (F-CHAT-003) |
@@ -174,6 +175,7 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 | Cả nhóm | Trước khi dựng AWS: mọi thành viên cấu hình billing và cảnh báo ngân sách trên tài khoản của mình (SD-20) |
 | SE | OpenTelemetry gửi sang CloudWatch và X-Ray, dùng `job_id` làm correlation ID |
 | SE | Đọc IP thật qua `X-Forwarded-For` sau ALB để rate limit hoạt động đúng |
+| SE | Security group chỉ cho ALB gọi API, vì API tin header `X-Forwarded-Proto` từ mọi nguồn; CloudFront gọi ALB bằng HTTPS, nếu không API ở Production trả 500 (SD-03) |
 | SE | Dọn code demo của frontend theo [frontend/DEMO-CLEANUP.md](../frontend/DEMO-CLEANUP.md) |
 | SE, AI | Đo NFR hiệu năng trên staging: p50 ≤ 2 phút, p95 ≤ 5 phút với hợp đồng text 20 trang |
 | AI | Chạy eval lần cuối, chốt model cho từng bước (DEC-GEN-010) |

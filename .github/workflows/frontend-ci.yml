@@ -41,3 +41,17 @@ jobs:
       - run: npm run lint
       - run: npm run test
       - run: npm run build
+
+      # The web image serves what the build makes. nginx does not know .mjs by itself, and browsers
+      # refuse a PDF.js worker sent as a plain file, which breaks the viewer without failing a test.
+      - name: Web image serves the PDF.js worker as a script
+        run: |
+          docker build -t contractguard-web .
+          docker run -d --rm --name contractguard-web -p 18080:8080 contractguard-web
+          # Wait until nginx is ready (retry-connrefused alone misses the brief ECONNRESET window
+          # that occurs while nginx is still initialising its worker processes).
+          curl --retry 15 --retry-connrefused --retry-all-errors --retry-delay 1 -fsSI http://localhost:18080/ > /dev/null
+          worker=$(docker exec contractguard-web sh -c 'ls /usr/share/nginx/html/assets | grep "^pdf.worker"')
+          echo "worker file: $worker"
+          curl -fsSI "http://localhost:18080/assets/$worker" | grep -i '^content-type: text/javascript'
+          docker stop contractguard-web

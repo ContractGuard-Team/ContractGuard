@@ -21,5 +21,12 @@ dotnet run --project src/ContractGuard.Api             # http://localhost:5080/h
 dotnet test                                            # unit + integration (needs Docker)
 ```
 
-Until the AI worker exists, `scripts/dev/send-analysis-result.ps1` plays its part against LocalStack.
+The API lives under `/api/v1`; `/openapi/v1.json` describes it in Development. Emails go to Mailpit
+(http://localhost:8025). Contract data is limited to the current workspace by the query filters of
+`AppDbContext`; background jobs must opt out explicitly with `CurrentWorkspace.RunAsSystem()`.
+
+Until the AI worker exists, `Analysis:WorkerEnabled` is false in Development: contracts and contexts are
+saved and no analysis starts. To test the analysis flow, set it to true and let
+`scripts/dev/send-analysis-result.ps1` play the worker's part against LocalStack. Its result is the example
+in `contracts/examples`, not an analysis of the uploaded file.
 The whole stack in containers: `docker compose --profile app up -d --build` (API on port 8080).

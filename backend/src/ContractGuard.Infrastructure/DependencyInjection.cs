@@ -3,11 +3,14 @@ using ContractGuard.Application.Analysis;
 using ContractGuard.Application.Analysis.Extraction;
 using ContractGuard.Infrastructure.Aws;
 using ContractGuard.Infrastructure.BackgroundJobs;
+using ContractGuard.Infrastructure.Email;
 using ContractGuard.Infrastructure.JsonSchemas;
 using ContractGuard.Infrastructure.Messaging;
 using ContractGuard.Infrastructure.Persistence;
 using ContractGuard.Infrastructure.Storage;
+using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -27,10 +30,13 @@ public static class DependencyInjection
         AddOptionsSection<DatabaseOptions>(services, configuration, DatabaseOptions.SectionName);
         AddOptionsSection<AwsOptions>(services, configuration, AwsOptions.SectionName);
         AddOptionsSection<BackgroundJobsOptions>(services, configuration, BackgroundJobsOptions.SectionName);
+        AddOptionsSection<EmailOptions>(services, configuration, EmailOptions.SectionName);
+        AddOptionsSection<AnalysisOptions>(services, configuration, AnalysisOptions.SectionName);
 
         AddPersistence(services);
         AddAws(services);
         AddAnalysis(services);
+        services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
         return services;
     }
@@ -46,11 +52,18 @@ public static class DependencyInjection
 
     private static void AddPersistence(IServiceCollection services)
     {
+        services.AddScoped<CurrentWorkspace>();
+        services.AddScoped<ICurrentWorkspace>(sp => sp.GetRequiredService<CurrentWorkspace>());
+
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             var database = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             options.UseNpgsql(database.ConnectionString)
-                .UseSnakeCaseNamingConvention();
+                .UseSnakeCaseNamingConvention()
+
+                // ContractContext has no query filter of its own: it is only reached through its
+                // ContractVersion, which has one. EF warns about that shape in general.
+                .ConfigureWarnings(w => w.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning));
         });
 
         // Same scoped instance whether asked for as AppDbContext or as the Application port.
@@ -67,6 +80,11 @@ public static class DependencyInjection
         {
             var aws = sp.GetRequiredService<IOptions<AwsOptions>>().Value;
             return AwsClientFactory.CreateS3(aws, aws.ServiceUrl);
+        });
+        services.AddKeyedSingleton<IAmazonS3>(S3ObjectStorage.BrowserClientKey, (sp, _) =>
+        {
+            var aws = sp.GetRequiredService<IOptions<AwsOptions>>().Value;
+            return AwsClientFactory.CreateS3(aws, aws.PublicServiceUrl ?? aws.ServiceUrl);
         });
         services.AddSingleton(sp => AwsClientFactory.CreateSqs(sp.GetRequiredService<IOptions<AwsOptions>>().Value));
         services.AddSingleton<QueueUrlProvider>();

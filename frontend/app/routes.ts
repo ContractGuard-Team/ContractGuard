@@ -1,8 +1,16 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
 
-// Route table. Pages inside layout("routes/app-layout.tsx") get the sidebar.
+// Route table. Pages inside layout("routes/app-layout.tsx") need a session and get the sidebar.
 export default [
   route("login", "routes/login.tsx"),
-  layout("routes/app-layout.tsx", [index("routes/contracts.tsx")]),
+  route("register", "routes/register.tsx"),
+  route("verify-email", "routes/verify-email.tsx"),
+  route("forgot-password", "routes/forgot-password.tsx"),
+  route("reset-password", "routes/reset-password.tsx"),
+  layout("routes/app-layout.tsx", [
+    index("routes/contracts.tsx"),
+    route("contracts/new", "routes/contracts-new.tsx"),
+    route("contracts/:contractId", "routes/contract-detail.tsx"),
+  ]),
   route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;

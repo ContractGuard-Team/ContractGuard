@@ -3,6 +3,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using ContractGuard.Application.Analysis;
 using ContractGuard.Infrastructure.BackgroundJobs;
+using ContractGuard.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -90,6 +91,7 @@ internal sealed partial class AnalysisResultsConsumer(
 
             // One DI scope per message: a fresh DbContext, like one HTTP request.
             await using var scope = scopeFactory.CreateAsyncScope();
+            scope.ServiceProvider.GetRequiredService<CurrentWorkspace>().RunAsSystem();
             var handler = scope.ServiceProvider.GetRequiredService<AnalysisResultHandler>();
             var outcome = await handler.HandleAsync(body, stoppingToken);
 

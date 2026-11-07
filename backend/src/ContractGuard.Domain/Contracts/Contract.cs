@@ -78,6 +78,7 @@ public sealed class Contract
 
     public void ConfirmContext(Guid contractVersionId, ContextDetails details, DateTimeOffset now)
     {
+        EnsureNotAnalyzing();
         GetVersion(contractVersionId).ConfirmContext(details, now);
         UpdatedAt = now;
     }

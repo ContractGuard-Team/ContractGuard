@@ -48,7 +48,8 @@ internal static class Seed
         return (contract, run);
     }
 
-    public static string ExampleExtractionJson(Guid jobId, Guid contractId, int version = 1)
+    // Path of a file in the repository, found by walking up from the test binaries.
+    public static string RepoFile(string relativePath)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "contracts")))
@@ -56,8 +57,12 @@ internal static class Seed
             directory = directory.Parent;
         }
 
-        var path = Path.Combine(directory!.FullName, "contracts", "examples", "extraction.v2.example.json");
-        return File.ReadAllText(path)
+        return Path.Combine(directory!.FullName, relativePath);
+    }
+
+    public static string ExampleExtractionJson(Guid jobId, Guid contractId, int version = 1)
+    {
+        return File.ReadAllText(RepoFile("contracts/examples/extraction.v2.example.json"))
             .Replace("{{JOB_ID}}", jobId.ToString(), StringComparison.Ordinal)
             .Replace("{{TENANT_ID}}", "test", StringComparison.Ordinal)
             .Replace("{{CONTRACT_ID}}", contractId.ToString(), StringComparison.Ordinal)

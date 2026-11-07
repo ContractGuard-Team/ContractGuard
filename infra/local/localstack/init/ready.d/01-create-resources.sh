@@ -27,5 +27,12 @@ EOF
 }
 
 awslocal s3 mb "s3://$BUCKET"
+
+# The browser talks straight to the bucket from the web app, another origin, so the bucket must
+# allow it: POST uploads a file (presigned POST, SD-08), GET and HEAD read one for the viewer, which
+# needs the range headers. On AWS this rule names the CloudFront domain.
+awslocal s3api put-bucket-cors --bucket "$BUCKET" --cors-configuration \
+  '{"CORSRules":[{"AllowedOrigins":["http://localhost:5173"],"AllowedMethods":["POST","GET","HEAD"],"AllowedHeaders":["*"],"ExposeHeaders":["Accept-Ranges","Content-Length","Content-Range"]}]}'
+
 create_queue_with_dlq analysis-requests 900
 create_queue_with_dlq analysis-results 60
