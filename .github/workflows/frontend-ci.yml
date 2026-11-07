@@ -48,6 +48,10 @@ jobs:
         run: |
           docker build -t contractguard-web .
           docker run -d --rm --name contractguard-web -p 18080:8080 contractguard-web
+          # Wait until nginx is ready (retry-connrefused alone misses the brief ECONNRESET window
+          # that occurs while nginx is still initialising its worker processes).
+          curl --retry 15 --retry-connrefused --retry-all-errors --retry-delay 1 -fsSI http://localhost:18080/ > /dev/null
           worker=$(docker exec contractguard-web sh -c 'ls /usr/share/nginx/html/assets | grep "^pdf.worker"')
-          curl --retry 10 --retry-connrefused --retry-delay 1 -fsSI "http://localhost:18080/assets/$worker" | grep -i '^content-type: text/javascript'
+          echo "worker file: $worker"
+          curl -fsSI "http://localhost:18080/assets/$worker" | grep -i '^content-type: text/javascript'
           docker stop contractguard-web
