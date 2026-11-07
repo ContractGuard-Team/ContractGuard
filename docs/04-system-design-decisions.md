@@ -82,7 +82,7 @@
 
 **Đề xuất:** A. Cấu hình thêm: CloudFront trả `index.html` cho đường dẫn không có file (403/404 → 200) để route của SPA tải lại được.
 
-**Quyết định:**
+**Quyết định:** Bổ sung 2026-11-07, Approver đồng ý: CloudFront gọi ALB bằng HTTPS và security group chỉ cho ALB gọi API. Cookie `Secure` buộc API phải biết request gốc là HTTPS, nên API đọc `X-Forwarded-Proto`; đoạn CloudFront tới ALB dùng HTTP thì API ở Production trả 500, còn API lộ ra ngoài thì ai cũng tự khai được header này.
 
 ---
 
@@ -219,7 +219,7 @@ Threat model của IA (`security/docs/THREAT_MODEL.md`, T01) đang giả định
 
 Embedding điều khoản do worker tính, gửi kèm kết quả để C# ghi vào pgvector.
 
-**Quyết định:**
+**Quyết định:** A, với thay đổi ngày 2026-11-06: code Python trong worker tính điểm theo công thức có version, model không tự đưa ra con số. Worker tự loại finding sai trích dẫn trước khi tính điểm; C# từ chối cả kết quả nếu còn trích dẫn sai, và kiểm tra giới hạn của điểm. Chi tiết ở `05-ai-diagram-vs-system-design.md` §4.
 
 ### SD-11 Truyền kết quả qua hàng đợi **[Chặn phase 1]**
 

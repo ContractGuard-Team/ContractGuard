@@ -1,10 +1,10 @@
 # Data contract and trust boundary
 
 1. Backend authenticates user, authorizes tenant, creates job and binds contract version.
-2. Worker extracts `facts` and `evidence`, then returns an **untrusted** extraction payload.
+2. Worker extracts `facts` and `evidence`, computes scores with versioned rules in Python (never from a model's number), then returns an **untrusted** extraction payload.
 3. Backend validates payload against `contracts/extraction.schema.json`.
 4. Validator checks normalized fact keys/types, clause IDs, page numbers and evidence against trusted parsed text.
-5. Backend attaches trusted job/tenant/contract identifiers and executes business rules.
+5. Backend attaches trusted job/tenant/contract identifiers and checks score limits and risk levels.
 6. Persist validated results with audit logs and least-privilege storage.
 
 `NOT_FOUND` means a completed search found no evidence; `UNKNOWN` means insufficient evidence.

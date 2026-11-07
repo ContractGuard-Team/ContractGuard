@@ -236,7 +236,7 @@ Hệ thống phẳng. Chiều sâu đến từ tầng nền: thanh ray (`rail`) 
 
 ### Shadow Vocabulary
 - **Tờ hợp đồng** (`box-shadow: 0 1px 2px oklch(0.2 0.02 220 / 0.06), 0 10px 28px -14px oklch(0.2 0.02 220 / 0.22)`): tờ giấy nằm trên mặt bàn. Chỉ dùng cho tờ hợp đồng.
-- **Ngăn kéo** (bóng `2xl` của Tailwind): panel rủi ro và hỏi đáp khi trượt vào ở màn hẹp.
+- **Ngăn kéo** (bóng `2xl` của Tailwind): panel trợ lý AI khi trượt vào ở màn hẹp.
 - **Toast** (bóng `lg` của Tailwind): thông báo ngắn ở góc dưới phải.
 
 Mục đang chọn ở thanh bên không dùng bóng mà dùng nền `sheet` kèm viền 1px `rule`.
@@ -277,7 +277,7 @@ Ký hiệu hình học 12px kèm chữ nhãn, cùng màu severity: thoi đặc (
 
 ### Contract Sheet và Margin Note (signature)
 - **Tờ hợp đồng:** rộng 680px, nền trắng, bo 3px, bóng "Tờ hợp đồng", chữ Contract Body. Điều khoản có rủi ro được tô nền `-wash` của severity tương ứng; điều khoản đang được trỏ tới thì tô `review-ink-wash`.
-- **Ghi chú lề:** cột 244px bên phải tờ giấy. Mỗi ghi chú gồm ký hiệu severity và một dòng tóm tắt, nối về điều khoản bằng nét đứt `rule-strong`. Bấm ghi chú thì cuộn tới điều khoản và ngược lại.
+- **Ghi chú lề:** cột 244px bên phải tờ giấy. Mỗi ghi chú gồm ký hiệu severity và một dòng tóm tắt, nối về điều khoản bằng nét đứt `rule-strong`. Bấm ghi chú thì cuộn tới điều khoản và ngược lại. Đây là chỗ đặt finding; không đưa finding vào panel phải.
 - **Thước rủi ro:** điểm 0–100 hiển thị trên một thanh ngang cao 8px chia bốn vùng ngưỡng (0–30, 30–55, 55–85, 85–100). Vùng hiện hành tô đặc, các vùng khác tô `-wash`. Thay hoàn toàn cho donut gauge.
 
 ### Feedback
@@ -301,7 +301,7 @@ Ký hiệu hình học 12px kèm chữ nhãn, cùng màu severity: thoi đặc (
 ### Don't:
 - **Don't** làm dashboard SaaS kiểu "AI làm": donut gauge điểm số, hero metric to kèm gradient, lưới card giống hệt nhau, gradient tím xanh, glassmorphism.
 - **Don't** dùng nền kem/be "ấm áp", hay eyebrow chữ in hoa giãn chữ trên mỗi section.
-- **Don't** đặt chatbot làm trung tâm màn hình. Chat là một tab trong panel phải, phục vụ việc đọc hợp đồng.
+- **Don't** đặt chatbot làm trung tâm màn hình. Panel phải chỉ chứa chat (như agent trong IDE), phục vụ việc đọc hợp đồng; khai báo ngữ cảnh nằm trong hộp thoại, finding nằm ở ghi chú lề.
 - **Don't** dùng thẩm mỹ "legal tech": xanh navy và vàng kim, con dấu, búa phán quyết.
 - **Don't** dùng Xanh Mực Thẩm Định để trang trí, tô tiêu đề hay làm nền section.
 - **Don't** hiện mức rủi ro chỉ bằng màu (chip màu không chữ, chấm màu không ký hiệu).

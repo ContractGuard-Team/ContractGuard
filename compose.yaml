@@ -26,6 +26,8 @@ services:
     ports:
       - "4566:4566"
     volumes:
+      # shortcut: the free plan keeps nothing across a restart, so uploaded files are lost while the
+      # database keeps their records. Run `down -v` to clear both. S3 on AWS does not have this limit.
       - ./infra/local/localstack/init/ready.d:/etc/localstack/init/ready.d:ro
     healthcheck:
       test:
@@ -44,12 +46,14 @@ services:
   mailpit:
     image: axllent/mailpit:v1.32.0
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      # Change them in .env when another project on this machine already uses these ports.
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
 
-  # ---- Profile "app": the API in a container --------------------------------------------
-  # Not started by a plain `docker compose up`, so `dotnet run` on port 5080 keeps working
+  # ---- Profile "app": the API and the web app in containers ------------------------------
+  # Not started by a plain `docker compose up`, so `dotnet run` and `npm run dev` keep working
   # during development. Start everything with: docker compose --profile app up -d --build
+  # Then open http://localhost:5173
 
   migrate:
     profiles: [app]
@@ -78,6 +82,10 @@ services:
       Aws__ServiceUrl: http://localstack:4566
       # Presigned URLs are opened by the browser on the host, which knows only localhost.
       Aws__PublicServiceUrl: http://localhost:4566
+      Email__SmtpHost: mailpit
+      # No AI worker yet: contracts and contexts are saved, no analysis starts. To test with
+      # scripts/dev/send-analysis-result.ps1, set ANALYSIS_WORKER_ENABLED=true.
+      Analysis__WorkerEnabled: ${ANALYSIS_WORKER_ENABLED:-false}
     ports:
       - "8080:8080"
     depends_on:
@@ -95,6 +103,22 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
+
+  web:
+    profiles: [app]
+    build:
+      context: ./frontend
+    ports:
+      # Same port as `npm run dev`: the bucket's CORS rule and the links in emails point to it.
+      - "5173:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres-data:

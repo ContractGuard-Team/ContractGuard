@@ -66,6 +66,9 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     <main className="mx-auto max-w-2xl p-8">
       <h1 className="text-headline">{title}</h1>
       <p className="mt-2 text-ink-secondary">{details}</p>
+      <a href="/" className="mt-4 inline-block text-review-ink underline underline-offset-2 hover:text-review-ink-hover">
+        Về thư viện hợp đồng
+      </a>
       {stack && <pre className="mt-4 overflow-x-auto rounded-md bg-sheet p-4 text-caption">{stack}</pre>}
     </main>
   );

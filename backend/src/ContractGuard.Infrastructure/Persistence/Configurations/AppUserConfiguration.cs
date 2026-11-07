@@ -10,6 +10,7 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
     {
         builder.ToTable("user_account");
         builder.Property(u => u.Id).HasColumnName("user_account_id");
+        builder.Property(u => u.DisplayName).HasMaxLength(AppUser.DisplayNameMaxLength);
 
         builder.HasIndex(u => u.NormalizedEmail)
             .IsUnique()

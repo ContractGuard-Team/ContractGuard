@@ -10,4 +10,8 @@ npm run typecheck
 npm run lint
 npm run test
 npm run build        # static files in build/client
+npm run gen:api      # regenerate app/lib/api-types.ts from the running API's OpenAPI document
 ```
+
+To run everything in Docker instead, without hot reload: `docker compose --profile app up -d --build`
+from the repo root, then open http://localhost:5173.

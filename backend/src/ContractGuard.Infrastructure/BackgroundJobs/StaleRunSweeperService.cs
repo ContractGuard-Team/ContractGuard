@@ -1,4 +1,5 @@
 using ContractGuard.Application.Analysis;
+using ContractGuard.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,7 @@ internal sealed partial class StaleRunSweeperService(
                 try
                 {
                     await using var scope = scopeFactory.CreateAsyncScope();
+                    scope.ServiceProvider.GetRequiredService<CurrentWorkspace>().RunAsSystem();
                     await scope.ServiceProvider.GetRequiredService<StaleRunSweeper>().SweepAsync(stoppingToken);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)

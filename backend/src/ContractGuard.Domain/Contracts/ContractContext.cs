@@ -42,6 +42,9 @@ public sealed class ContractContext
         ConfirmedAt = now;
     }
 
+    public ContextDetails ToDetails() =>
+        new(OwnParty, ContractType, HasPersonalData, CounterpartyName, CounterpartyOffering, ServiceCriticality);
+
     private static string? Normalize(string? value, int maxLength, string paramName)
     {
         if (string.IsNullOrWhiteSpace(value))

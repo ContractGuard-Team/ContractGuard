@@ -1,15 +1,69 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using ContractGuard.Api.Endpoints;
 using ContractGuard.Api.Health;
+using ContractGuard.Api.Http;
 using ContractGuard.Application;
+using ContractGuard.Domain.Common;
 using ContractGuard.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
+builder.Services.AddApiAuth(builder.Environment);
+builder.Services.AddScoped<AccountEmails>();
 builder.Services.AddOpenApi();
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    // Enums travel as "service_agreement", same as in the database. Numbers are refused:
+    // otherwise 99 would be accepted as an enum value that does not exist.
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false));
+
+    // A missing or null field that the request type marks as required is a 400,
+    // instead of reaching the endpoint as null.
+    options.SerializerOptions.RespectNullableAnnotations = true;
+    options.SerializerOptions.RespectRequiredConstructorParameters = true;
+});
+
+// TLS ends at the load balancer, so the API itself only sees http. Without the original scheme the
+// antiforgery system refuses every request in Production, where its cookie is Secure-only.
+// The lists are cleared because the load balancer has no fixed address; only it can reach the API (SD-03).
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+{
+    // Responses without a specific error (no route, no session, malformed body) get a code too,
+    // so the frontend always has one to react to.
+    var code = context.ProblemDetails.Status switch
+    {
+        StatusCodes.Status400BadRequest => ErrorCodes.Validation,
+        StatusCodes.Status401Unauthorized => ErrorCodes.Unauthenticated,
+        StatusCodes.Status403Forbidden => ErrorCodes.Forbidden,
+        StatusCodes.Status404NotFound => ErrorCodes.NotFound,
+        _ => null
+    };
+    if (code is not null)
+    {
+        context.ProblemDetails.Extensions.TryAdd("code", code);
+    }
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders();
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -30,5 +84,14 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     Predicate = check => check.Tags.Contains("ready"),
     ResponseWriter = HealthResponseWriter.WriteAsync
 });
+
+var api = app.MapGroup("/api/v1").AddEndpointFilter<CsrfEndpointFilter>();
+api.MapPublicAuthEndpoints();
+
+var secured = api.MapGroup(string.Empty)
+    .RequireAuthorization()
+    .AddEndpointFilter<WorkspaceEndpointFilter>();
+secured.MapAccountEndpoints();
+secured.MapContractEndpoints();
 
 app.Run();

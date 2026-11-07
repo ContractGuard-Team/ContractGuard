@@ -12,7 +12,7 @@ namespace ContractGuard.Infrastructure.Persistence;
 
 // IdentityUserContext (not IdentityDbContext) creates the user tables only, without role tables:
 // roles in ContractGuard live in membership.org_role and contract_share.contract_role.
-public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options, CurrentWorkspace workspace)
     : IdentityUserContext<AppUser, Guid>(options), IApplicationDbContext
 {
     public DbSet<Organization> Organizations => Set<Organization>();
@@ -37,6 +37,28 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
         modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("user_account_token");
 
         RenameForeignKeys(modelBuilder);
+        ApplyWorkspaceFilters(modelBuilder);
+    }
+
+    // SD-05, BR-DATA-001: every query on contract data is limited to the current workspace, whoever
+    // writes it. EF reads the fields of "workspace" from the context instance running the query.
+    // BR-SHARE-001: in an organization a contract is visible to its owner and to organization owners.
+    // Contract shares extend this in P5-02.
+    private void ApplyWorkspaceFilters(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Contract>().HasQueryFilter(c =>
+            workspace.IsSystem
+            || (workspace.OrganizationId == null
+                && c.OrganizationId == null
+                && c.OwnerUserAccountId == workspace.CurrentUserId)
+            || (workspace.OrganizationId != null
+                && c.OrganizationId == workspace.OrganizationId
+                && (workspace.IsOrganizationOwner || c.OwnerUserAccountId == workspace.CurrentUserId)));
+
+        // Child tables follow their parent, so a direct query on them cannot go around the rule.
+        modelBuilder.Entity<ContractVersion>().HasQueryFilter(v => Set<Contract>().Any(c => c.ContractId == v.ContractId));
+        modelBuilder.Entity<AnalysisRun>().HasQueryFilter(r => Set<Contract>().Any(c => c.ContractId == r.ContractId));
+        modelBuilder.Entity<Clause>().HasQueryFilter(c => Set<AnalysisRun>().Any(r => r.AnalysisRunId == c.AnalysisRunId));
     }
 
     // Configurations run in alphabetical order, so a relationship can be declared before the

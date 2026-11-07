@@ -1,9 +1,26 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
+import { defineConfig, normalizePath } from "vite";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+
+const pdfjsDist = path.dirname(createRequire(import.meta.url).resolve("pdfjs-dist/package.json"));
 
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter()],
+  plugins: [
+    tailwindcss(),
+    reactRouter(),
+    // Files PDF.js asks for on demand: character maps, fonts a PDF does not embed, image decoders of scans.
+    viteStaticCopy({
+      targets: ["cmaps", "standard_fonts", "wasm"].map((folder) => ({
+        src: normalizePath(path.join(pdfjsDist, folder, "*")),
+        dest: folder,
+        rename: { stripBase: true },
+      })),
+    }),
+  ],
   resolve: {
     tsconfigPaths: true,
   },

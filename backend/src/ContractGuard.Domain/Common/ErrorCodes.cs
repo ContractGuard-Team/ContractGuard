@@ -36,4 +36,9 @@ public static class ErrorCodes
     // Not in the SRS catalogue: generic validation and not-found responses.
     public const string Validation = "ERR-GEN-VALIDATION";
     public const string NotFound = "ERR-GEN-NOT-FOUND";
+    public const string Unauthenticated = "ERR-GEN-UNAUTHENTICATED";
+    public const string CsrfInvalid = "ERR-GEN-CSRF";
+
+    // FR-AUTH-008 describes this case, but §14.1 has no code for it.
+    public const string EmailNotConfirmed = "ERR-GEN-EMAIL-UNCONFIRMED";
 }

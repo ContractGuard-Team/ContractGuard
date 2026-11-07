@@ -91,14 +91,19 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasKey("AnalysisRunId")
                         .HasName("pk_analysis_run");
 
-                    b.HasIndex("ContractId")
-                        .HasDatabaseName("ix_analysis_run_contract_id");
-
                     b.HasIndex("ContractVersionId")
                         .HasDatabaseName("ix_analysis_run_contract_version_id");
 
                     b.HasIndex("RunStatus", "LastEventAt")
                         .HasDatabaseName("ix_analysis_run_run_status_last_event_at");
+
+                    b.HasIndex(new[] { "ContractId" }, "ix_analysis_run_contract_id")
+                        .HasDatabaseName("ix_analysis_run_contract_id");
+
+                    b.HasIndex(new[] { "ContractId" }, "ux_analysis_run_one_running_per_contract")
+                        .IsUnique()
+                        .HasDatabaseName("ux_analysis_run_one_running_per_contract")
+                        .HasFilter("run_status = 'running'");
 
                     b.ToTable("analysis_run", (string)null);
                 });
@@ -311,6 +316,10 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasKey("ContractVersionId")
                         .HasName("pk_contract_version");
 
+                    b.HasIndex("SourceFileKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_contract_version_source_file_key");
+
                     b.HasIndex("UploadedByUserAccountId")
                         .HasDatabaseName("ix_contract_version_uploaded_by_user_account_id");
 
@@ -394,6 +403,12 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("display_name");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)

@@ -24,7 +24,7 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
         var outcome = await HandleAsync(Completed(run.AnalysisRunId, key));
 
         Assert.Equal(ResultOutcome.Applied, outcome);
-        await using var scope = factory.Services.CreateAsyncScope();
+        await using var scope = factory.CreateSystemScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var savedRun = await db.AnalysisRuns.Include(r => r.Clauses).SingleAsync(r => r.AnalysisRunId == run.AnalysisRunId, Ct);
         Assert.Equal(RunStatus.Completed, savedRun.RunStatus);
@@ -107,7 +107,7 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
 
         await HandleAsync(new AnalysisResultMessage(AnalysisEventTypes.Progress, run.AnalysisRunId, "evaluating", null, null, null));
 
-        await using var scope = factory.Services.CreateAsyncScope();
+        await using var scope = factory.CreateSystemScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var saved = await db.AnalysisRuns.SingleAsync(r => r.AnalysisRunId == run.AnalysisRunId, Ct);
         Assert.Equal(AnalysisStep.Evaluating, saved.CurrentStep);
@@ -128,7 +128,7 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
         await HandleAsync(Completed(firstRun.AnalysisRunId, PutExampleResult(firstRun.AnalysisRunId, contract.ContractId)));
 
         Guid secondRunId;
-        await using (var scope = factory.Services.CreateAsyncScope())
+        await using (var scope = factory.CreateSystemScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var tracked = await db.Contracts.Include(c => c.Versions).ThenInclude(v => v.Context).SingleAsync(c => c.ContractId == contract.ContractId, Ct);
@@ -142,7 +142,7 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
 
         await HandleAsync(Completed(secondRunId, PutExampleResult(secondRunId, contract.ContractId)));
 
-        await using var check = factory.Services.CreateAsyncScope();
+        await using var check = factory.CreateSystemScope();
         var checkDb = check.ServiceProvider.GetRequiredService<AppDbContext>();
         Assert.False(await checkDb.AnalysisRuns.AnyAsync(r => r.AnalysisRunId == firstRun.AnalysisRunId, Ct));
         Assert.Equal(8, await CountClausesAsync(secondRunId));
@@ -155,7 +155,7 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
         var (contract, run) = await SeedAsync(clock.GetUtcNow());
         clock.Advance(TimeSpan.FromMinutes(21));
 
-        await using (var scope = factory.Services.CreateAsyncScope())
+        await using (var scope = factory.CreateSystemScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var sweeper = new StaleRunSweeper(db, clock, NullLogger<StaleRunSweeper>.Instance);
@@ -167,7 +167,7 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
 
     private async Task<(Contract Contract, AnalysisRun Run)> SeedAsync(DateTimeOffset? now = null)
     {
-        await using var scope = factory.Services.CreateAsyncScope();
+        await using var scope = factory.CreateSystemScope();
         return await Seed.RunningJobAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>(), now ?? DateTimeOffset.UtcNow);
     }
 
@@ -184,19 +184,19 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
     private async Task<ResultOutcome> HandleAsync(AnalysisResultMessage message)
     {
         // Same as the SQS consumer: one DI scope per message.
-        await using var scope = factory.Services.CreateAsyncScope();
+        await using var scope = factory.CreateSystemScope();
         return await scope.ServiceProvider.GetRequiredService<AnalysisResultHandler>().HandleAsync(message, Ct);
     }
 
     private async Task<int> CountClausesAsync(Guid runId)
     {
-        await using var scope = factory.Services.CreateAsyncScope();
+        await using var scope = factory.CreateSystemScope();
         return await scope.ServiceProvider.GetRequiredService<AppDbContext>().Clauses.CountAsync(c => c.AnalysisRunId == runId, Ct);
     }
 
     private async Task AssertFailedAsync(Guid runId, Guid contractId, string reasonFragment)
     {
-        await using var scope = factory.Services.CreateAsyncScope();
+        await using var scope = factory.CreateSystemScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var run = await db.AnalysisRuns.SingleAsync(r => r.AnalysisRunId == runId, Ct);
         Assert.Equal(RunStatus.Failed, run.RunStatus);

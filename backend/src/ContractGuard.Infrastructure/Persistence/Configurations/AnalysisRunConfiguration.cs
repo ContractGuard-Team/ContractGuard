@@ -36,5 +36,16 @@ public sealed class AnalysisRunConfiguration : IEntityTypeConfiguration<Analysis
 
         // The sweeper looks for running jobs that have been silent for too long (SD-13).
         builder.HasIndex(r => new { r.RunStatus, r.LastEventAt });
+
+        // EDGE-ANA-003: one running analysis per contract, even when two requests race.
+        builder.HasIndex(r => r.ContractId, "ux_analysis_run_one_running_per_contract")
+            .IsUnique()
+            .HasFilter("run_status = 'running'")
+            .HasDatabaseName("ux_analysis_run_one_running_per_contract");
+
+        // Declared by hand: EF would otherwise treat the index above as covering the foreign key and
+        // drop this one, although a partial index cannot serve lookups for finished runs.
+        builder.HasIndex(r => r.ContractId, "ix_analysis_run_contract_id")
+            .HasDatabaseName("ix_analysis_run_contract_id");
     }
 }

@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # Plays the AI worker's part for one job, against LocalStack only (no AWS, no cost).
-# Same behaviour as send-analysis-result.ps1. Run from the repository root.
+# Same behaviour as send-analysis-result.ps1. Run from the repository root. The result it sends is
+# the example in contracts/examples, not an analysis of the uploaded file.
 #
-#   job=$(curl -s -X POST http://localhost:5080/dev/seed-analysis | python -c "import sys,json;print(json.load(sys.stdin)['job_id'])")
+# A job exists only when the API runs with Analysis__WorkerEnabled=true (compose: ANALYSIS_WORKER_ENABLED=true).
+# Upload a contract and start its analysis in the web app first.
+#
+#   job=$(docker compose exec -T postgres psql -U contractguard -d contractguard -At -c "SELECT analysis_run_id FROM analysis_run ORDER BY started_at DESC LIMIT 1;")
 #   scripts/dev/send-analysis-result.sh "$job" progress splitting_clauses
 #   scripts/dev/send-analysis-result.sh "$job" completed
 set -euo pipefail

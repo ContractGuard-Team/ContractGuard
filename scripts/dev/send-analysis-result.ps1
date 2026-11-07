@@ -5,10 +5,14 @@
 .DESCRIPTION
   Until the real worker exists, this script sends the messages the worker would send to the
   analysis-results queue, and uploads the extraction result it would write to S3.
-  Run from the repository root while `docker compose up` is running.
+  Run from the repository root while `docker compose up` is running. The result it sends is the
+  example in contracts/examples, not an analysis of the uploaded file.
+
+  A job exists only when the API runs with Analysis__WorkerEnabled=true (compose: ANALYSIS_WORKER_ENABLED=true).
+  Upload a contract and start its analysis in the web app first.
 
 .EXAMPLE
-  $job = (Invoke-RestMethod -Method Post http://localhost:5080/dev/seed-analysis).job_id
+  $job = docker compose exec -T postgres psql -U contractguard -d contractguard -At -c "SELECT analysis_run_id FROM analysis_run ORDER BY started_at DESC LIMIT 1;"
   ./scripts/dev/send-analysis-result.ps1 -JobId $job -Event progress -Step splitting_clauses
   ./scripts/dev/send-analysis-result.ps1 -JobId $job -Event completed
 #>

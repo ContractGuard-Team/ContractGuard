@@ -15,7 +15,8 @@ public static class AnalysisStorageKeys
     public static string WorkspaceSegment(Guid? organizationId, Guid ownerUserAccountId) =>
         organizationId is { } org ? org.ToString() : $"personal-{ownerUserAccountId}";
 
-    public static string QuarantineKey(Guid uploadId, string extension) => $"quarantine/{uploadId}{extension}";
+    // The user id in the key ties an upload to its uploader.
+    public static string QuarantineKey(Guid userId, Guid uploadId, string extension) => $"quarantine/{userId}/{uploadId}{extension}";
 
     public static string CleanKey(string workspace, Guid contractId, int versionNumber, string extension) =>
         $"clean/{workspace}/{contractId}/v{versionNumber}/source{extension}";
