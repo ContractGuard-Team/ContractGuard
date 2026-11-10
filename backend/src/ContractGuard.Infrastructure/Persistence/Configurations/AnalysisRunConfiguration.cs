@@ -1,5 +1,6 @@
 using ContractGuard.Domain.Analysis;
 using ContractGuard.Domain.Contracts;
+using ContractGuard.Infrastructure.Persistence.Conventions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -17,6 +18,9 @@ public sealed class AnalysisRunConfiguration : IEntityTypeConfiguration<Analysis
         builder.Property(r => r.PromptVersion).HasMaxLength(AnalysisRun.VersionTextMaxLength);
         builder.Property(r => r.RuleVersion).HasMaxLength(AnalysisRun.VersionTextMaxLength);
         builder.Ignore(r => r.IsTerminal);
+        builder.Property(r => r.Checks).HasJsonColumn();
+        builder.Property(r => r.Score).HasJsonColumn();
+        builder.Property(r => r.InjectionWarnings).HasJsonColumn();
 
         // A run references the contract aggregate by id only (no navigation property).
         builder.HasOne<Contract>()
@@ -32,6 +36,11 @@ public sealed class AnalysisRunConfiguration : IEntityTypeConfiguration<Analysis
         builder.HasMany(r => r.Clauses)
             .WithOne()
             .HasForeignKey(c => c.AnalysisRunId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(r => r.Findings)
+            .WithOne()
+            .HasForeignKey(f => f.AnalysisRunId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // The sweeper looks for running jobs that have been silent for too long (SD-13).

@@ -24,6 +24,9 @@ public sealed partial class RecordingEmailSender : IEmailSender
         return (Guid.Parse(match.Groups["user"].Value), Uri.UnescapeDataString(match.Groups["token"].Value));
     }
 
+    // The token of the newest invitation link sent to this address.
+    public string LastInvitationToken(string to) => InvitationPattern().Match(_bodiesByRecipient[to][^1]).Groups["token"].Value;
+
     public Task SendAsync(string to, string subject, string body, CancellationToken cancellationToken)
     {
         if (_failingRecipients.ContainsKey(to))
@@ -37,4 +40,7 @@ public sealed partial class RecordingEmailSender : IEmailSender
 
     [GeneratedRegex(@"userId=(?<user>[0-9a-f-]+)&token=(?<token>\S+)")]
     private static partial Regex LinkPattern();
+
+    [GeneratedRegex(@"/invitations/(?<token>[A-Za-z0-9_-]+)")]
+    private static partial Regex InvitationPattern();
 }

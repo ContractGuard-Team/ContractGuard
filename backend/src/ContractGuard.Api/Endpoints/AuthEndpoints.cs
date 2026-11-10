@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ContractGuard.Application.Abstractions;
+using ContractGuard.Api.Http;
 using ContractGuard.Domain.Common;
 using ContractGuard.Infrastructure.Identity;
 using Microsoft.AspNetCore.Antiforgery;
@@ -22,9 +23,9 @@ internal static partial class AuthEndpoints
         auth.MapPost("/register", Register);
         auth.MapPost("/verify-email", VerifyEmail);
         auth.MapPost("/resend-verification", ResendVerification);
-        auth.MapPost("/login", Login);
-        auth.MapPost("/forgot-password", ForgotPassword);
-        auth.MapPost("/reset-password", ResetPassword);
+        auth.MapPost("/login", Login).RequireRateLimiting(RateLimits.Login);
+        auth.MapPost("/forgot-password", ForgotPassword).RequireRateLimiting(RateLimits.PasswordReset);
+        auth.MapPost("/reset-password", ResetPassword).RequireRateLimiting(RateLimits.PasswordReset);
         return api;
     }
 
@@ -77,16 +78,19 @@ internal static partial class AuthEndpoints
         return TypedResults.NoContent();
     }
 
-    // shortcut: no limit on how often this sends, add it with the other email limits in P5-07.
+    // Same limits as the password reset email (FR-AUTH-014), same answer whether sent or not.
     private static async Task<NoContent> ResendVerification(
         EmailRequest request,
         UserManager<AppUser> users,
         AccountEmails emails,
+        TimeProvider clock,
         CancellationToken cancellationToken)
     {
         var user = await users.FindByEmailAsync(NormalizeEmail(request.Email));
-        if (user is { EmailConfirmed: false })
+        if (user is { EmailConfirmed: false } && EmailThrottle.TryRecord(user.VerificationEmailsSentAt, clock.GetUtcNow()) is { } sent)
         {
+            user.VerificationEmailsSentAt = sent;
+            await users.UpdateAsync(user);
             await emails.SendVerificationAsync(user, cancellationToken);
         }
 
@@ -120,17 +124,20 @@ internal static partial class AuthEndpoints
         return TypedResults.NoContent();
     }
 
-    // FR-AUTH-009: same answer whether or not the email has an account.
-    // shortcut: no limit yet on how often this sends (FR-AUTH-014), planned for P5-07.
+    // FR-AUTH-009, FR-AUTH-014: same answer whether or not the email has an account, and whether or
+    // not this request was within the per-account limits.
     private static async Task<NoContent> ForgotPassword(
         EmailRequest request,
         UserManager<AppUser> users,
         AccountEmails emails,
+        TimeProvider clock,
         CancellationToken cancellationToken)
     {
         var user = await users.FindByEmailAsync(NormalizeEmail(request.Email));
-        if (user is not null)
+        if (user is not null && EmailThrottle.TryRecord(user.PasswordResetEmailsSentAt, clock.GetUtcNow()) is { } sent)
         {
+            user.PasswordResetEmailsSentAt = sent;
+            await users.UpdateAsync(user);
             await emails.SendPasswordResetAsync(user, cancellationToken);
         }
 

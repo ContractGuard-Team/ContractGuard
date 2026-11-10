@@ -1,4 +1,5 @@
 using ContractGuard.Domain.Analysis;
+using ContractGuard.Domain.Chat;
 using ContractGuard.Domain.Contracts;
 using ContractGuard.Domain.Workspaces;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,11 @@ public interface IApplicationDbContext
     DbSet<ContractVersion> ContractVersions { get; }
     DbSet<AnalysisRun> AnalysisRuns { get; }
     DbSet<Clause> Clauses { get; }
+    DbSet<Finding> Findings { get; }
+    DbSet<ChatMessage> ChatMessages { get; }
+    DbSet<Invitation> Invitations { get; }
+    DbSet<ContractShare> ContractShares { get; }
+    DbSet<AuditEvent> AuditEvents { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

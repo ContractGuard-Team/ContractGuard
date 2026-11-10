@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using ContractGuard.Domain.Analysis;
 
 namespace ContractGuard.Application.Analysis.Extraction;
 
@@ -12,6 +13,14 @@ public static partial class ExtractionConsistencyValidator
         Enumerable.Range(1, 12).Select(i => $"CY-{i:00}")
             .Concat(Enumerable.Range(1, 5).Select(i => $"PR-{i:00}"))
             .Concat(Enumerable.Range(1, 3).Select(i => $"TP-{i:00}")));
+
+    // BR-RISK-002 rule 1: a finding produced by a check takes the domain of the check's prefix.
+    private static readonly Dictionary<string, string> CheckPrefixDomains = new(StringComparer.Ordinal)
+    {
+        ["CY"] = "cybersecurity",
+        ["PR"] = "data_privacy",
+        ["TP"] = "third_party"
+    };
 
     public static IReadOnlyList<string> Validate(
         ExtractionDocument document,
@@ -72,6 +81,11 @@ public static partial class ExtractionConsistencyValidator
             }
 
             CheckEvidence(finding.Evidence ?? [], clauses, pageCount, $"Finding '{finding.FindingId}'", errors);
+
+            if (finding.CheckCode is not null && CheckPrefixDomains[finding.CheckCode[..2]] != finding.PrimaryDomain)
+            {
+                errors.Add($"Finding '{finding.FindingId}' comes from check {finding.CheckCode}, so its primary domain must be {CheckPrefixDomains[finding.CheckCode[..2]]} (BR-RISK-002).");
+            }
         }
 
         var checkCodes = document.Checks.Select(c => c.CheckCode).ToList();
@@ -109,6 +123,8 @@ public static partial class ExtractionConsistencyValidator
             }
         }
 
+        CheckScoring(document, errors);
+
         foreach (var item in document.Embeddings?.Items ?? [])
         {
             if (!clauses.ContainsKey(item.ClauseId))
@@ -118,6 +134,62 @@ public static partial class ExtractionConsistencyValidator
         }
 
         return errors;
+    }
+
+    // VAL-DATA-013 and docs/05 §4: the worker computes the scores, the backend only checks they obey
+    // the rules it can see. A wrong score rejects the whole result, like a wrong quote.
+    private static void CheckScoring(ExtractionDocument document, List<string> errors)
+    {
+        var scoring = document.Scoring;
+        if (scoring is null)
+        {
+            return;
+        }
+
+        if (scoring.Domains.Select(d => d.Domain).Distinct().Count() != Enum.GetValues<RiskDomain>().Length)
+        {
+            errors.Add("scoring.domains must list each of the 7 domains exactly once (REL-DATA-014).");
+        }
+
+        CheckLevel(scoring.OverallScore, scoring.RiskLevel, "Overall", errors);
+        foreach (var domain in scoring.Domains)
+        {
+            if (!domain.Applicable)
+            {
+                if (domain.Score is not null || domain.RiskLevel is not null || string.IsNullOrWhiteSpace(domain.NaReason))
+                {
+                    errors.Add($"Domain '{domain.Domain}' is N/A, so it needs a reason and no score (FR-VIEW-003).");
+                }
+            }
+            else if (domain.Score is null || domain.RiskLevel is null)
+            {
+                errors.Add($"Domain '{domain.Domain}' applies, so it needs a score and a level (FR-RISK-019).");
+            }
+            else
+            {
+                CheckLevel(domain.Score.Value, domain.RiskLevel, $"Domain '{domain.Domain}'", errors);
+            }
+        }
+
+        var notApplicable = scoring.Domains.Where(d => !d.Applicable).Select(d => d.Domain).ToHashSet(StringComparer.Ordinal);
+        foreach (var finding in document.Findings.Where(f => notApplicable.Contains(f.PrimaryDomain)))
+        {
+            errors.Add($"Finding '{finding.FindingId}' is in domain '{finding.PrimaryDomain}', which is N/A (BR-RISK-003).");
+        }
+
+        if (document.Findings.Any(f => f.Severity == "critical") && scoring.OverallScore < RiskLevels.CriticalFindingFloor)
+        {
+            errors.Add($"Overall score {scoring.OverallScore} is below {RiskLevels.CriticalFindingFloor} although there is a critical finding (FR-RISK-022).");
+        }
+    }
+
+    private static void CheckLevel(int score, string level, string owner, List<string> errors)
+    {
+        var expected = RiskLevels.FromScore(score).ToString().ToLowerInvariant();
+        if (level != expected)
+        {
+            errors.Add($"{owner} score {score} is level '{expected}', not '{level}' (BR-RISK-010).");
+        }
     }
 
     private static void CheckEvidence(

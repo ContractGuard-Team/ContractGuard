@@ -11,6 +11,11 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsProduction() && string.Equals(builder.Configuration["Chat:Responder"], "fake", StringComparison.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException("Chat:Responder=fake is for development and tests only.");
+}
+
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
 builder.Services.AddApiAuth(builder.Environment);
 builder.Services.AddScoped<AccountEmails>();
@@ -38,6 +43,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+builder.Services.AddApiRateLimits(builder.Configuration);
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
 {
@@ -59,9 +65,22 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 
 var app = builder.Build();
 
+// `dotnet run -- seed` (or `dotnet ContractGuard.Api.dll seed` in the container): demo data, then exit.
+if (args.Contains("seed"))
+{
+    if (!app.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException("The seed is for the Development environment only.");
+    }
+
+    await DevSeeder.RunAsync(app.Services, app.Logger);
+    return;
+}
+
 app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -87,11 +106,14 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 
 var api = app.MapGroup("/api/v1").AddEndpointFilter<CsrfEndpointFilter>();
 api.MapPublicAuthEndpoints();
+api.MapPublicInvitationEndpoints();
 
 var secured = api.MapGroup(string.Empty)
     .RequireAuthorization()
     .AddEndpointFilter<WorkspaceEndpointFilter>();
 secured.MapAccountEndpoints();
 secured.MapContractEndpoints();
+secured.MapChatEndpoints();
+secured.MapOrganizationEndpoints();
 
 app.Run();

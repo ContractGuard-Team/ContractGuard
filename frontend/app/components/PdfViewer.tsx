@@ -3,7 +3,27 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 
 import { Button } from "./Button";
+import { severityLabels, type Severity } from "./SeverityTag";
 import { ViewerFailed, ViewerSkeleton } from "./ViewerParts";
+
+// A clause rectangle to wash on the page (F-VIEW-002), in fractions of the page size.
+export interface PdfHighlight {
+  clauseKey: string;
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  severity: Severity;
+  label: string;
+}
+
+const washClass: Record<Severity, string> = {
+  critical: "bg-severity-critical/20 hover:bg-severity-critical/30 border-severity-critical",
+  high: "bg-severity-high/20 hover:bg-severity-high/30 border-severity-high",
+  medium: "bg-severity-medium-mark/25 hover:bg-severity-medium-mark/35 border-severity-medium-mark",
+  low: "bg-severity-low/20 hover:bg-severity-low/30 border-severity-low",
+};
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
@@ -16,7 +36,16 @@ const maxZoom = 2;
 const zoomStep = 0.25;
 
 // One page at a time. No annotation layer: links and forms inside an uploaded PDF stay inactive.
-export default function PdfViewer({ url }: { url: string }) {
+// Clauses with findings are washed in their severity; clicking one opens its finding.
+export default function PdfViewer({
+  url,
+  highlights = [],
+  onSelectClause,
+}: {
+  url: string;
+  highlights?: PdfHighlight[];
+  onSelectClause?: (clauseKey: string) => void;
+}) {
   const [pageCount, setPageCount] = useState(0);
   const [page, setPage] = useState(1);
   const [pageDraft, setPageDraft] = useState("1");
@@ -95,8 +124,21 @@ export default function PdfViewer({ url }: { url: string }) {
           error={<ViewerFailed />}
           onLoadSuccess={({ numPages }) => setPageCount(numPages)}
         >
-          <div className="mx-auto w-fit overflow-hidden rounded-sheet bg-sheet shadow-sheet">
+          <div className="relative mx-auto w-fit overflow-hidden rounded-sheet bg-sheet shadow-sheet">
             <Page pageNumber={page} width={Math.min(sheetWidth, areaWidth)} scale={zoom} renderAnnotationLayer={false} loading={<ViewerSkeleton />} error={<ViewerFailed />} />
+            {highlights
+              .filter((h) => h.page === page)
+              .map((h, index) => (
+                <button
+                  key={`${h.clauseKey}-${index}`}
+                  type="button"
+                  title={`${severityLabels[h.severity]}: ${h.label}`}
+                  aria-label={`${severityLabels[h.severity]}: ${h.label}`}
+                  onClick={() => onSelectClause?.(h.clauseKey)}
+                  className={`absolute z-[1] rounded-sm border-b-2 transition-colors duration-150 ${washClass[h.severity]}`}
+                  style={{ left: `${h.x * 100}%`, top: `${h.y * 100}%`, width: `${h.width * 100}%`, height: `${h.height * 100}%` }}
+                />
+              ))}
           </div>
         </Document>
       </div>

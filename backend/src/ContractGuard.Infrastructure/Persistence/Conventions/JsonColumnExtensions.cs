@@ -9,13 +9,16 @@ public static class JsonColumnExtensions
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+
+        // Enums inside jsonb read the same as enum columns: "data_privacy", not 5.
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) }
     };
 
     // Stores a value object as a jsonb column, serialized with System.Text.Json (snake_case keys).
     // The comparer compares the serialized text, so EF detects changes inside lists too.
     public static PropertyBuilder<T> HasJsonColumn<T>(this PropertyBuilder<T> property)
-        where T : class
+        where T : class?
     {
         property
             .HasColumnType("jsonb")

@@ -1,14 +1,72 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { parseSse } from "~/lib/api";
 
 import { ChatPanel } from "./ChatPanel";
 
-describe("ChatPanel", () => {
-  it("stays locked and says why while no assistant is connected", () => {
-    render(<ChatPanel />);
+function jsonResponse(body: unknown) {
+  return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
+}
 
-    expect(screen.getByRole("log")).toHaveTextContent("Trợ lý AI chưa được kết nối");
+function sseResponse(text: string) {
+  return new Response(text, { status: 200, headers: { "Content-Type": "text/event-stream" } });
+}
+
+const stored = (messages: unknown[]) => ({ available: true, messages });
+
+describe("ChatPanel", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("stays locked and says why while no assistant is connected", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ available: false, messages: [] }));
+    render(<ChatPanel contractId="c" hasResult clauseName={(k) => k} onCitation={vi.fn()} />);
+
+    expect(await screen.findByText(/Trợ lý AI chưa được kết nối/)).toBeInTheDocument();
     expect(screen.getByLabelText("Câu hỏi về hợp đồng")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Gửi" })).toBeDisabled();
+  });
+
+  it("streams an answer and jumps to the cited clause (FR-CHAT-004)", async () => {
+    const answer = {
+      chatMessageId: "a",
+      role: "assistant",
+      authorName: null,
+      content: "Điều 6 loại trừ trách nhiệm.",
+      citations: [{ clauseKey: "cl-006", quote: null }],
+      versionNumber: 1,
+      createdAt: "2026-11-10T04:00:00Z",
+    };
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(jsonResponse(stored([])))
+      .mockResolvedValueOnce(jsonResponse({ token: "t" }))
+      .mockResolvedValueOnce(
+        sseResponse('event: question\ndata: {"messageId":"q"}\n\nevent: token\ndata: {"text":"Điều 6 "}\n\nevent: citation\ndata: {"citation":{"clauseKey":"cl-006","quote":null}}\n\nevent: done\ndata: {"messageId":"a"}\n\n'),
+      )
+      .mockResolvedValueOnce(jsonResponse(stored([{ ...answer, chatMessageId: "q", role: "user", authorName: "An", content: "Ai chịu?", citations: [] }, answer])));
+    const onCitation = vi.fn();
+    render(<ChatPanel contractId="c" hasResult clauseName={(k) => `Điều ${k}`} onCitation={onCitation} />);
+
+    await userEvent.type(await screen.findByLabelText("Câu hỏi về hợp đồng"), "Ai chịu?");
+    await userEvent.click(screen.getByRole("button", { name: "Gửi" }));
+
+    await waitFor(() => expect(screen.getByText("Điều 6 loại trừ trách nhiệm.")).toBeInTheDocument());
+    expect(fetchMock.mock.calls[2]![0]).toBe("/api/v1/contracts/c/chat");
+    await userEvent.click(screen.getByRole("button", { name: "Điều cl-006" }));
+    expect(onCitation).toHaveBeenCalledWith("cl-006");
+  });
+});
+
+describe("parseSse", () => {
+  it("returns complete events and keeps an unfinished tail", () => {
+    const { events, rest } = parseSse('event: token\ndata: {"text":"a"}\n\nevent: done\r\ndata: {}\r\n\r\nevent: tok');
+
+    expect(events).toEqual([
+      { event: "token", data: '{"text":"a"}' },
+      { event: "done", data: "{}" },
+    ]);
+    expect(rest).toBe("event: tok");
   });
 });

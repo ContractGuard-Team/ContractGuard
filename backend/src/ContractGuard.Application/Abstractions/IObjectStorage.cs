@@ -6,6 +6,9 @@ public interface IObjectStorage
 {
     Task PutJsonAsync<T>(string key, T value, CancellationToken cancellationToken);
 
+    // Server-side writes of a whole file (the development seed). Users upload through CreateUploadAsync.
+    Task PutBytesAsync(string key, byte[] content, string contentType, CancellationToken cancellationToken);
+
     // Throws StoredObjectNotFoundException when the key does not exist.
     Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken);
 

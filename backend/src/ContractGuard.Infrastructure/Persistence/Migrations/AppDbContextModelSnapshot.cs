@@ -29,6 +29,11 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("analysis_run_id");
 
+                    b.Property<string>("Checks")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("checks");
+
                     b.Property<Guid>("ContractId")
                         .HasColumnType("uuid")
                         .HasColumnName("contract_id");
@@ -55,6 +60,11 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("finished_at");
 
+                    b.Property<string>("InjectionWarnings")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("injection_warnings");
+
                     b.Property<DateTimeOffset>("LastEventAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_event_at");
@@ -63,6 +73,18 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("model_version");
+
+                    b.Property<string>("OverallRecommendation")
+                        .HasColumnType("text")
+                        .HasColumnName("overall_recommendation");
+
+                    b.Property<string>("OverallRiskLevel")
+                        .HasColumnType("text")
+                        .HasColumnName("overall_risk_level");
+
+                    b.Property<int?>("OverallScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("overall_score");
 
                     b.Property<string>("PromptVersion")
                         .HasMaxLength(100)
@@ -83,6 +105,10 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("schema_version");
+
+                    b.Property<string>("Score")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("score");
 
                     b.Property<DateTimeOffset>("StartedAt")
                         .HasColumnType("timestamp with time zone")
@@ -163,6 +189,211 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_clause_analysis_run_id_clause_key");
 
                     b.ToTable("clause", (string)null);
+                });
+
+            modelBuilder.Entity("ContractGuard.Domain.Analysis.Finding", b =>
+                {
+                    b.Property<Guid>("FindingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("finding_id");
+
+                    b.Property<Guid>("AnalysisRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("analysis_run_id");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("CheckCode")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("check_code");
+
+                    b.Property<string>("ClauseKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("clause_key");
+
+                    b.Property<string>("Evidence")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("evidence");
+
+                    b.Property<string>("FindingKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("finding_key");
+
+                    b.Property<DateTimeOffset?>("HandledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("handled_at");
+
+                    b.Property<Guid?>("HandledByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("handled_by_user_account_id");
+
+                    b.Property<string>("HandlingNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("handling_note");
+
+                    b.Property<string>("HandlingStatus")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("handling_status");
+
+                    b.Property<string>("Impact")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("impact");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("MissingDescription")
+                        .HasColumnType("text")
+                        .HasColumnName("missing_description");
+
+                    b.Property<string>("PrimaryDomain")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("primary_domain");
+
+                    b.Property<string>("Recommendation")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("recommendation");
+
+                    b.Property<string>("References")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("references");
+
+                    b.Property<string>("SecondaryDomains")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("secondary_domains");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("severity");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Why")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("why");
+
+                    b.HasKey("FindingId")
+                        .HasName("pk_finding");
+
+                    b.HasIndex("AnalysisRunId", "FindingKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_finding_analysis_run_id_finding_key");
+
+                    b.ToTable("finding", (string)null);
+                });
+
+            modelBuilder.Entity("ContractGuard.Domain.Chat.ChatMessage", b =>
+                {
+                    b.Property<Guid>("ChatMessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_message_id");
+
+                    b.Property<string>("AuthorName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("author_name");
+
+                    b.Property<Guid?>("AuthorUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_user_account_id");
+
+                    b.Property<string>("Citations")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("citations");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<Guid>("ContractVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_version_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("role");
+
+                    b.HasKey("ChatMessageId")
+                        .HasName("pk_chat_message");
+
+                    b.HasIndex("ContractVersionId")
+                        .HasDatabaseName("ix_chat_message_contract_version_id");
+
+                    b.HasIndex("ContractId", "CreatedAt")
+                        .HasDatabaseName("ix_chat_message_contract_id_created_at");
+
+                    b.ToTable("chat_message", (string)null);
+                });
+
+            modelBuilder.Entity("ContractGuard.Domain.Contracts.AuditEvent", b =>
+                {
+                    b.Property<Guid>("AuditEventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("audit_event_id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("action");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("detail");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("UserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_account_id");
+
+                    b.HasKey("AuditEventId")
+                        .HasName("pk_audit_event");
+
+                    b.HasIndex("ContractId", "OccurredAt")
+                        .HasDatabaseName("ix_audit_event_contract_id_occurred_at");
+
+                    b.ToTable("audit_event", (string)null);
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Contracts.Contract", b =>
@@ -266,6 +497,41 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.ToTable("contract_context", (string)null);
                 });
 
+            modelBuilder.Entity("ContractGuard.Domain.Contracts.ContractShare", b =>
+                {
+                    b.Property<Guid>("ContractShareId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_share_id");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contract_id");
+
+                    b.Property<DateTimeOffset>("SharedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("shared_at");
+
+                    b.Property<Guid>("SharedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("shared_by_user_account_id");
+
+                    b.Property<Guid>("UserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_account_id");
+
+                    b.HasKey("ContractShareId")
+                        .HasName("pk_contract_share");
+
+                    b.HasIndex("UserAccountId")
+                        .HasDatabaseName("ix_contract_share_user_account_id");
+
+                    b.HasIndex("ContractId", "UserAccountId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_contract_share_contract_id_user_account_id");
+
+                    b.ToTable("contract_share", (string)null);
+                });
+
             modelBuilder.Entity("ContractGuard.Domain.Contracts.ContractVersion", b =>
                 {
                     b.Property<Guid>("ContractVersionId")
@@ -276,6 +542,14 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("contract_id");
 
+                    b.Property<string>("EditedMetadata")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("edited_metadata");
+
+                    b.Property<string>("ExtractedMetadata")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("extracted_metadata");
+
                     b.Property<long>("FileSizeBytes")
                         .HasColumnType("bigint")
                         .HasColumnName("file_size_bytes");
@@ -284,6 +558,14 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("file_type");
+
+                    b.Property<DateTimeOffset?>("MetadataEditedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("metadata_edited_at");
+
+                    b.Property<Guid?>("MetadataEditedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("metadata_edited_by_user_account_id");
 
                     b.Property<string>("OriginalFileName")
                         .IsRequired()
@@ -328,6 +610,54 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_contract_version_contract_id_version_number");
 
                     b.ToTable("contract_version", (string)null);
+                });
+
+            modelBuilder.Entity("ContractGuard.Domain.Workspaces.Invitation", b =>
+                {
+                    b.Property<Guid>("InvitationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invitation_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("InvitedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invited_by_user_account_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("InvitationId")
+                        .HasName("pk_invitation");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_invitation_token_hash");
+
+                    b.HasIndex("OrganizationId", "Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_invitation_organization_id_email");
+
+                    b.ToTable("invitation", (string)null);
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Workspaces.Membership", b =>
@@ -441,6 +771,11 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
+                    b.Property<string>("PasswordResetEmailsSentAt")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("password_reset_emails_sent_at");
+
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text")
                         .HasColumnName("phone_number");
@@ -466,6 +801,11 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
                         .HasColumnName("user_name");
+
+                    b.Property<string>("VerificationEmailsSentAt")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("verification_emails_sent_at");
 
                     b.HasKey("Id")
                         .HasName("pk_user_account");
@@ -589,6 +929,43 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_clause_analysis_run_analysis_run_id");
                 });
 
+            modelBuilder.Entity("ContractGuard.Domain.Analysis.Finding", b =>
+                {
+                    b.HasOne("ContractGuard.Domain.Analysis.AnalysisRun", null)
+                        .WithMany("Findings")
+                        .HasForeignKey("AnalysisRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_finding_analysis_run_analysis_run_id");
+                });
+
+            modelBuilder.Entity("ContractGuard.Domain.Chat.ChatMessage", b =>
+                {
+                    b.HasOne("ContractGuard.Domain.Contracts.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_message_contract_contract_id");
+
+                    b.HasOne("ContractGuard.Domain.Contracts.ContractVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ContractVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_message_contract_version_contract_version_id");
+                });
+
+            modelBuilder.Entity("ContractGuard.Domain.Contracts.AuditEvent", b =>
+                {
+                    b.HasOne("ContractGuard.Domain.Contracts.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_audit_event_contract_contract_id");
+                });
+
             modelBuilder.Entity("ContractGuard.Domain.Contracts.Contract", b =>
                 {
                     b.HasOne("ContractGuard.Domain.Workspaces.Organization", null)
@@ -615,6 +992,23 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_contract_context_contract_version_contract_version_id");
                 });
 
+            modelBuilder.Entity("ContractGuard.Domain.Contracts.ContractShare", b =>
+                {
+                    b.HasOne("ContractGuard.Domain.Contracts.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_contract_share_contract_contract_id");
+
+                    b.HasOne("ContractGuard.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_contract_share_user_account_user_account_id");
+                });
+
             modelBuilder.Entity("ContractGuard.Domain.Contracts.ContractVersion", b =>
                 {
                     b.HasOne("ContractGuard.Domain.Contracts.Contract", null)
@@ -630,6 +1024,16 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_contract_version_user_account_uploaded_by_user_account_id");
+                });
+
+            modelBuilder.Entity("ContractGuard.Domain.Workspaces.Invitation", b =>
+                {
+                    b.HasOne("ContractGuard.Domain.Workspaces.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_invitation_organization_organization_id");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Workspaces.Membership", b =>
@@ -682,6 +1086,8 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ContractGuard.Domain.Analysis.AnalysisRun", b =>
                 {
                     b.Navigation("Clauses");
+
+                    b.Navigation("Findings");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Contracts.Contract", b =>

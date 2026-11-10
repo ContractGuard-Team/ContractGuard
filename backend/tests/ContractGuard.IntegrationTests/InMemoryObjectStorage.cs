@@ -25,6 +25,12 @@ public sealed class InMemoryObjectStorage : IObjectStorage
         return Task.CompletedTask;
     }
 
+    public Task PutBytesAsync(string key, byte[] content, string contentType, CancellationToken cancellationToken)
+    {
+        _objects[key] = content;
+        return Task.CompletedTask;
+    }
+
     public Task<Stream> OpenReadAsync(string key, CancellationToken cancellationToken) =>
         _objects.TryGetValue(key, out var bytes)
             ? Task.FromResult<Stream>(new MemoryStream(bytes, writable: false))

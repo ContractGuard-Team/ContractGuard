@@ -21,6 +21,8 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails)
         [ErrorCodes.ContractBusy] = StatusCodes.Status409Conflict,
         [ErrorCodes.EmailSendFailed] = StatusCodes.Status503ServiceUnavailable,
         [ErrorCodes.AnalysisFailed] = StatusCodes.Status503ServiceUnavailable,
+        [ErrorCodes.ExportFailed] = StatusCodes.Status500InternalServerError,
+        [ErrorCodes.ChatFailed] = StatusCodes.Status503ServiceUnavailable,
     };
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)

@@ -1,5 +1,6 @@
 using ContractGuard.Application.Abstractions;
 using ContractGuard.Domain.Analysis;
+using ContractGuard.Domain.Chat;
 using ContractGuard.Domain.Contracts;
 using ContractGuard.Domain.Workspaces;
 using ContractGuard.Infrastructure.Identity;
@@ -21,6 +22,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, Current
     public DbSet<ContractVersion> ContractVersions => Set<ContractVersion>();
     public DbSet<AnalysisRun> AnalysisRuns => Set<AnalysisRun>();
     public DbSet<Clause> Clauses => Set<Clause>();
+    public DbSet<Finding> Findings => Set<Finding>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<Invitation> Invitations => Set<Invitation>();
+    public DbSet<ContractShare> ContractShares => Set<ContractShare>();
+    public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
 
     public void DiscardChanges() => ChangeTracker.Clear();
 
@@ -43,22 +49,30 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, Current
     // SD-05, BR-DATA-001: every query on contract data is limited to the current workspace, whoever
     // writes it. EF reads the fields of "workspace" from the context instance running the query.
     // BR-SHARE-001: in an organization a contract is visible to its owner and to organization owners.
-    // Contract shares extend this in P5-02.
+    // BR-SHARE-002, FR-CTR-008: plus whoever it is shared with; personal contracts shared with the user
+    // show in the user's personal workspace. ContractShare itself has no filter: the contract filter
+    // reads it, and a filter on it that read contracts back would loop.
     private void ApplyWorkspaceFilters(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Contract>().HasQueryFilter(c =>
             workspace.IsSystem
             || (workspace.OrganizationId == null
                 && c.OrganizationId == null
-                && c.OwnerUserAccountId == workspace.CurrentUserId)
+                && (c.OwnerUserAccountId == workspace.CurrentUserId
+                    || Set<ContractShare>().Any(s => s.ContractId == c.ContractId && s.UserAccountId == workspace.CurrentUserId)))
             || (workspace.OrganizationId != null
                 && c.OrganizationId == workspace.OrganizationId
-                && (workspace.IsOrganizationOwner || c.OwnerUserAccountId == workspace.CurrentUserId)));
+                && (workspace.IsOrganizationOwner
+                    || c.OwnerUserAccountId == workspace.CurrentUserId
+                    || Set<ContractShare>().Any(s => s.ContractId == c.ContractId && s.UserAccountId == workspace.CurrentUserId))));
+        modelBuilder.Entity<AuditEvent>().HasQueryFilter(e => Set<Contract>().Any(c => c.ContractId == e.ContractId));
 
         // Child tables follow their parent, so a direct query on them cannot go around the rule.
         modelBuilder.Entity<ContractVersion>().HasQueryFilter(v => Set<Contract>().Any(c => c.ContractId == v.ContractId));
         modelBuilder.Entity<AnalysisRun>().HasQueryFilter(r => Set<Contract>().Any(c => c.ContractId == r.ContractId));
         modelBuilder.Entity<Clause>().HasQueryFilter(c => Set<AnalysisRun>().Any(r => r.AnalysisRunId == c.AnalysisRunId));
+        modelBuilder.Entity<ChatMessage>().HasQueryFilter(m => Set<Contract>().Any(c => c.ContractId == m.ContractId));
+        modelBuilder.Entity<Finding>().HasQueryFilter(f => Set<AnalysisRun>().Any(r => r.AnalysisRunId == f.AnalysisRunId));
     }
 
     // Configurations run in alphabetical order, so a relationship can be declared before the

@@ -6,6 +6,7 @@ import { useAction } from "~/lib/useAction";
 
 import { Button } from "./Button";
 import { Notice } from "./Notice";
+import type { PdfHighlight } from "./PdfViewer";
 import { ViewerFailed, ViewerSkeleton } from "./ViewerParts";
 
 // Loaded only when a contract is opened: both libraries are large and PDF.js needs a browser.
@@ -18,17 +19,22 @@ function fileError(error: unknown) {
     : errorMessage(error);
 }
 
-// The original file of a version, readable in the page and downloadable (F-VIEW-002 without highlights).
+// The original file of a version, readable in the page and downloadable (F-VIEW-002). Highlights are
+// drawn on PDFs only: DOCX and images have no page coordinates in the browser renderer.
 export function FileViewer({
   contractId,
   versionId,
   fileName,
   fileType,
+  highlights,
+  onSelectClause,
 }: {
   contractId: string;
   versionId: string;
   fileName: string;
   fileType: Schemas["FileType"];
+  highlights?: PdfHighlight[];
+  onSelectClause?: (clauseKey: string) => void;
 }) {
   const path = `/contracts/${contractId}/versions/${versionId}/file`;
   const [url, setUrl] = useState<string | null>(null);
@@ -82,7 +88,7 @@ export function FileViewer({
       {url === null && linkError === null && <ViewerSkeleton />}
       {url !== null && (
         <Suspense fallback={<ViewerSkeleton />}>
-          {fileType === "pdf" && <PdfViewer url={url} />}
+          {fileType === "pdf" && <PdfViewer url={url} highlights={highlights} onSelectClause={onSelectClause} />}
           {fileType === "docx" && <DocxViewer url={url} />}
           {(fileType === "jpg" || fileType === "png") && <ImageViewer url={url} fileName={fileName} />}
         </Suspense>

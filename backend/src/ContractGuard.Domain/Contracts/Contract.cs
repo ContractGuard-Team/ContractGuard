@@ -137,6 +137,13 @@ public sealed class Contract
         UpdatedAt = now;
     }
 
+    // FR-SHARE-008, FR-ORG-011. The contract never changes workspace (BR-ORG-004).
+    public void TransferOwnership(Guid newOwnerUserAccountId, DateTimeOffset now)
+    {
+        OwnerUserAccountId = newOwnerUserAccountId;
+        UpdatedAt = now;
+    }
+
     private void EnsureNotAnalyzing()
     {
         if (ApprovalStatus == ApprovalStatus.Analyzing)

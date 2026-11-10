@@ -18,6 +18,9 @@ public sealed class ApiClient(HttpClient http) : IDisposable
     public Task<HttpResponseMessage> PutAsync(string path, object? body = null, Guid? workspace = null) =>
         SendAsync(HttpMethod.Put, path, body, workspace);
 
+    public Task<HttpResponseMessage> DeleteAsync(string path, Guid? workspace = null) =>
+        SendAsync(HttpMethod.Delete, path, null, workspace);
+
     public async Task<T> GetJsonAsync<T>(string path, Guid? workspace = null)
     {
         var response = await GetAsync(path, workspace);

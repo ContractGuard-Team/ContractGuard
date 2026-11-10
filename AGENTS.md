@@ -9,7 +9,7 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 - PRD v1.0 và SRS v1.0 đã **baseline** (Gate S5, 2026-10-27). Sửa spec chỉ qua change request (`RDK/Agent/03-SRS/06-Change Request Workflow.md`).
 - Đang ở: system design. Bước 1 đã chốt; bước 2–8 có đề xuất trong `docs/04-system-design-decisions.md`, chờ Approver quyết định. Sau đó code theo `docs/03-implementation-phases.md`.
 - Frontend: React Router framework mode, `ssr: false`, build ra file tĩnh (DEC-GEN-027).
-- `backend/` mới có khung ASP.NET Core (`ContractGuard.Api`). `frontend/` chưa có code.
+- Phase 1 đã merge. Phần SE không cần AI của Phase 2–6 đã code (2026-11-10), chờ review; phần cần AI dừng ở gửi/nhận, xem `docs/06-ai-integration-points.md`.
 
 ## Đọc gì, theo thứ tự
 
@@ -18,7 +18,8 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 3. `docs/02-system-design.md`: ràng buộc, ước lượng, quyết định đã chốt. `docs/04-system-design-decisions.md`: phiếu quyết định bước 2–8.
 4. `docs/architecture/*.html`: sơ đồ tổng quan, luồng phân tích.
 5. `docs/DESIGN.md`: hệ thống giao diện (token, font, component, quy tắc). Đọc trước khi làm UI; `docs/PRODUCT.md` là định hướng sản phẩm.
-6. `docs/05-ai-diagram-vs-system-design.md`: chia việc SE và AI, chỗ lệch với system design, tóm tắt repo nhóm AI (§9). Đọc file này thay vì rà `AI/` (bản clone local, Hermes khoảng 22.000 file).
+6. `docs/06-ai-integration-points.md`: chỗ nối với nhóm AI (`AI-HOOKUP` trong code), đề xuất khối `scoring`, câu hỏi chờ trả lời. Đọc trước khi đụng phân tích hoặc chat.
+7. `docs/05-ai-diagram-vs-system-design.md`: chia việc SE và AI, chỗ lệch với system design, tóm tắt repo nhóm AI (§9). Đọc file này thay vì rà `AI/` (bản clone local, Hermes khoảng 22.000 file).
 
 **Không đọc cả `docs/spec/03-SRS.md` (6000+ dòng) hay `02-PRD.md`.** Tra theo ID:
 - `grep -n "FR-XXX-001" docs/spec/03-SRS.md`, rồi `Read` với offset và limit.

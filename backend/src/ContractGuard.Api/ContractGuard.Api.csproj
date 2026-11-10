@@ -19,4 +19,14 @@
     <ProjectReference Include="..\ContractGuard.Infrastructure\ContractGuard.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ContractGuard.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Data of the development seed (DevSeeder): the synthetic contract and the result that matches it. -->
+    <EmbeddedResource Include="..\..\..\contracts\examples\sample-contract.pdf" LogicalName="sample-contract.pdf" />
+    <EmbeddedResource Include="..\..\..\contracts\examples\extraction.v2.example.json" LogicalName="extraction.v2.example.json" />
+  </ItemGroup>
+
 </Project>

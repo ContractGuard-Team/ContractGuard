@@ -14,6 +14,9 @@
     <!-- Shared contract with the Python worker, compiled into the assembly so the API never runs
          with a schema that differs from the one it was built and tested against. -->
     <EmbeddedResource Include="..\..\..\contracts\extraction.v2.schema.json" LogicalName="extraction.v2.schema.json" Link="Analysis\extraction.v2.schema.json" />
+    <!-- Report font (OFL, Reports/Fonts/OFL.txt): Vietnamese glyphs without depending on system fonts. -->
+    <EmbeddedResource Include="Reports\Fonts\BeVietnamPro-Regular.ttf" LogicalName="BeVietnamPro-Regular.ttf" />
+    <EmbeddedResource Include="Reports\Fonts\BeVietnamPro-SemiBold.ttf" LogicalName="BeVietnamPro-SemiBold.ttf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,11 +31,13 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.104.8" />
     <PackageReference Include="AWSSDK.SQS" Version="4.0.100.22" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageReference Include="JsonSchema.Net" Version="9.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.14" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="QuestPDF" Version="2026.9.1" />
   </ItemGroup>
 
 </Project>

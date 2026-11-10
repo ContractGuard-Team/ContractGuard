@@ -24,8 +24,8 @@ public sealed class WorkspaceIsolationTests(ApiFactory factory)
             var jobId = await Scenario.StartAnalysisAsync(alice, contractId, versionId);
             await Scenario.CompleteJobAsync(factory, jobId, contractId);
 
-            Assert.Equal(1, (await ApiAssert.JsonAsync(await alice.GetAsync("/contracts"))).GetArrayLength());
-            Assert.Equal(0, (await ApiAssert.JsonAsync(await bob.GetAsync("/contracts"))).GetArrayLength());
+            Assert.Equal(1, (await ApiAssert.JsonAsync(await alice.GetAsync("/contracts"))).GetProperty("items").GetArrayLength());
+            Assert.Equal(0, (await ApiAssert.JsonAsync(await bob.GetAsync("/contracts"))).GetProperty("items").GetArrayLength());
 
             // 404, not 403: Bob does not even learn that the contract exists.
             await ApiAssert.ProblemAsync(await bob.GetAsync($"/contracts/{contractId}"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
@@ -113,20 +113,20 @@ public sealed class WorkspaceIsolationTests(ApiFactory factory)
             }
 
             // The member's own contract, in the organization and not in the personal workspace.
-            Assert.Equal(1, (await ApiAssert.JsonAsync(await member.GetAsync("/contracts", organizationId))).GetArrayLength());
-            Assert.Equal(0, (await ApiAssert.JsonAsync(await member.GetAsync("/contracts"))).GetArrayLength());
+            Assert.Equal(1, (await ApiAssert.JsonAsync(await member.GetAsync("/contracts", organizationId))).GetProperty("items").GetArrayLength());
+            Assert.Equal(0, (await ApiAssert.JsonAsync(await member.GetAsync("/contracts"))).GetProperty("items").GetArrayLength());
 
             // Another member has no access without a share.
-            Assert.Equal(0, (await ApiAssert.JsonAsync(await otherMember.GetAsync("/contracts", organizationId))).GetArrayLength());
+            Assert.Equal(0, (await ApiAssert.JsonAsync(await otherMember.GetAsync("/contracts", organizationId))).GetProperty("items").GetArrayLength());
             await ApiAssert.ProblemAsync(await otherMember.GetAsync($"/contracts/{contractId}", organizationId), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
             await ApiAssert.ProblemAsync(await otherMember.GetAsync($"/contracts/{contractId}/versions/{versionId}/file", organizationId), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
 
             // The organization owner has every right of a contract owner.
-            Assert.Equal(1, (await ApiAssert.JsonAsync(await owner.GetAsync("/contracts", organizationId))).GetArrayLength());
+            Assert.Equal(1, (await ApiAssert.JsonAsync(await owner.GetAsync("/contracts", organizationId))).GetProperty("items").GetArrayLength());
             await Scenario.StartAnalysisAsync(owner, contractId, versionId, organizationId);
 
             // Nothing leaks into the owner's personal workspace, and the role does not carry over there.
-            Assert.Equal(0, (await ApiAssert.JsonAsync(await owner.GetAsync("/contracts"))).GetArrayLength());
+            Assert.Equal(0, (await ApiAssert.JsonAsync(await owner.GetAsync("/contracts"))).GetProperty("items").GetArrayLength());
             await ApiAssert.ProblemAsync(await owner.GetAsync($"/contracts/{contractId}"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
 
             var me = await ApiAssert.JsonAsync(await member.GetAsync("/me"));

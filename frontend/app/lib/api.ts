@@ -8,6 +8,7 @@
 import { data, redirect } from "react-router";
 
 import type { components } from "./api-types";
+import { currentWorkspace, setWorkspace } from "./workspace";
 
 export const API_BASE = "/api/v1";
 
@@ -58,6 +59,97 @@ export function apiPut<T = void>(path: string, body: unknown): Promise<T> {
   return apiFetch<T>(path, { method: "PUT", body: JSON.stringify(body) });
 }
 
+// One parsed server-sent event (SD-15).
+export interface SseEvent {
+  event: string;
+  data: string;
+}
+
+// Splits a text buffer into complete SSE events; returns the unfinished tail to keep for the next chunk.
+export function parseSse(buffer: string): { events: SseEvent[]; rest: string } {
+  const blocks = buffer.replace(/\r\n/g, "\n").split("\n\n");
+  const rest = blocks.pop() ?? "";
+  const events = blocks
+    .map((block) => {
+      let event = "message";
+      const data: string[] = [];
+      for (const line of block.split("\n")) {
+        if (line.startsWith("event:")) {
+          event = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+          data.push(line.slice(5).replace(/^ /, ""));
+        }
+      }
+      return { event, data: data.join("\n") };
+    })
+    .filter((e) => e.data !== "" || e.event !== "message");
+  return { events, rest };
+}
+
+// POST that answers with an SSE stream (chat). Errors before the stream are Problem Details as usual.
+export async function apiStream(path: string, body: unknown, onEvent: (event: SseEvent) => void, signal?: AbortSignal): Promise<void> {
+  const send = async (retry: boolean): Promise<Response> => {
+    const response = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      credentials: "include",
+      headers: withWorkspace(new Headers({ "Content-Type": "application/json", Accept: "text/event-stream", "X-CSRF-TOKEN": await getCsrfToken() })),
+      body: JSON.stringify(body),
+      signal,
+    });
+    if (!response.ok) {
+      const problem = await readProblem(response);
+      if (retry && problem.code === CSRF_ERROR) {
+        forgetCsrfToken();
+        return send(false);
+      }
+
+      throw new ApiError(response.status, problem);
+    }
+
+    return response;
+  };
+
+  const response = await send(true);
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    const parsed = parseSse(buffer + value);
+    buffer = parsed.rest;
+    parsed.events.forEach(onEvent);
+  }
+
+  parseSse(buffer + "\n\n").events.forEach(onEvent);
+}
+
+// A file from the API (report export). Errors arrive as Problem Details like any other call, so the
+// page can say what failed instead of the browser opening a JSON error page.
+export async function apiDownload(path: string): Promise<{ blob: Blob; fileName: string }> {
+  const response = await fetch(`${API_BASE}${path}`, { credentials: "include", headers: withWorkspace(new Headers()) });
+  if (!response.ok) {
+    throw new ApiError(response.status, await readProblem(response));
+  }
+
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
+  const plain = /filename="?([^";]+)"?/i.exec(disposition)?.[1];
+  return { blob: await response.blob(), fileName: encoded ? decodeURIComponent(encoded) : (plain ?? "download") };
+}
+
+// Hands a blob to the browser as a download, without leaving the page.
+export function saveBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 // For route loaders: no session goes to the login page, a missing or foreign resource to the 404 page.
 export async function apiLoad<T>(path: string): Promise<T> {
   try {
@@ -69,6 +161,12 @@ export async function apiLoad<T>(path: string): Promise<T> {
 
     if (error instanceof ApiError && error.status === 404) {
       throw data(null, { status: 404 });
+    }
+
+    // Removed from the organization since it was chosen (SEC-AUTHZ-008): back to the personal workspace.
+    if (error instanceof ApiError && error.code === "ERR-SEC-001" && currentWorkspace() !== null) {
+      setWorkspace(null);
+      throw redirect("/");
     }
 
     throw error;
@@ -85,6 +183,8 @@ async function send<T>(path: string, init: RequestInit, retryOnCsrfError: boolea
   if (isWrite) {
     headers.set("X-CSRF-TOKEN", await getCsrfToken());
   }
+
+  withWorkspace(headers);
 
   const response = await fetch(`${API_BASE}${path}`, { ...init, headers, credentials: "include" });
   if (!response.ok) {
@@ -109,6 +209,15 @@ async function send<T>(path: string, init: RequestInit, retryOnCsrfError: boolea
   }
 
   return (await response.json()) as T;
+}
+
+function withWorkspace(headers: Headers): Headers {
+  const workspace = currentWorkspace();
+  if (workspace) {
+    headers.set("X-Workspace-Id", workspace);
+  }
+
+  return headers;
 }
 
 async function getCsrfToken(): Promise<string> {

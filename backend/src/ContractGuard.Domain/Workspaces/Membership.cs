@@ -21,4 +21,6 @@ public sealed class Membership
             JoinedAt = now
         };
     }
+
+    internal void ChangeRole(OrgRole role) => OrgRole = role;
 }

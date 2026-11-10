@@ -13,6 +13,7 @@ public sealed partial class ContractUploadService(
     IApplicationDbContext db,
     IObjectStorage storage,
     ICurrentWorkspace workspace,
+    AuditLog audit,
     TimeProvider clock,
     ILogger<ContractUploadService> logger)
 {
@@ -37,6 +38,37 @@ public sealed partial class ContractUploadService(
     }
 
     public async Task<CreatedContract> CreateContractAsync(Guid uploadId, string fileName, CancellationToken cancellationToken)
+    {
+        var file = await VerifyUploadAsync(uploadId, fileName, cancellationToken);
+        var contract = Contract.Create(
+            Path.GetFileNameWithoutExtension(fileName),
+            workspace.OrganizationId,
+            workspace.UserId,
+            file,
+            clock.GetUtcNow());
+        db.Contracts.Add(contract);
+        audit.Record(contract.ContractId, AuditAction.Uploaded, fileName);
+        await SaveOrThrowUsedAsync(file.StorageKey, cancellationToken);
+        return new CreatedContract(contract.ContractId, contract.LatestVersion.ContractVersionId);
+    }
+
+    // F-CTR-005 (FR-CTR-014): a new file for an existing contract, through the same checks as the first one.
+    // ERR-CTR-003 while an analysis runs. Owner and Member may do this (BR-SHARE-002).
+    public async Task<CreatedContract> AddVersionAsync(Guid contractId, Guid uploadId, string fileName, CancellationToken cancellationToken)
+    {
+        var contract = await db.Contracts
+            .Include(c => c.Versions)
+            .SingleOrDefaultAsync(c => c.ContractId == contractId, cancellationToken)
+            ?? throw new DomainException(ErrorCodes.NotFound, "Contract not found.");
+        var file = await VerifyUploadAsync(uploadId, fileName, cancellationToken);
+        var version = contract.AddVersion(file, workspace.UserId, clock.GetUtcNow());
+        audit.Record(contract.ContractId, AuditAction.VersionUploaded, $"V{version.VersionNumber} {fileName}");
+        await SaveOrThrowUsedAsync(file.StorageKey, cancellationToken);
+        return new CreatedContract(contract.ContractId, version.ContractVersionId);
+    }
+
+    // Checks what actually arrived in storage, never what the browser says. A bad file is deleted.
+    private async Task<ContractFile> VerifyUploadAsync(Guid uploadId, string fileName, CancellationToken cancellationToken)
     {
         var declaredType = RequireAllowedType(fileName);
         var key = KeyOf(uploadId, fileName);
@@ -69,13 +101,11 @@ public sealed partial class ContractUploadService(
             throw new DomainException(ErrorCodes.FileTypeMismatch, "The file content does not match its extension.");
         }
 
-        var contract = Contract.Create(
-            Path.GetFileNameWithoutExtension(fileName),
-            workspace.OrganizationId,
-            workspace.UserId,
-            new ContractFile(key, fileName, declaredType, size),
-            clock.GetUtcNow());
-        db.Contracts.Add(contract);
+        return new ContractFile(key, fileName, declaredType, size);
+    }
+
+    private async Task SaveOrThrowUsedAsync(string key, CancellationToken cancellationToken)
+    {
         try
         {
             await db.SaveChangesAsync(cancellationToken);
@@ -91,8 +121,6 @@ public sealed partial class ContractUploadService(
 
             throw;
         }
-
-        return new CreatedContract(contract.ContractId, contract.LatestVersion.ContractVersionId);
     }
 
     // Past the query filters: the same user may have used this upload in another workspace.
