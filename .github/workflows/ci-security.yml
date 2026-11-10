@@ -1,11 +1,28 @@
-name: ContractGuard checks
+name: "CI: Security & Schemas"
 
 on:
   push:
+    branches: [main]
+    paths:
+      - "security/**"
+      - "contracts/**"
+      - "worker/**"
+      - "scripts/**"
+      - ".github/workflows/ci-security.yml"
   pull_request:
+    paths:
+      - "security/**"
+      - "contracts/**"
+      - "worker/**"
+      - "scripts/**"
+      - ".github/workflows/ci-security.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-security-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   schema-and-python-check:
