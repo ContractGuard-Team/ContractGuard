@@ -76,3 +76,5 @@ CLAUDE.md
 
 # Công cụ thiết kế fk: file sinh ra, chỉ ở máy local
 .fk-skills/
+
+.venv-security/
