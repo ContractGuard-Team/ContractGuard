@@ -1,4 +1,4 @@
-name: backend
+name: "CI: Backend"
 
 # Runs only when the backend, the shared contracts or this file change (SD-18: one workflow per area).
 on:
@@ -7,19 +7,19 @@ on:
     paths:
       - "backend/**"
       - "contracts/**"
-      - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/ci-backend.yml"
   pull_request:
     paths:
       - "backend/**"
       - "contracts/**"
-      - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/ci-backend.yml"
 
 permissions:
   contents: read
 
 # A new push to the same branch cancels the run that is still going.
 concurrency:
-  group: backend-${{ github.ref }}
+  group: ci-backend-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
