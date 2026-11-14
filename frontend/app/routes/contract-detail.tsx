@@ -160,7 +160,7 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
   function deleteContract() {
     void remove.run(async () => {
       await apiFetch(`/contracts/${contract.contractId}`, { method: "DELETE" });
-      await navigate("/");
+      await navigate("/contracts");
     });
   }
 
@@ -341,7 +341,8 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
       <dialog
         ref={shareDialog}
         aria-labelledby="share-title"
-        onClose={() => setSharing(false)}
+        // React passes a nested dialog's close (the confirm inside) up to here: only react to our own.
+        onClose={(e) => e.target === e.currentTarget && setSharing(false)}
         className="m-auto max-h-[calc(100vh-2rem)] w-[min(36rem,calc(100vw-2rem))] rounded-md border border-rule bg-sheet p-6 text-ink backdrop:bg-ink/30"
       >
         <h2 id="share-title" className="mb-3 text-title">

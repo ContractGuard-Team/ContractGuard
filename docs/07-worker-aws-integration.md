@@ -1,0 +1,169 @@
+# ContractGuard: nối worker AI với S3 và SQS trên AWS
+
+| Mục | Giá trị |
+|---|---|
+| Ngày | 2026-11-13 |
+| Người viết | SE (soạn cùng Claude) |
+| Dành cho | Nhóm AI (worker Python, chạy Docker trên EC2) |
+| Trạng thái | Backend **đã chạy thật** với S3/SQS trên AWS: đã thử trọn luồng upload → job → kết quả → lưu 8 điều khoản. Phía ContractGuard đã mở bucket và queue cho `ContractRisk-EC2-Role` (§5). **Worker chưa chạy**: ngày 2026-11-14 chưa có lần nhận message nào, ping không có `pong` |
+| Đọc kèm | `docs/06-ai-integration-points.md` (điểm nối, khối `scoring`), `contracts/` (schema) |
+
+## 1. Tài nguyên dùng chung
+
+Tất cả nằm ở tài khoản AWS `699061129385`, region **`ap-southeast-1`**.
+
+| Thứ | Tên | Ai dùng |
+|---|---|---|
+| Bucket | `contractguard-dev-documents-699061129385` | Backend và worker |
+| Queue việc | `contractguard-dev-analysis-requests` (visibility 900 s, DLQ `-dlq`, nhận tối đa 3 lần) | Backend gửi, **worker đọc** |
+| Queue kết quả | `contractguard-dev-analysis-results` (visibility 60 s, DLQ `-dlq`, nhận tối đa 3 lần) | **Worker gửi**, backend đọc |
+
+URL của queue: `https://sqs.ap-southeast-1.amazonaws.com/699061129385/<tên queue>`.
+
+Bucket chặn public và mã hóa SSE-S3; queue mã hóa SSE-SQS. Worker không phải làm gì thêm cho phần mã hóa.
+
+## 2. Bố cục key trong S3 (SD-07)
+
+| Prefix | Nội dung | Ai ghi | Worker được |
+|---|---|---|---|
+| `quarantine/{user}/{upload}.{ext}` | File người dùng vừa upload, chưa kiểm tra | Trình duyệt (presigned POST) | Đọc, xóa |
+| `results/{job_id}/request.json` | Phiếu việc (`analysis-request.v1`) | Backend | Đọc |
+| `clean/{workspace}/{contract}/v{n}/source.{ext}` | Bản đã kiểm tra và làm sạch | Worker | Ghi |
+| `results/{job_id}/extraction.json` | Kết quả phân tích (`extraction.v2`) | Worker | Ghi |
+
+**Không tự ghép key.** Đọc mọi key từ `request.json`: `source_file_key`, `clean_file_key`, `result_key`. Backend là nơi duy nhất quyết định key, và schema trong `contracts/` có kiểm tra tiền tố (`^clean/`, `^results/`).
+
+## 3. Message
+
+Schema: `contracts/queue-messages.v1.schema.json`. Mọi message đều là JSON, có `"message_version": "1"`.
+
+**Backend → worker** (`analysis-requests`):
+```json
+{"message_version":"1","event_type":"analysis_requested","job_id":"<uuid>","request_key":"results/<uuid>/request.json"}
+{"message_version":"1","event_type":"ping","job_id":"<uuid>"}
+```
+
+**Worker → backend** (`analysis-results`):
+```json
+{"message_version":"1","event_type":"progress","job_id":"<uuid>","step":"splitting_clauses"}
+{"message_version":"1","event_type":"completed","job_id":"<uuid>","result_key":"results/<uuid>/extraction.json"}
+{"message_version":"1","event_type":"failed","job_id":"<uuid>","failure_reason":"...","error_code":"ERR-UPL-004"}
+{"message_version":"1","event_type":"pong","job_id":"<uuid>"}
+```
+
+Nội dung `request.json`: `contracts/analysis-request.v1.schema.json`. Kết quả: `contracts/extraction.v2.schema.json`, file mẫu hợp lệ ở `contracts/examples/extraction.v2.example.json`.
+
+## 4. Vòng xử lý của worker
+
+1. Long-poll `analysis-requests`: `WaitTimeSeconds=20`, `MaxNumberOfMessages=1`.
+2. Gặp `ping`: gửi `pong` cùng `job_id`, rồi xóa message.
+3. Gặp `analysis_requested`:
+   1. Đọc `request_key` để lấy `source_file_key`, `clean_file_key`, `result_key`, `output_language`, `context`, `limits`.
+   2. Gửi `progress` sau mỗi bước để người dùng thấy tiến độ.
+   3. Đọc file ở `source_file_key`, kiểm tra và làm sạch, ghi ra `clean_file_key`.
+   4. Ghi `extraction.v2` ra `result_key`, trong đó `document.clean_file_key` là key vừa ghi. Thiếu trường này thì trình xem vẫn mở file trong `quarantine/`.
+   5. Gửi `completed`.
+   6. Xóa file ở `quarantine/`.
+   7. **Cuối cùng** mới xóa message. Worker chết giữa chừng thì message hiện lại sau 900 s và job được làm lại.
+4. Lỗi không thể làm tiếp: gửi `failed` kèm `error_code`, rồi xóa message.
+5. Job dài hơn 15 phút: gọi `change_message_visibility` để gia hạn. Sau **20 phút** không có tin gì, backend tự đánh job là `failed`.
+6. SQS có thể giao trùng một message. Gặp lại job đã làm thì làm lại và ghi đè là được. Backend bỏ qua kết quả đến muộn hoặc bị trùng.
+
+Backend từ chối **cả kết quả** nếu `extraction.json` không qua schema, hoặc trích dẫn điều khoản không khớp (xem `docs/06` §3.1). Khi đó job thành `failed` và không có gì được lưu.
+
+## 5. Quyền truy cập (cross-account)
+
+Worker chạy trên EC2 ở **tài khoản AI `333596350642`**, dùng role **`ContractRisk-EC2-Role`** gắn vào máy. Bucket và queue nằm ở tài khoản ContractGuard `699061129385`. Worker **không dùng access key**: `boto3` tự lấy key tạm của role qua instance metadata (IMDS), rồi gọi thẳng sang bucket và queue của tài khoản kia.
+
+Truy cập chéo tài khoản chỉ thông khi **cả hai phía** cùng cho phép:
+
+| Phía | Việc | Trạng thái |
+|---|---|---|
+| ContractGuard `699061129385` | Bucket policy và 2 queue policy cho role `ContractRisk-EC2-Role` đúng các quyền ở §2 | ✅ SE đã làm, đã kiểm (2026-11-14) |
+| AI `333596350642` | Inline policy trên `ContractRisk-EC2-Role` (bên dưới) | ⏳ Nhóm AI làm |
+| AI `333596350642` | Gắn role vào EC2; IMDS hop limit 2 | ⏳ Nhóm AI làm |
+
+Inline policy cho `ContractRisk-EC2-Role` (IAM → Roles → `ContractRisk-EC2-Role` → Add permissions → Create inline policy → JSON):
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Sid": "ListBucket", "Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::contractguard-dev-documents-699061129385" },
+    { "Sid": "ReadInputs", "Effect": "Allow", "Action": "s3:GetObject", "Resource": ["arn:aws:s3:::contractguard-dev-documents-699061129385/quarantine/*", "arn:aws:s3:::contractguard-dev-documents-699061129385/results/*/request.json"] },
+    { "Sid": "WriteOutputs", "Effect": "Allow", "Action": "s3:PutObject", "Resource": ["arn:aws:s3:::contractguard-dev-documents-699061129385/clean/*", "arn:aws:s3:::contractguard-dev-documents-699061129385/results/*/extraction.json"] },
+    { "Sid": "RemoveQuarantined", "Effect": "Allow", "Action": "s3:DeleteObject", "Resource": "arn:aws:s3:::contractguard-dev-documents-699061129385/quarantine/*" },
+    { "Sid": "ConsumeRequests", "Effect": "Allow", "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-requests" },
+    { "Sid": "PublishResults", "Effect": "Allow", "Action": ["sqs:SendMessage", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-results" }
+  ]
+}
+```
+Quyền Bedrock nằm trong tài khoản AI, nhóm AI tự quản.
+
+Bucket chặn mọi truy cập không dùng HTTPS (`aws:SecureTransport`). `boto3` mặc định dùng HTTPS nên không phải làm gì.
+
+Khi chạy worker trong Docker trên EC2:
+- Đặt IMDSv2 `http-tokens required` và **`http-put-response-hop-limit 2`**. Với hop limit 1, container không lấy được key tạm: `boto3` báo `NoCredentialsError`, trong khi chạy `aws` thẳng trên máy thì vẫn được.
+  ```bash
+  aws ec2 modify-instance-metadata-options --instance-id <i-...> --http-endpoint enabled --http-tokens required --http-put-response-hop-limit 2
+  ```
+- Security group không cần mở cổng vào nào, vì worker chỉ gọi ra ngoài. Chỉ cần máy có đường ra internet.
+- Không đặt `AWS_ACCESS_KEY_ID`, không mount `~/.aws/credentials`, không đưa key vào image.
+
+
+## 6. Mẫu boto3
+
+```python
+import json, boto3
+
+REGION = "ap-southeast-1"
+BUCKET = "contractguard-dev-documents-699061129385"
+QURL = "https://sqs.ap-southeast-1.amazonaws.com/699061129385/"
+
+# Session mặc định: quyền của role ContractRisk-EC2-Role trên EC2, không cần key hay profile.
+aws = boto3.Session(region_name=REGION)
+sqs, s3 = aws.client("sqs"), aws.client("s3")
+
+def send(body: dict) -> None:
+    sqs.send_message(QueueUrl=QURL + "contractguard-dev-analysis-results",
+                     MessageBody=json.dumps({"message_version": "1", **body}))
+
+while True:
+    resp = sqs.receive_message(QueueUrl=QURL + "contractguard-dev-analysis-requests",
+                               WaitTimeSeconds=20, MaxNumberOfMessages=1)
+    for m in resp.get("Messages", []):
+        msg = json.loads(m["Body"])
+        if msg["event_type"] == "ping":
+            send({"event_type": "pong", "job_id": msg["job_id"]})
+        elif msg["event_type"] == "analysis_requested":
+            req = json.loads(s3.get_object(Bucket=BUCKET, Key=msg["request_key"])["Body"].read())
+            ...  # §4 bước 3.2 đến 3.6
+        sqs.delete_message(QueueUrl=QURL + "contractguard-dev-analysis-requests", ReceiptHandle=m["ReceiptHandle"])
+```
+
+Dùng URL đầy đủ của queue như trên. Gọi `get_queue_url` theo tên chỉ tìm trong tài khoản của session đang dùng.
+
+## 7. Phát triển trên laptop: LocalStack, không tốn tiền
+
+Repo đã có LocalStack với cùng bố cục, chỉ khác tên: bucket `contractguard-local`, queue `analysis-requests` và `analysis-results`.
+
+```bash
+docker compose up -d                                  # Postgres, LocalStack (:4566), Mailpit
+# boto3: endpoint_url="http://localhost:4566", aws_access_key_id="test", aws_secret_access_key="test"
+```
+Cách chạy backend, upload và lấy `job_id`: `docs/devlog` không có trên GitHub, nên hỏi SE hoặc xem `backend/README.md`. `scripts/dev/send-analysis-result.*` là bản giả làm worker; đọc script đó là cách nhanh nhất để thấy đúng thứ tự message.
+
+## 8. Thử bắt tay
+
+1. Worker chạy, đọc `analysis-requests`.
+2. SE gọi `POST http://localhost:5080/dev/ping-worker` (chỉ có ở môi trường Development).
+3. Log backend có dòng `Worker answered ping for job ...` nghĩa là hai bên đã thông. Sau đó thử một job thật bằng `contracts/examples/sample-contract.pdf`.
+
+Không upload hợp đồng thật lên môi trường dev.
+
+## 9. Câu hỏi chờ nhóm AI
+
+| # | Câu hỏi |
+|---|---|
+| 1 | ~~EC2 chạy ở tài khoản nào?~~ Đã rõ: tài khoản AI `333596350642`, role `ContractRisk-EC2-Role` |
+| 2 | Bedrock: dùng trong tài khoản AI. Xác nhận lại model và chi phí khi eval xong |
+| 3 | Nhóm AI có cần quyền đọc bucket, queue và log để gỡ lỗi không? Policy `contractguard-dev-ai-developer-access` đã có nhưng chưa gắn cho ai, và cũng phải sửa prefix theo §2 |

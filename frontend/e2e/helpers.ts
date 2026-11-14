@@ -71,7 +71,7 @@ export async function logOut(page: Page) {
 
 // Upload the sample PDF from the library page and open it. Returns the contract id.
 export async function uploadSample(page: Page): Promise<string> {
-  await page.goto("/");
+  await page.goto("/contracts");
   await page.locator('input[type="file"]').setInputFiles(sampleContract);
   await expect(page.getByText("Đã tải lên sample-contract.pdf.")).toBeVisible();
   await page.getByRole("link", { name: "sample-contract" }).first().click();

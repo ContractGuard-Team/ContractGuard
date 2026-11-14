@@ -48,6 +48,12 @@ build/
 **/obj/
 *.suo
 *.log
+
+# Temporary OpenDesign test & cleanup
+.tmp-open-design/
+.tmp-ui-ux-pro-max/
+.tmp-taste-skill/
+cleanup-open-design.ps1
 *.tfstate
 *.tfstate.*
 security/out/
@@ -73,6 +79,7 @@ node_modules/
 CLAUDE.md
 /package.json
 /package-lock.json
+.handoff
 
 # Công cụ thiết kế fk: file sinh ra, chỉ ở máy local
 .fk-skills/

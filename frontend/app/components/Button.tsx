@@ -16,16 +16,21 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 // DESIGN §5 Buttons: 40px high (36px small), 6px radius, 14px semibold, no shadow.
+// Exported so a <Link> that is the main action of a page looks like a button without nesting one in an <a>.
+export function buttonClass(variant: Variant = "primary", size: "md" | "sm" = "md") {
+  const sizing = size === "sm" ? "h-9 text-label font-semibold" : "h-10 text-button";
+  return `inline-flex items-center justify-center gap-2 rounded-md transition-colors duration-150 ease-out-quart disabled:cursor-not-allowed disabled:opacity-50 ${sizing} ${variants[variant]}`;
+}
+
 // While loading the button keeps its size and shows a small spinner next to the label.
 export function Button({ variant = "primary", size = "md", loading = false, disabled, className = "", children, ...rest }: ButtonProps) {
-  const sizing = size === "sm" ? "h-9 text-label font-semibold" : "h-10 text-button";
   return (
     <button
       type="button"
       {...rest}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded-md transition-colors duration-150 ease-out-quart disabled:cursor-not-allowed disabled:opacity-50 ${sizing} ${variants[variant]} ${className}`}
+      className={`${buttonClass(variant, size)} ${className}`}
     >
       {loading && <Spinner />}
       {children}

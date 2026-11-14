@@ -1,10 +1,11 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 
 import { apiFetch, apiPost, apiPut, type Schemas } from "~/lib/api";
 import { errorMessage } from "~/lib/errors";
 import { useAction } from "~/lib/useAction";
 
 import { Button } from "./Button";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { TextField } from "./Field";
 import { Notice } from "./Notice";
 
@@ -26,6 +27,8 @@ export function ShareDialog({
   const [members, setMembers] = useState<Schemas["MemberItem"][]>([]);
   const [email, setEmail] = useState("");
   const [newOwner, setNewOwner] = useState("");
+  const [confirmWhole, setConfirmWhole] = useState(false);
+  const [confirmTransfer, setConfirmTransfer] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const action = useAction();
 
@@ -71,6 +74,9 @@ export function ShareDialog({
   }
 
   const candidates = members.filter((m) => m.userId !== access?.owner.userId);
+  // Organization members who do not have access yet, offered when the email box is clicked.
+  const suggestions = candidates.filter((m) => !access?.shares.some((s) => s.userId === m.userId));
+  const suggestionsId = useId();
 
   return (
     <div className="flex flex-col gap-4">
@@ -85,15 +91,26 @@ export function ShareDialog({
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            list={organizationId ? suggestionsId : undefined}
+            autoComplete="off"
             hint={organizationId ? "Chỉ chia sẻ được cho thành viên của tổ chức." : "Người nhận cần có tài khoản ContractGuard."}
           />
+          {organizationId && (
+            <datalist id={suggestionsId}>
+              {suggestions.map((m) => (
+                <option key={m.userId} value={m.email}>
+                  {m.displayName}
+                </option>
+              ))}
+            </datalist>
+          )}
         </div>
         <Button type="submit" loading={action.pending} className="mb-6">
           Chia sẻ
         </Button>
       </form>
       {organizationId && (
-        <Button variant="secondary" size="sm" className="self-start" disabled={action.pending} onClick={() => run(() => apiPost(`/contracts/${contractId}/shares`, { wholeOrganization: true }), "Đã chia sẻ cho mọi thành viên hiện có của tổ chức.")}>
+        <Button variant="secondary" size="sm" className="self-start" disabled={action.pending} onClick={() => setConfirmWhole(true)}>
           Chia sẻ cho toàn tổ chức
         </Button>
       )}
@@ -115,9 +132,12 @@ export function ShareDialog({
                 <span>
                   {share.displayName} <span className="text-caption text-ink-muted">{share.email}</span>
                 </span>
-                <Button variant="danger" size="sm" disabled={action.pending} onClick={() => run(() => apiFetch(`/contracts/${contractId}/shares/${share.userId}`, { method: "DELETE" }), "Đã thu hồi quyền.")}>
-                  Thu hồi
-                </Button>
+                <span className="flex items-center gap-3">
+                  <span className="text-label text-ink-secondary">Member</span>
+                  <Button variant="danger" size="sm" disabled={action.pending} onClick={() => run(() => apiFetch(`/contracts/${contractId}/shares/${share.userId}`, { method: "DELETE" }), "Đã thu hồi quyền.")}>
+                    Thu hồi
+                  </Button>
+                </span>
               </li>
             ))}
           </ul>
@@ -126,12 +146,12 @@ export function ShareDialog({
 
       {organizationId && candidates.length > 0 && (
         <div className="flex items-end gap-2 border-t border-rule pt-4">
-          <label className="flex flex-1 flex-col gap-1 text-label">
-            Chuyển quyền Owner cho
+          <label className="flex min-w-0 flex-1 flex-col gap-1 text-label">
+            Chuyển quyền Owner hợp đồng cho
             <select
               value={newOwner}
               onChange={(e) => setNewOwner(e.target.value)}
-              className="h-10 rounded-md border border-rule-strong bg-sheet px-2 text-body focus:border-review-ink focus:ring-3 focus:ring-review-ink/15 focus:outline-none"
+              className="h-10 w-full min-w-0 truncate rounded-md border border-rule-strong bg-sheet px-2 text-body focus:border-review-ink focus:ring-3 focus:ring-review-ink/15 focus:outline-none"
             >
               <option value="">Chọn thành viên</option>
               {candidates.map((m) => (
@@ -141,7 +161,7 @@ export function ShareDialog({
               ))}
             </select>
           </label>
-          <Button variant="secondary" disabled={!newOwner || action.pending} onClick={() => run(() => apiPut(`/contracts/${contractId}/owner`, { userId: newOwner }), "Đã chuyển quyền Owner. Bạn vẫn có quyền Member.")}>
+          <Button variant="secondary" disabled={!newOwner || action.pending} onClick={() => setConfirmTransfer(true)}>
             Chuyển
           </Button>
         </div>
@@ -150,6 +170,38 @@ export function ShareDialog({
       <Button variant="ghost" className="self-end" onClick={onClose}>
         Đóng
       </Button>
+
+      <ConfirmDialog
+        open={confirmWhole}
+        title="Chia sẻ cho toàn tổ chức?"
+        confirmLabel="Chia sẻ cho tất cả"
+        onCancel={() => setConfirmWhole(false)}
+        onConfirm={() => {
+          setConfirmWhole(false);
+          run(() => apiPost(`/contracts/${contractId}/shares`, { wholeOrganization: true }), "Đã chia sẻ cho mọi thành viên hiện có của tổ chức.");
+        }}
+      >
+        Tất cả {candidates.length} thành viên còn lại của tổ chức sẽ xem được hợp đồng này và kết quả phân tích.
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={confirmTransfer}
+        title={`Chuyển quyền Owner cho ${candidates.find((m) => m.userId === newOwner)?.displayName ?? ""}?`}
+        confirmLabel="Chuyển quyền"
+        danger
+        onCancel={() => setConfirmTransfer(false)}
+        onConfirm={() => {
+          setConfirmTransfer(false);
+          // The caller is no longer the owner: the share list is not theirs to manage, so close and reload the page.
+          void action.run(async () => {
+            await apiPut(`/contracts/${contractId}/owner`, { userId: newOwner });
+            onChanged();
+            onClose();
+          });
+        }}
+      >
+        Người này sẽ trở thành Owner của hợp đồng. Bạn vẫn xem và làm việc trên hợp đồng với quyền Member, nhưng không còn quản lý chia sẻ, trừ khi bạn là Owner tổ chức.
+      </ConfirmDialog>
     </div>
   );
 }

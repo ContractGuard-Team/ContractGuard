@@ -31,7 +31,7 @@ export function setWorkspace(organizationId: string | null) {
   }
 }
 
-// Only same-app paths, so ?next= cannot send the user to another site after login.
+// Only same-app paths, so ?next= cannot send the user to another site after login. Default: the library.
 export function safeNext(next: string | null): string {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/contracts";
 }

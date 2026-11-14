@@ -40,7 +40,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     }
 
     setWorkspace(organizationId);
-    await navigate("/");
+    await navigate("/contracts");
     await revalidate();
   }
 

@@ -166,7 +166,7 @@ export async function apiLoad<T>(path: string): Promise<T> {
     // Removed from the organization since it was chosen (SEC-AUTHZ-008): back to the personal workspace.
     if (error instanceof ApiError && error.code === "ERR-SEC-001" && currentWorkspace() !== null) {
       setWorkspace(null);
-      throw redirect("/");
+      throw redirect("/contracts");
     }
 
     throw error;

@@ -43,7 +43,7 @@ export default function Invitation({ loaderData, params }: Route.ComponentProps)
     void accept.run(async () => {
       const joined = await apiPost<{ organizationId: string }>(`${here}/accept`);
       setWorkspace(joined.organizationId);
-      await navigate("/");
+      await navigate("/contracts");
     });
   }
 

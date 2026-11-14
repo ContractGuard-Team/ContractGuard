@@ -44,3 +44,21 @@ Script kiểm tra (`validate.py`, `check_spec.py`, `regen.py`...) chưa vào rep
 - `ContractGuard-Team/ContractGuard`; làm việc qua nhánh và pull request, không đẩy thẳng `main` (xem `CONTRIBUTING.md`).
 - Thư mục theo nhóm: `backend/`, `frontend/` (Dev/SE), `worker/` (AI), `security/` (IA), `contracts/` (chung, đổi schema cần cả ba bên duyệt).
 - Không commit `.env`, khóa, hợp đồng thật.
+
+## Dispatch (Claude Code = orchestrator)
+Call other agent CLIs directly via Bash (use run_in_background to run several in parallel):
+`uv run .claude/delegate.py <agy|codex|kiro|copilot> "<brief>" [--write] [--model <id>]`
+It prints only the answer and is read-only unless `--write`. Use it instead of wrapper subagents (~11k tokens of overhead each).
+
+| Agent | CLI | Good for |
+|---|---|---|
+| `agy` | `agy -p` | architecture review, planning. Name the exact files in the brief: it cannot explore directories headless (shell/MCP calls are denied). On Gemini quota errors the script retries once on `claude-sonnet-4-6` |
+| `codex` | `codex exec` | diff review, code |
+| `kiro` | `kiro-cli chat --no-interactive` | codebase reading, specs, long tasks |
+| `copilot` | `copilot -p -s` | quick lookups, explanations, small tests (`--write` unsupported) |
+
+Rules:
+- Small tasks: do them directly. Delegate heavy read/loop work or when an independent opinion is wanted.
+- Brief = goal, relevant files, definition of done, "reply in <=15 lines".
+- Only one worker may write files at a time, only if the brief says so; then check `git diff`.
+- On quota/login error, report it and switch to another worker.

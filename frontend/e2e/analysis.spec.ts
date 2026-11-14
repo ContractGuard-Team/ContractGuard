@@ -86,7 +86,7 @@ test("a contract goes from upload to report, chat, new version and deletion", as
   await context.getByRole("button", { name: "Đóng" }).click(); // V2 still asks for its context on arrival.
   await page.getByRole("button", { name: "Xóa vĩnh viễn hợp đồng này" }).click();
   await page.getByRole("dialog", { name: "Xóa vĩnh viễn hợp đồng?" }).getByRole("button", { name: "Xóa vĩnh viễn" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/contracts$/);
   await expect(page.getByText("Chưa có hợp đồng nào.", { exact: false })).toBeVisible();
   const response = await page.request.get(`/api/v1/contracts/${contractId}`);
   expect(response.status()).toBe(404);

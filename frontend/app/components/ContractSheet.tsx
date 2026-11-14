@@ -6,7 +6,7 @@ import { clauseTypeLabels, severityOrder } from "~/lib/labels";
 import { FindingDetail } from "./FindingDetail";
 import { severityLabels, SeverityShape, SeverityTag } from "./SeverityTag";
 
-const wash: Record<Schemas["Severity"], string> = {
+export const severityWash: Record<Schemas["Severity"], string> = {
   critical: "bg-severity-critical-wash",
   high: "bg-severity-high-wash",
   medium: "bg-severity-medium-wash",
@@ -85,7 +85,7 @@ export function ContractSheet({
           const worst = notes[0]?.severity;
           const focused = clause.clauseKey === focusedClauseKey;
           const selected = notes.find((n) => n.findingId === selectedFindingId);
-          const tint = focused ? "bg-review-ink-wash" : worst ? wash[worst] : "";
+          const tint = focused ? "bg-review-ink-wash" : worst ? severityWash[worst] : "";
 
           return (
             <Fragment key={clause.clauseId}>
@@ -144,13 +144,14 @@ export function ContractSheet({
 }
 
 // DESIGN §5 Margin Note: severity shape + one-line summary, tied to its clause by a dashed rule.
-function NoteButton({
+// Also used by the sample sheet of the landing page, hence only the three fields it shows.
+export function NoteButton({
   finding,
   selected,
   onSelect,
   margin = false,
 }: {
-  finding: Schemas["FindingItem"];
+  finding: Pick<Schemas["FindingItem"], "findingId" | "severity" | "title">;
   selected: boolean;
   onSelect: (findingId: string | null) => void;
   margin?: boolean;

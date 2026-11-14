@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { redirect, useRevalidator } from "react-router";
 
 import { Button } from "~/components/Button";
+import { ConfirmDialog } from "~/components/ConfirmDialog";
 import { TextField } from "~/components/Field";
 import { Notice } from "~/components/Notice";
 import { apiFetch, apiLoad, apiPost, apiPut, type Schemas } from "~/lib/api";
@@ -19,7 +20,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
 export async function clientLoader() {
   const organizationId = currentWorkspace();
   if (!organizationId) {
-    throw redirect("/");
+    throw redirect("/contracts");
   }
 
   return apiLoad<Schemas["OrganizationDetail"]>(`/organizations/${organizationId}`);
@@ -36,6 +37,7 @@ export default function OrganizationPage({ loaderData: organization }: Route.Com
   const [email, setEmail] = useState("");
   const [name, setName] = useState(organization.organizationName);
   const [message, setMessage] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<Schemas["MemberItem"] | null>(null);
   const action = useAction();
   const base = `/organizations/${organization.organizationId}`;
 
@@ -120,34 +122,27 @@ export default function OrganizationPage({ loaderData: organization }: Route.Com
                   {member.displayName}
                   <span className="block text-caption text-ink-secondary">{member.email}</span>
                 </td>
-                <td className="px-4 py-3">
-                  {isOwner ? (
-                    <select
-                      aria-label={`Vai trò của ${member.displayName}`}
-                      value={member.role ?? "member"}
-                      disabled={action.pending}
-                      onChange={(e) => run(() => apiPut(`${base}/members/${member.userId}/role`, { role: e.target.value }), "Đã đổi vai trò.")}
-                      className="h-9 rounded-md border border-rule-strong bg-sheet px-2 text-body focus:border-review-ink focus:ring-3 focus:ring-review-ink/15 focus:outline-none"
-                    >
-                      <option value="owner">Owner</option>
-                      <option value="member">Member</option>
-                    </select>
-                  ) : (
-                    roleLabels[member.role ?? "member"]
-                  )}
-                </td>
+                <td className="px-4 py-3">{roleLabels[member.role ?? "member"]}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-ink-secondary">{dateFormat.format(new Date(member.joinedAt))}</td>
                 {isOwner && (
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mr-2"
+                      disabled={action.pending}
+                      onClick={() => {
+                        const role = member.role === "owner" ? "member" : "owner";
+                        run(() => apiPut(`${base}/members/${member.userId}/role`, { role }), role === "owner" ? "Đã cấp quyền Owner." : "Đã thu hồi quyền Owner.");
+                      }}
+                    >
+                      {member.role === "owner" ? "Thu hồi Owner" : "Cấp Owner"}
+                    </Button>
                     <Button
                       variant="danger"
                       size="sm"
                       disabled={action.pending}
-                      onClick={() => {
-                        if (window.confirm(`Xóa ${member.displayName} khỏi tổ chức? Hợp đồng người này sở hữu sẽ chuyển cho bạn.`)) {
-                          run(() => apiFetch(`${base}/members/${member.userId}`, { method: "DELETE" }), "Đã xóa thành viên.");
-                        }
-                      }}
+                      onClick={() => setRemoving(member)}
                     >
                       Xóa
                     </Button>
@@ -177,6 +172,21 @@ export default function OrganizationPage({ loaderData: organization }: Route.Com
           </ul>
         </div>
       )}
+
+      <ConfirmDialog
+        open={removing !== null}
+        title={`Xóa ${removing?.displayName ?? ""} khỏi tổ chức?`}
+        confirmLabel="Xóa thành viên"
+        danger
+        onCancel={() => setRemoving(null)}
+        onConfirm={() => {
+          const member = removing!;
+          setRemoving(null);
+          run(() => apiFetch(`${base}/members/${member.userId}`, { method: "DELETE" }), "Đã xóa thành viên.");
+        }}
+      >
+        Người này mất quyền truy cập mọi dữ liệu của tổ chức. Hợp đồng người này sở hữu sẽ chuyển cho bạn.
+      </ConfirmDialog>
     </section>
   );
 }

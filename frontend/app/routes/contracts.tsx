@@ -117,7 +117,7 @@ export default function Contracts({ loaderData: library }: Route.ComponentProps)
           {filtered ? (
             <>
               Không có hợp đồng nào khớp điều kiện tìm.{" "}
-              <Link to="/" className="text-review-ink underline underline-offset-2">
+              <Link to="/contracts" className="text-review-ink underline underline-offset-2">
                 Bỏ mọi bộ lọc
               </Link>
             </>

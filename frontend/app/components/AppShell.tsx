@@ -10,7 +10,7 @@ interface NavItem {
   icon: ReactNode;
 }
 
-const libraryItem: NavItem = { to: "/", label: "Thư viện hợp đồng", icon: <LibraryIcon /> };
+const libraryItem: NavItem = { to: "/contracts", label: "Thư viện hợp đồng", icon: <LibraryIcon /> };
 const organizationItem: NavItem = { to: "/organization", label: "Thành viên tổ chức", icon: <PeopleIcon /> };
 
 export interface WorkspaceOption {

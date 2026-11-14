@@ -18,6 +18,8 @@ Hiện có hai thứ giả lập để test, cả hai đều **không phải AI*
 
 ## 1. Việc nhóm AI cần làm để nối vào
 
+Tên bucket, queue, quyền IAM trên AWS thật và cách chạy worker trên EC2: `docs/07-worker-aws-integration.md`.
+
 | # | Việc | Nối vào đâu | Backend đã có |
 |---|---|---|---|
 | 1 | Worker đọc `analysis-requests`, ghi `extraction.v2` lên S3, gửi `progress`/`completed`/`failed` lên `analysis-results` | `contracts/queue-messages.v1.schema.json`, `contracts/analysis-request.v1.schema.json`, `contracts/extraction.v2.schema.json` | Gửi job (`AnalysisStarter`), nhận và kiểm tra (`AnalysisResultHandler`, `ExtractionConsistencyValidator`), lưu (`AnalysisResultProcessor`) |
