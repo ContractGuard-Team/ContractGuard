@@ -10,7 +10,13 @@ interface NavItem {
   icon: ReactNode;
 }
 
-const navItems: NavItem[] = [{ to: "/", label: "Thư viện hợp đồng", icon: <LibraryIcon /> }];
+const libraryItem: NavItem = { to: "/contracts", label: "Thư viện hợp đồng", icon: <LibraryIcon /> };
+const organizationItem: NavItem = { to: "/organization", label: "Thành viên tổ chức", icon: <PeopleIcon /> };
+
+export interface WorkspaceOption {
+  organizationId: string | null;
+  label: string;
+}
 
 // DESIGN §5 Navigation: 232px rail on the left, primary "upload" button under the logo, 40px nav items,
 // a skip link for keyboard users, main content on the desk background. The rail shrinks to 56px of icons
@@ -20,6 +26,9 @@ export function AppShell({
   compact,
   name,
   email,
+  workspaces,
+  workspace,
+  onSwitchWorkspace,
   onUpload,
   onLogout,
 }: {
@@ -27,9 +36,13 @@ export function AppShell({
   compact: boolean;
   name: string;
   email: string;
+  workspaces: WorkspaceOption[];
+  workspace: string | null;
+  onSwitchWorkspace: (organizationId: string | null | "new") => void;
   onUpload: () => void;
   onLogout: () => void;
 }) {
+  const navItems = workspace ? [libraryItem, organizationItem] : [libraryItem];
   // Screen readers still get the words the icons replace.
   const labelClass = compact ? "sr-only" : "max-lg:sr-only";
   const iconOnlyClass = compact ? "justify-center" : "max-lg:justify-center";
@@ -49,6 +62,26 @@ export function AppShell({
       >
         <div className={`flex h-10 items-center px-2 ${iconOnlyClass}`}>
           <Logo textClassName={labelClass} />
+        </div>
+
+        {/* FR-ORG-014. Hidden on the narrow rail: switching from inside a contract makes no sense. */}
+        <div className={compact ? "hidden" : "max-lg:hidden"}>
+          <label htmlFor="workspace-switcher" className="mb-1 block px-1 text-caption text-ink-secondary">
+            Không gian làm việc
+          </label>
+          <select
+            id="workspace-switcher"
+            value={workspace ?? ""}
+            onChange={(e) => onSwitchWorkspace(e.target.value === "" ? null : e.target.value)}
+            className="h-10 w-full rounded-md border border-rule-strong bg-sheet px-2 text-label font-semibold text-ink focus:border-review-ink focus:ring-3 focus:ring-review-ink/15 focus:outline-none"
+          >
+            {workspaces.map((option) => (
+              <option key={option.organizationId ?? "personal"} value={option.organizationId ?? ""}>
+                {option.label}
+              </option>
+            ))}
+            <option value="new">+ Tạo tổ chức mới</option>
+          </select>
         </div>
 
         <button
@@ -118,6 +151,15 @@ function LibraryIcon() {
   return (
     <svg className="size-4 shrink-0" viewBox="0 0 16 16" aria-hidden="true">
       <path d="M3 2.5h7l3 3v8H3z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function PeopleIcon() {
+  return (
+    <svg className="size-4 shrink-0" viewBox="0 0 16 16" aria-hidden="true">
+      <circle cx="6" cy="5.5" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 3.5a2.5 2.5 0 0 1 0 5M12.5 9.8c1 .6 1.8 1.8 2 3.7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }

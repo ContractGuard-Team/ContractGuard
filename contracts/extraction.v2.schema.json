@@ -170,11 +170,41 @@
       }
     },
     "overall_recommendation": { "type": ["string", "null"], "maxLength": 4000 },
+    "scoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_version", "overall_score", "risk_level", "domains"],
+      "description": "PROPOSED by SE 2026-11-10, pending AI + IA review (docs/06-ai-integration-points.md). F-RISK-003: computed by worker code, not by the model (docs/05 §4). Optional until agreed.",
+      "properties": {
+        "rule_version": { "$ref": "#/$defs/nonEmptyString", "description": "Version of the scoring config used (FR-ANA-016)." },
+        "overall_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "risk_level": { "$ref": "#/$defs/riskLevel" },
+        "domains": {
+          "type": "array",
+          "description": "Exactly the 7 domains, each once. N/A domains have no score (BR-RISK-003).",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["domain", "applicable"],
+            "properties": {
+              "domain": { "$ref": "#/$defs/domain" },
+              "applicable": { "type": "boolean" },
+              "score": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "risk_level": { "anyOf": [{ "$ref": "#/$defs/riskLevel" }, { "type": "null" }] },
+              "na_reason": { "type": ["string", "null"], "maxLength": 1000, "description": "Required when applicable is false (FR-VIEW-003)." },
+              "re_enabled": { "type": "boolean", "description": "BR-RISK-004: N/A by context but turned back on because the contract has clauses of this domain." }
+            }
+          }
+        }
+      }
+    },
     "trace": {
       "type": "object",
       "additionalProperties": false,
       "required": ["model_version", "prompt_version"],
-      "description": "FR-ANA-016. rule_version is added by the backend.",
+      "description": "FR-ANA-016. rule_version travels in scoring.rule_version.",
       "properties": {
         "model_version": { "$ref": "#/$defs/nonEmptyString" },
         "prompt_version": { "$ref": "#/$defs/nonEmptyString" },
@@ -207,6 +237,7 @@
   "$defs": {
     "nonEmptyString": { "type": "string", "minLength": 1 },
     "domain": { "enum": ["legal", "financial", "operational", "compliance", "cybersecurity", "data_privacy", "third_party"] },
+    "riskLevel": { "enum": ["low", "medium", "high", "critical"] },
     "checkCode": { "type": "string", "pattern": "^(CY-(0[1-9]|1[0-2])|PR-0[1-5]|TP-0[1-3])$" },
     "region": {
       "type": "object",

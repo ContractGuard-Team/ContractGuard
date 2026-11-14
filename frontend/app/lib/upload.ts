@@ -21,6 +21,17 @@ export function checkFile(file: File): string | null {
 // SD-08: ask the API for a signed form, send the file straight to storage, then let the API create
 // the contract from what actually arrived.
 export async function uploadContract(file: File): Promise<Schemas["CreatedContract"]> {
+  const uploadId = await uploadToStorage(file);
+  return apiPost<Schemas["CreatedContract"]>("/contracts", { uploadId, fileName: file.name });
+}
+
+// F-CTR-005: the same upload, attached to an existing contract as its next version.
+export async function uploadVersion(contractId: string, file: File): Promise<Schemas["CreatedContract"]> {
+  const uploadId = await uploadToStorage(file);
+  return apiPost<Schemas["CreatedContract"]>(`/contracts/${contractId}/versions`, { uploadId, fileName: file.name });
+}
+
+async function uploadToStorage(file: File): Promise<string> {
   const ticket = await apiPost<Schemas["UploadTicket"]>("/uploads", { fileName: file.name, sizeBytes: file.size });
 
   const form = new FormData();
@@ -42,5 +53,5 @@ export async function uploadContract(file: File): Promise<Schemas["CreatedContra
     throw new UploadFailedError();
   }
 
-  return apiPost<Schemas["CreatedContract"]>("/contracts", { uploadId: ticket.uploadId, fileName: file.name });
+  return ticket.uploadId;
 }

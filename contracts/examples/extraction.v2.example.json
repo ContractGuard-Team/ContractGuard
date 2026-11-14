@@ -193,6 +193,20 @@
   },
   "injection_warnings": [],
   "overall_recommendation": "Chưa nên ký khi chưa đàm phán lại trách nhiệm cho sự cố bảo mật và nghĩa vụ xóa dữ liệu khi chấm dứt.",
+  "scoring": {
+    "rule_version": "example-rules-0",
+    "overall_score": 72,
+    "risk_level": "high",
+    "domains": [
+      { "domain": "legal", "applicable": true, "score": 20, "risk_level": "low", "na_reason": null },
+      { "domain": "financial", "applicable": true, "score": 10, "risk_level": "low", "na_reason": null },
+      { "domain": "operational", "applicable": true, "score": 15, "risk_level": "low", "na_reason": null },
+      { "domain": "compliance", "applicable": false, "score": null, "risk_level": null, "na_reason": "Ngữ cảnh không có ngành được quản lý đặc thù." },
+      { "domain": "cybersecurity", "applicable": true, "score": 88, "risk_level": "critical", "na_reason": null },
+      { "domain": "data_privacy", "applicable": true, "score": 62, "risk_level": "high", "na_reason": null },
+      { "domain": "third_party", "applicable": true, "score": 40, "risk_level": "medium", "na_reason": null }
+    ]
+  },
   "trace": {
     "model_version": "example-model",
     "prompt_version": "example-prompts-0",

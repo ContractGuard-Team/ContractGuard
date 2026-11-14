@@ -1,3 +1,4 @@
+using ContractGuard.Domain.Analysis;
 using ContractGuard.Domain.Common;
 using ContractGuard.Domain.Contracts;
 
@@ -44,3 +45,25 @@ internal sealed record ContextRequest(
         return new ContextDetails(OwnParty!.Value, ContractType!.Value, HasPersonalData!.Value, CounterpartyName, CounterpartyOffering, ServiceCriticality);
     }
 }
+
+// FR-CTR-007: the whole set of metadata fields; a null field is cleared.
+internal sealed record MetadataRequest(
+    List<string>? Parties = null,
+    ContractType? ContractType = null,
+    decimal? ContractValue = null,
+    string? Currency = null,
+    DateOnly? EffectiveDate = null,
+    DateOnly? ExpiryDate = null,
+    string? GoverningLaw = null)
+{
+    public ContractMetadata ToMetadata() =>
+        new(Parties ?? [], ContractType, ContractValue, string.IsNullOrWhiteSpace(Currency) ? null : Currency.Trim().ToUpperInvariant(), EffectiveDate, ExpiryDate, GoverningLaw);
+}
+
+internal sealed record ApprovalStatusRequest(ApprovalStatus Status);
+
+internal sealed record ShareRequest(string? Email = null, bool WholeOrganization = false);
+
+internal sealed record TransferOwnerRequest(Guid UserId);
+
+internal sealed record FindingHandlingRequest(HandlingStatus Status, string? Note = null);

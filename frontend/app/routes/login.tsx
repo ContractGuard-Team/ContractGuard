@@ -8,6 +8,7 @@ import { Notice } from "~/components/Notice";
 import { ApiError, apiPost } from "~/lib/api";
 import { errorMessage } from "~/lib/errors";
 import { useAction } from "~/lib/useAction";
+import { safeNext } from "~/lib/workspace";
 
 import type { Route } from "./+types/login";
 
@@ -38,7 +39,7 @@ export default function Login() {
     setResent(false);
     void login.run(async () => {
       await apiPost("/auth/login", { email, password });
-      await navigate("/");
+      await navigate(safeNext(params.get("next")));
     });
   }
 

@@ -9,6 +9,7 @@ public sealed class AnalysisRun
     public const int VersionTextMaxLength = 100;
 
     private readonly List<Clause> _clauses = [];
+    private readonly List<Finding> _findings = [];
 
     private AnalysisRun()
     {
@@ -33,6 +34,19 @@ public sealed class AnalysisRun
     public DateTimeOffset LastEventAt { get; private set; }
     public DateTimeOffset? FinishedAt { get; private set; }
     public IReadOnlyCollection<Clause> Clauses => _clauses;
+    public IReadOnlyCollection<Finding> Findings => _findings;
+
+    // Exactly 20 once completed (REL-DATA-017). Stored as jsonb: always read and written whole.
+    public List<CheckResult> Checks { get; private set; } = [];
+
+    // Null when the worker sent no scoring block yet (docs/06-ai-integration-points.md).
+    public RiskScore? Score { get; private set; }
+
+    // Copies of Score's overall values as plain columns, so the library can filter and sort by them (FR-CTR-010, 011).
+    public int? OverallScore { get; private set; }
+    public RiskLevel? OverallRiskLevel { get; private set; }
+    public List<InjectionWarning> InjectionWarnings { get; private set; } = [];
+    public string? OverallRecommendation { get; private set; }
 
     public bool IsTerminal => RunStatus != RunStatus.Running;
 
@@ -70,7 +84,7 @@ public sealed class AnalysisRun
     }
 
     // TR-ANA-002. Returns false when the run is already terminal (duplicate or late message).
-    public bool Complete(AnalysisTrace trace, IEnumerable<ClauseData> clauses, DateTimeOffset now)
+    public bool Complete(AnalysisTrace trace, IEnumerable<ClauseData> clauses, AnalysisResults results, DateTimeOffset now)
     {
         if (IsTerminal)
         {
@@ -79,6 +93,14 @@ public sealed class AnalysisRun
 
         _clauses.Clear();
         _clauses.AddRange(clauses.Select(c => Clause.Create(AnalysisRunId, c)));
+        _findings.Clear();
+        _findings.AddRange(results.Findings.Select(f => Finding.Create(AnalysisRunId, f)));
+        Checks = results.Checks;
+        Score = results.Score;
+        OverallScore = results.Score?.OverallScore;
+        OverallRiskLevel = results.Score?.RiskLevel;
+        InjectionWarnings = results.InjectionWarnings;
+        OverallRecommendation = results.OverallRecommendation;
         SchemaVersion = Limit(trace.SchemaVersion);
         ModelVersion = Limit(trace.ModelVersion);
         PromptVersion = Limit(trace.PromptVersion);
@@ -99,6 +121,7 @@ public sealed class AnalysisRun
         }
 
         _clauses.Clear();
+        _findings.Clear();
         FailureReason = string.IsNullOrWhiteSpace(reason)
             ? "Unknown error."
             : reason.Length <= FailureReasonMaxLength ? reason : reason[..FailureReasonMaxLength];

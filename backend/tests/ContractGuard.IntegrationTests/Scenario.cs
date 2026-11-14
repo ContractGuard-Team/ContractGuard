@@ -55,6 +55,15 @@ internal static class Scenario
         return (await ApiAssert.JsonAsync(response)).GetProperty("jobId").GetGuid();
     }
 
+    // Upload, confirm context, let the "worker" complete with the example result.
+    public static async Task<(Guid ContractId, Guid VersionId, Guid JobId)> AnalyzedContractAsync(ApiFactory factory, ApiClient client, Guid? workspace = null)
+    {
+        var (contractId, versionId) = await UploadContractAsync(factory, client, workspace);
+        var jobId = await StartAnalysisAsync(client, contractId, versionId, workspace);
+        await CompleteJobAsync(factory, jobId, contractId);
+        return (contractId, versionId, jobId);
+    }
+
     // Plays the worker: the example result file plus a "completed" message through the real handler.
     public static async Task CompleteJobAsync(ApiFactory factory, Guid jobId, Guid contractId)
     {

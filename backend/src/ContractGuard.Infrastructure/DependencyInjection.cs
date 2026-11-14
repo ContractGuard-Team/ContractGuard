@@ -1,12 +1,16 @@
 using ContractGuard.Application.Abstractions;
 using ContractGuard.Application.Analysis;
 using ContractGuard.Application.Analysis.Extraction;
+using ContractGuard.Application.Chat;
 using ContractGuard.Infrastructure.Aws;
+using ContractGuard.Infrastructure.Chat;
 using ContractGuard.Infrastructure.BackgroundJobs;
 using ContractGuard.Infrastructure.Email;
 using ContractGuard.Infrastructure.JsonSchemas;
 using ContractGuard.Infrastructure.Messaging;
 using ContractGuard.Infrastructure.Persistence;
+using ContractGuard.Infrastructure.Reports;
+using ContractGuard.Application.Reports;
 using ContractGuard.Infrastructure.Storage;
 using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +42,17 @@ public static class DependencyInjection
         AddAnalysis(services);
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
+        // AI-HOOKUP (F-CHAT-001): the real model replaces UnconfiguredChatResponder here (docs/06).
+        // "fake" is for development and e2e only; Program.cs refuses it in Production.
+        if (string.Equals(configuration["Chat:Responder"], "fake", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<IChatResponder, FakeChatResponder>();
+        }
+        else
+        {
+            services.AddSingleton<IChatResponder, UnconfiguredChatResponder>();
+        }
+
         return services;
     }
 
@@ -54,6 +69,7 @@ public static class DependencyInjection
     {
         services.AddScoped<CurrentWorkspace>();
         services.AddScoped<ICurrentWorkspace>(sp => sp.GetRequiredService<CurrentWorkspace>());
+        services.AddScoped<IUserDirectory, ContractGuard.Infrastructure.Identity.UserDirectory>();
 
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
@@ -99,6 +115,8 @@ public static class DependencyInjection
     private static void AddAnalysis(IServiceCollection services)
     {
         services.AddSingleton<IExtractionReader, ExtractionReader>();
+        services.AddSingleton<IReportRenderer, PdfReportRenderer>();
+        services.AddSingleton<IReportRenderer, DocxReportRenderer>();
         services.AddHostedService<AnalysisResultsConsumer>();
         services.AddHostedService<StaleRunSweeperService>();
     }

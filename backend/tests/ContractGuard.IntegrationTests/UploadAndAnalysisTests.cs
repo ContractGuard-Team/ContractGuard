@@ -58,7 +58,7 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
             var detail = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
             Assert.Equal("hop-dong", detail.GetProperty("contractName").GetString());
             Assert.Equal("new", detail.GetProperty("approvalStatus").GetString());
-            var version = detail.GetProperty("latestVersion");
+            var version = detail.GetProperty("version");
             Assert.Equal(1, version.GetProperty("versionNumber").GetInt32());
             Assert.Equal("pdf", version.GetProperty("fileType").GetString());
             Assert.Equal(Scenario.PdfBytes.Length, version.GetProperty("fileSizeBytes").GetInt64());
@@ -89,7 +89,7 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
                 HttpStatusCode.BadRequest,
                 "ERR-GEN-VALIDATION");
 
-            Assert.Equal(1, (await ApiAssert.JsonAsync(await client.GetAsync("/contracts"))).GetArrayLength());
+            Assert.Equal(1, (await ApiAssert.JsonAsync(await client.GetAsync("/contracts"))).GetProperty("items").GetArrayLength());
 
             // The refusal leaves the file of the first contract alone.
             var contractId = first.GetProperty("contractId").GetGuid();
@@ -219,7 +219,7 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
 
             var detail = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
             Assert.Equal("analyzing", detail.GetProperty("approvalStatus").GetString());
-            Assert.Equal("buyer", detail.GetProperty("latestVersion").GetProperty("context").GetProperty("ownParty").GetString());
+            Assert.Equal("buyer", detail.GetProperty("version").GetProperty("context").GetProperty("ownParty").GetString());
             Assert.True(detail.GetProperty("analysisAvailable").GetBoolean());
         }
     }
@@ -244,7 +244,7 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
             var detail = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
             Assert.False(detail.GetProperty("analysisAvailable").GetBoolean());
             Assert.Equal("new", detail.GetProperty("approvalStatus").GetString());
-            Assert.Equal("seller", detail.GetProperty("latestVersion").GetProperty("context").GetProperty("ownParty").GetString());
+            Assert.Equal("seller", detail.GetProperty("version").GetProperty("context").GetProperty("ownParty").GetString());
             Assert.Equal(JsonValueKind.Null, detail.GetProperty("latestJob").ValueKind);
 
             await using var scope = factory.CreateSystemScope();
@@ -436,7 +436,7 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
             Assert.False(factory.Storage.Exists(key));
 
             var library = await ApiAssert.JsonAsync(await client.GetAsync("/contracts"));
-            Assert.Equal(0, library.GetArrayLength());
+            Assert.Equal(0, library.GetProperty("items").GetArrayLength());
         }
     }
 }

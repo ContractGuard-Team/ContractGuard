@@ -16,6 +16,8 @@ const textColor: Record<Severity, string> = {
 
 // DESIGN §5 Severity Tag (signature): a 12px shape + the word, in the severity color.
 // Shape and word make the level readable without color (The Never-Alone Rule).
+export const severityLabels = labels;
+
 export function SeverityTag({ severity }: { severity: Severity }) {
   return (
     <span className={`inline-flex items-center gap-1.5 text-label ${textColor[severity]}`}>
@@ -25,8 +27,9 @@ export function SeverityTag({ severity }: { severity: Severity }) {
   );
 }
 
+// Carries its own color, so it reads the same alone (margin notes) as inside a tag.
 export function SeverityShape({ severity }: { severity: Severity }) {
-  const markColor = severity === "medium" ? "text-severity-medium-mark" : "";
+  const markColor = severity === "medium" ? "text-severity-medium-mark" : textColor[severity];
   return (
     <svg className={`size-3 shrink-0 ${markColor}`} viewBox="0 0 12 12" aria-hidden="true" data-shape={shapeName[severity]}>
       {severity === "critical" && <path d="M6 0.5 11.5 6 6 11.5 0.5 6Z" fill="currentColor" />}

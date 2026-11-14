@@ -9,7 +9,7 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 - PRD v1.0 và SRS v1.0 đã **baseline** (Gate S5, 2026-10-27). Sửa spec chỉ qua change request (`RDK/Agent/03-SRS/06-Change Request Workflow.md`).
 - Đang ở: system design. Bước 1 đã chốt; bước 2–8 có đề xuất trong `docs/04-system-design-decisions.md`, chờ Approver quyết định. Sau đó code theo `docs/03-implementation-phases.md`.
 - Frontend: React Router framework mode, `ssr: false`, build ra file tĩnh (DEC-GEN-027).
-- `backend/` mới có khung ASP.NET Core (`ContractGuard.Api`). `frontend/` chưa có code.
+- Phase 1 đã merge. Phần SE không cần AI của Phase 2–6 đã code (2026-11-10), chờ review; phần cần AI dừng ở gửi/nhận, xem `docs/06-ai-integration-points.md`.
 
 ## Đọc gì, theo thứ tự
 
@@ -18,7 +18,8 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 3. `docs/02-system-design.md`: ràng buộc, ước lượng, quyết định đã chốt. `docs/04-system-design-decisions.md`: phiếu quyết định bước 2–8.
 4. `docs/architecture/*.html`: sơ đồ tổng quan, luồng phân tích.
 5. `docs/DESIGN.md`: hệ thống giao diện (token, font, component, quy tắc). Đọc trước khi làm UI; `docs/PRODUCT.md` là định hướng sản phẩm.
-6. `docs/05-ai-diagram-vs-system-design.md`: chia việc SE và AI, chỗ lệch với system design, tóm tắt repo nhóm AI (§9). Đọc file này thay vì rà `AI/` (bản clone local, Hermes khoảng 22.000 file).
+6. `docs/06-ai-integration-points.md`: chỗ nối với nhóm AI (`AI-HOOKUP` trong code), đề xuất khối `scoring`, câu hỏi chờ trả lời. Đọc trước khi đụng phân tích hoặc chat.
+7. `docs/05-ai-diagram-vs-system-design.md`: chia việc SE và AI, chỗ lệch với system design, tóm tắt repo nhóm AI (§9). Đọc file này thay vì rà `AI/` (bản clone local, Hermes khoảng 22.000 file).
 
 **Không đọc cả `docs/spec/03-SRS.md` (6000+ dòng) hay `02-PRD.md`.** Tra theo ID:
 - `grep -n "FR-XXX-001" docs/spec/03-SRS.md`, rồi `Read` với offset và limit.
@@ -43,3 +44,21 @@ Script kiểm tra (`validate.py`, `check_spec.py`, `regen.py`...) chưa vào rep
 - `ContractGuard-Team/ContractGuard`; làm việc qua nhánh và pull request, không đẩy thẳng `main` (xem `CONTRIBUTING.md`).
 - Thư mục theo nhóm: `backend/`, `frontend/` (Dev/SE), `worker/` (AI), `security/` (IA), `contracts/` (chung, đổi schema cần cả ba bên duyệt).
 - Không commit `.env`, khóa, hợp đồng thật.
+
+## Dispatch (Claude Code = orchestrator)
+Call other agent CLIs directly via Bash (use run_in_background to run several in parallel):
+`uv run .claude/delegate.py <agy|codex|kiro|copilot> "<brief>" [--write] [--model <id>]`
+It prints only the answer and is read-only unless `--write`. Use it instead of wrapper subagents (~11k tokens of overhead each).
+
+| Agent | CLI | Good for |
+|---|---|---|
+| `agy` | `agy -p` | architecture review, planning. Name the exact files in the brief: it cannot explore directories headless (shell/MCP calls are denied). On Gemini quota errors the script retries once on `claude-sonnet-4-6` |
+| `codex` | `codex exec` | diff review, code |
+| `kiro` | `kiro-cli chat --no-interactive` | codebase reading, specs, long tasks |
+| `copilot` | `copilot -p -s` | quick lookups, explanations, small tests (`--write` unsupported) |
+
+Rules:
+- Small tasks: do them directly. Delegate heavy read/loop work or when an independent opinion is wanted.
+- Brief = goal, relevant files, definition of done, "reply in <=15 lines".
+- Only one worker may write files at a time, only if the brief says so; then check `git diff`.
+- On quota/login error, report it and switch to another worker.

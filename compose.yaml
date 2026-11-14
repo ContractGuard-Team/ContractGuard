@@ -86,6 +86,9 @@ services:
       # No AI worker yet: contracts and contexts are saved, no analysis starts. To test with
       # scripts/dev/send-analysis-result.ps1, set ANALYSIS_WORKER_ENABLED=true.
       Analysis__WorkerEnabled: ${ANALYSIS_WORKER_ENABLED:-false}
+      # No chat model yet: the chat says it is not connected. CHAT_RESPONDER=fake streams a fixed,
+      # clearly labelled answer to test the chat path (e2e); never set it on a demo.
+      Chat__Responder: ${CHAT_RESPONDER:-}
     ports:
       - "8080:8080"
     depends_on:

@@ -208,7 +208,7 @@ Bốn màu severity, chỉ dùng để báo mức rủi ro. Mỗi màu có bản
 
 ## 3. Typography
 
-**Display Font:** không dùng (giao diện sản phẩm, không có hero)
+**Display Font:** không dùng trong ứng dụng. Riêng trang giới thiệu dùng Source Serif 4 cỡ lớn (§7)
 **Body Font:** Be Vietnam Pro (fallback `ui-sans-serif, system-ui, sans-serif`)
 **Contract Font:** Source Serif 4 Variable (fallback `Georgia, serif`)
 
@@ -310,3 +310,16 @@ Ký hiệu hình học 12px kèm chữ nhãn, cùng màu severity: thoi đặc (
 - **Don't** dùng Source Serif cho nút, nhãn hay câu trả lời chat; không dùng sans cho văn bản điều khoản.
 - **Don't** mở modal khi có thể làm ngay tại chỗ; modal chỉ cho xác nhận xóa và chia sẻ.
 - **Don't** dùng z-index tùy ý như 999 hay 9999.
+
+## 7. Trang giới thiệu (`/`)
+
+Trang công khai duy nhất ngoài các trang đăng nhập (`frontend/app/routes/landing.tsx`). Tối giản, lấy chữ làm trung tâm: một cột căn trái rộng tối đa 1120px, các phần ngăn bằng đường kẻ `rule`, hình ảnh duy nhất là tờ hợp đồng mẫu có ghi chú lề dựng bằng chính component của ứng dụng.
+
+Trang này được phép khác §3 ở ba điểm, và chỉ ba điểm:
+- **Display:** Source Serif 4, weight 400, 40 / 56 / 72px theo breakpoint (vẫn không `clamp()`), giãn chữ −0.02em, dòng 1.14 trở lên để dấu tiếng Việt hai tầng không bị cắt. Tiêu đề section 28 / 36 / 44px.
+- **Thân bài:** 16px, đoạn dẫn 18px, tối đa 52ch.
+- **Two Voices:** ở đây chữ có chân còn là giọng của tiêu đề, không chỉ của hợp đồng. Nút, link và đoạn văn vẫn là Be Vietnam Pro.
+
+**Hoa văn guilloche** là trang trí duy nhất: nét khắc đan nhau của giấy chứng nhận, trái phiếu và tiền giấy cũ, gợi chất "văn bản có giá trị" mà không cần ảnh hay biểu tượng. Có hai chỗ: hoa thị lớn tràn mép phải sau hero (ẩn dưới 768px) và dải hoa văn chạy hết bề ngang ở phần kết. Hoa văn được vẽ bằng SVG tính từ công thức, nét 0.75px, màu `ink` ở 13% độ đậm, nằm dưới mọi chữ (`-z-10`), `aria-hidden`, không chuyển động. Không thêm hoa văn ở chỗ khác, kể cả trong ứng dụng.
+
+Mọi quy tắc khác giữ nguyên: Cold Desk (nền `desk`, không nền kem), Action-Only (`review-ink` chỉ ở nút chính và focus), Never-Alone, Paper Only (chỉ tờ hợp đồng mẫu có bóng), không eyebrow in hoa, không card, không icon trang trí, không animation khi cuộn. Lời theo `PRODUCT.md`: không con số hay cam kết chưa kiểm chứng. Từ ghép ("vấn đề", "rủi ro") trong tiêu đề nối bằng khoảng trắng không ngắt để không bị tách dòng.

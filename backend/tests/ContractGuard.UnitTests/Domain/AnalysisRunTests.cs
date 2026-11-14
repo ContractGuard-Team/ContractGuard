@@ -5,6 +5,7 @@ namespace ContractGuard.UnitTests.Domain;
 public sealed class AnalysisRunTests
 {
     private static readonly DateTimeOffset Now = TestData.Now;
+    private static readonly AnalysisResults NoResults = new([], [], null, [], null);
 
     [Fact]
     public void Starts_running_at_reading_file_with_correlation_id()
@@ -33,7 +34,7 @@ public sealed class AnalysisRunTests
     {
         var run = AnalysisRun.Start(Guid.CreateVersion7(), Guid.CreateVersion7(), Now);
 
-        var applied = run.Complete(new AnalysisTrace("2.0.0", "model-a", "prompts-1", null), [Clause("cl-1", "C05")], Now);
+        var applied = run.Complete(new AnalysisTrace("2.0.0", "model-a", "prompts-1", null), [Clause("cl-1", "C05")], NoResults, Now);
 
         Assert.True(applied);
         Assert.Equal(RunStatus.Completed, run.RunStatus);
@@ -46,11 +47,11 @@ public sealed class AnalysisRunTests
     public void Terminal_run_ignores_late_events()
     {
         var run = AnalysisRun.Start(Guid.CreateVersion7(), Guid.CreateVersion7(), Now);
-        run.Complete(new AnalysisTrace("2.0.0", null, null, null), [Clause("cl-1", "C01")], Now);
+        run.Complete(new AnalysisTrace("2.0.0", null, null, null), [Clause("cl-1", "C01")], NoResults, Now);
 
         Assert.False(run.ReportProgress(AnalysisStep.Scoring, Now));
         Assert.False(run.Fail("late failure", Now));
-        Assert.False(run.Complete(new AnalysisTrace("2.0.0", null, null, null), [], Now));
+        Assert.False(run.Complete(new AnalysisTrace("2.0.0", null, null, null), [], NoResults, Now));
         Assert.Equal(RunStatus.Completed, run.RunStatus);
         Assert.Single(run.Clauses);
     }
@@ -77,7 +78,7 @@ public sealed class AnalysisRunTests
         var run = AnalysisRun.Start(Guid.CreateVersion7(), Guid.CreateVersion7(), Now);
 
         Assert.Throws<ArgumentException>(() =>
-            run.Complete(new AnalysisTrace("2.0.0", null, null, null), [Clause("cl-1", clauseType)], Now));
+            run.Complete(new AnalysisTrace("2.0.0", null, null, null), [Clause("cl-1", clauseType)], NoResults, Now));
     }
 
     private static ClauseData Clause(string key, string type) =>

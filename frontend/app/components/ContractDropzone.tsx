@@ -2,12 +2,20 @@ import { useState, type ChangeEvent, type DragEvent } from "react";
 
 import { ApiError } from "~/lib/api";
 import { errorMessage } from "~/lib/errors";
+import type { Schemas } from "~/lib/api";
 import { acceptedFileTypes, checkFile, UploadFailedError, uploadContract } from "~/lib/upload";
 
 import { Notice } from "./Notice";
 
 // UI-GEN-003, FR-CTR-001: drop one file or pick it. The page decides what follows a successful upload.
-export function ContractDropzone({ onUploaded }: { onUploaded: (contractId: string) => Promise<void> }) {
+// upload: what to do with the file; a new contract by default, a new version on the contract page.
+export function ContractDropzone({
+  onUploaded,
+  upload = uploadContract,
+}: {
+  onUploaded: (contractId: string) => Promise<void>;
+  upload?: (file: File) => Promise<Schemas["CreatedContract"]>;
+}) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [uploaded, setUploaded] = useState<string | null>(null);
@@ -34,7 +42,7 @@ export function ContractDropzone({ onUploaded }: { onUploaded: (contractId: stri
 
     setUploading(file.name);
     try {
-      const created = await uploadContract(file);
+      const created = await upload(file);
       await onUploaded(created.contractId);
       setUploaded(file.name);
     } catch (caught) {

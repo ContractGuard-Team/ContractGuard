@@ -2,7 +2,6 @@ import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Group, Panel, Separator, useDefaultLayout, usePanelRef } from "react-resizable-panels";
 
 import { Button } from "./Button";
-import { ChatPanel } from "./ChatPanel";
 
 const wideScreen = "(min-width: 1024px)";
 const panelTitle = "Trợ lý AI";
@@ -29,11 +28,13 @@ export function ContractWorkspace({
   subtitle,
   actions,
   document,
+  chat,
 }: {
   title: string;
   subtitle: string;
   actions: ReactNode;
   document: ReactNode;
+  chat: ReactNode;
 }) {
   const wide = useIsWideScreen();
   const panelRef = usePanelRef();
@@ -86,9 +87,9 @@ export function ContractWorkspace({
             maxSize="55%"
             onResize={() => setHidden(panelRef.current?.isCollapsed() ?? false)}
           >
-            <aside aria-label={panelTitle} className="flex h-full flex-col bg-sheet">
+            <aside aria-label={panelTitle} className="relative flex h-full flex-col overflow-hidden bg-sheet">
               <h2 className="border-b border-rule px-4 py-2.5 text-title">{panelTitle}</h2>
-              <ChatPanel />
+              {chat}
             </aside>
           </Panel>
         </Group>
@@ -103,7 +104,7 @@ export function ContractWorkspace({
                   Đóng
                 </Button>
               </div>
-              <ChatPanel />
+              {chat}
             </div>
           </dialog>
         </>

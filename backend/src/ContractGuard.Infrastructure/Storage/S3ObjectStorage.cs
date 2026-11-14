@@ -101,6 +101,12 @@ internal sealed class S3ObjectStorage(
         return buffer.ToArray();
     }
 
+    public async Task PutBytesAsync(string key, byte[] content, string contentType, CancellationToken cancellationToken)
+    {
+        using var stream = new MemoryStream(content, writable: false);
+        await s3.PutObjectAsync(new PutObjectRequest { BucketName = Bucket, Key = key, ContentType = contentType, InputStream = stream }, cancellationToken);
+    }
+
     public Task DeleteAsync(string key, CancellationToken cancellationToken) =>
         s3.DeleteObjectAsync(Bucket, key, cancellationToken);
 }

@@ -9,6 +9,21 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "aws": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5080",
+      "commandLineArgs": "--Aws:ServiceUrl=",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "AWS_PROFILE": "contractguard-dev",
+        "Storage__BucketName": "contractguard-dev-documents-699061129385",
+        "Queues__AnalysisRequests": "contractguard-dev-analysis-requests",
+        "Queues__AnalysisResults": "contractguard-dev-analysis-results",
+        "Analysis__WorkerEnabled": "true"
+      }
     }
   }
 }

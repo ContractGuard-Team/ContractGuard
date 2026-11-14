@@ -20,6 +20,7 @@ public sealed record ExtractionDocument(
     IReadOnlyDictionary<string, ExtractedFact> Facts,
     IReadOnlyList<ExtractedInjectionWarning>? InjectionWarnings,
     string? OverallRecommendation,
+    ExtractedScoring? Scoring,
     ExtractedTrace Trace,
     ExtractedEmbeddings? Embeddings);
 
@@ -89,6 +90,13 @@ public sealed record ExtractedFact(string Status, System.Text.Json.JsonElement V
 
 // One item of "injection_warnings": text in the file that tried to give the AI instructions.
 public sealed record ExtractedInjectionWarning(int Page, ExtractedRegion? Region, string Excerpt);
+
+// One item of "scoring.domains": score of one risk domain, or why it does not apply.
+public sealed record ExtractedDomainScore(string Domain, bool Applicable, int? Score, string? RiskLevel, string? NaReason, bool? ReEnabled);
+
+// "scoring" of extraction.v2 (F-RISK-003). Computed by worker code from a versioned config (docs/05 §4).
+// AI-HOOKUP: proposed by SE, optional until AI + IA agree on it (docs/06-ai-integration-points.md).
+public sealed record ExtractedScoring(string RuleVersion, int OverallScore, string RiskLevel, IReadOnlyList<ExtractedDomainScore> Domains);
 
 // "trace" of extraction.v2: which model and prompts produced the result.
 public sealed record ExtractedTrace(string ModelVersion, string PromptVersion, string? PipelineVersion);

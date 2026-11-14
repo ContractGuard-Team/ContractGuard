@@ -261,6 +261,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/invitations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvitationView"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/logout": {
         parameters: {
             query?: never;
@@ -368,6 +405,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/findings/{findingId}/handling": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    findingId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FindingHandlingRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreatedOrganization"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contracts": {
         parameters: {
             query?: never;
@@ -377,7 +490,16 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    search?: string;
+                    riskLevel?: string;
+                    status?: string;
+                    contractType?: string;
+                    sort?: string;
+                    descending?: boolean;
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -390,7 +512,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ContractSummary"][];
+                        "application/json": components["schemas"]["LibraryPage"];
                     };
                 };
             };
@@ -435,7 +557,9 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    version?: string;
+                };
                 header?: never;
                 path: {
                     contractId: string;
@@ -457,7 +581,26 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -550,6 +693,298 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contracts/{contractId}/versions/{versionId}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                    versionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MetadataRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/approval-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ApprovalStatusRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateContractRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreatedContract"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuditEntry"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContractAccessView"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ShareRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/shares/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TransferOwnerRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/jobs/{jobId}": {
         parameters: {
             query?: never;
@@ -624,14 +1059,467 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/jobs/{jobId}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    jobId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisResultView"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{jobId}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    format?: string;
+                    language?: string;
+                    scope?: string;
+                };
+                header?: never;
+                path: {
+                    jobId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChatThread"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AskRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OrganizationNameRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreatedOrganization"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organizationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OrganizationDetail"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OrganizationNameRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organizationId}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InviteRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organizationId}/invitations/{invitationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    invitationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organizationId}/members/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RoleRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organizationId}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AnalysisResultView: {
+            /** Format: uuid */
+            jobId: string;
+            trace: components["schemas"]["AnalysisTrace"];
+            score: null | components["schemas"]["RiskScore"];
+            overallRecommendation: null | string;
+            findings: components["schemas"]["FindingItem"][];
+            checks: components["schemas"]["CheckResult"][];
+            injectionWarnings: components["schemas"]["InjectionWarning"][];
+        };
         /** @enum {unknown} */
         AnalysisStep: "reading_file" | "splitting_clauses" | "evaluating" | "scoring" | "completed";
+        AnalysisTrace: {
+            schemaVersion: string;
+            modelVersion: null | string;
+            promptVersion: null | string;
+            ruleVersion: null | string;
+        };
         /** @enum {unknown} */
         ApprovalStatus: "new" | "analyzing" | "pending_review" | "negotiating" | "approved" | "rejected";
+        ApprovalStatusRequest: {
+            status: components["schemas"]["ApprovalStatus"];
+        };
+        AskRequest: {
+            question: string;
+            /** Format: uuid */
+            contractVersionId?: null | string;
+        };
+        /** @enum {unknown} */
+        AuditAction: "uploaded" | "viewed" | "version_uploaded" | "context_confirmed" | "metadata_edited" | "status_changed" | "finding_handled" | "shared" | "share_revoked" | "owner_transferred" | "report_exported";
+        AuditEntry: {
+            /** Format: uuid */
+            auditEventId: string;
+            action: components["schemas"]["AuditAction"];
+            detail: null | string;
+            actorName: null | string;
+            actorEmail: null | string;
+            /** Format: date-time */
+            occurredAt: string;
+        };
+        ChatCitation: {
+            clauseKey: string;
+            quote: null | string;
+        };
+        ChatMessageItem: {
+            /** Format: uuid */
+            chatMessageId: string;
+            role: components["schemas"]["ChatRole"];
+            authorName: null | string;
+            content: string;
+            citations: components["schemas"]["ChatCitation"][];
+            /** Format: int32 */
+            versionNumber: number | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        ChatRole: "user" | "assistant";
+        ChatThread: {
+            available: boolean;
+            messages: components["schemas"]["ChatMessageItem"][];
+        };
+        CheckResult: {
+            checkCode: string;
+            status: components["schemas"]["CheckStatus"];
+            clauseKeys: string[];
+            findingKey: null | string;
+            note: null | string;
+        };
+        /** @enum {unknown} */
+        CheckStatus: "pass" | "partial" | "missing" | "not_applicable";
         ClauseItem: {
             /** Format: uuid */
             clauseId: string;
@@ -667,12 +1555,23 @@ export interface components {
             counterpartyOffering?: null | string;
             serviceCriticality?: null | components["schemas"]["ServiceCriticality"];
         };
+        ContractAccessView: {
+            owner: components["schemas"]["PersonItem"];
+            isOrganizationContract: boolean;
+            shares: components["schemas"]["ShareItem"][];
+        };
         ContractDetail: {
             /** Format: uuid */
             contractId: string;
             contractName: string;
             approvalStatus: components["schemas"]["ApprovalStatus"];
-            latestVersion: components["schemas"]["ContractVersionDetail"];
+            /** Format: uuid */
+            organizationId: null | string;
+            myRole: components["schemas"]["ContractRole"];
+            version: components["schemas"]["ContractVersionDetail"];
+            isLatestVersion: boolean;
+            suggestedContext: null | components["schemas"]["ContextDetails"];
+            versions: components["schemas"]["VersionItem"][];
             latestJob: null | components["schemas"]["JobStatus"];
             /** Format: uuid */
             completedJobId: null | string;
@@ -681,6 +1580,20 @@ export interface components {
         ContractFileLink: {
             url: string;
         };
+        ContractMetadata: {
+            parties: string[];
+            contractType: null | components["schemas"]["ContractType"];
+            /** Format: double */
+            contractValue: null | number | string;
+            currency: null | string;
+            /** Format: date */
+            effectiveDate: null | string;
+            /** Format: date */
+            expiryDate: null | string;
+            governingLaw: null | string;
+        };
+        /** @enum {unknown} */
+        ContractRole: "owner" | "member";
         ContractSummary: {
             /** Format: uuid */
             contractId: string;
@@ -690,9 +1603,15 @@ export interface components {
             latestVersionNumber: number | string;
             /** Format: date-time */
             updatedAt: string;
+            counterpartyName: null | string;
+            contractType: null | components["schemas"]["ContractType"];
+            /** Format: int32 */
+            overallScore: null | number | string;
+            riskLevel: null | components["schemas"]["RiskLevel"];
+            sharedWithMe: boolean;
         };
         /** @enum {unknown} */
-        ContractType: "service_agreement" | "vendor_agreement" | "purchase_agreement" | "msa" | "sow" | "other";
+        ContractType: "service_agreement" | "vendor_agreement" | "purchase_agreement" | "msa" | "sow" | "other" | null;
         ContractVersionDetail: {
             /** Format: uuid */
             contractVersionId: string;
@@ -705,6 +1624,8 @@ export interface components {
             /** Format: int32 */
             pageCount: null | number | string;
             context: null | components["schemas"]["ContextDetails"];
+            extractedMetadata: null | components["schemas"]["ContractMetadata"];
+            editedMetadata: null | components["schemas"]["ContractMetadata"];
         };
         CreateContractRequest: {
             /** Format: uuid */
@@ -717,14 +1638,93 @@ export interface components {
             /** Format: uuid */
             contractVersionId: string;
         };
+        CreatedOrganization: {
+            /** Format: uuid */
+            organizationId: string;
+        };
         CsrfTokenResponse: {
             token: string;
+        };
+        DomainScore: {
+            domain: components["schemas"]["RiskDomain"];
+            applicable: boolean;
+            /** Format: int32 */
+            score: null | number | string;
+            riskLevel: null | components["schemas"]["RiskLevel"];
+            naReason: null | string;
+            reEnabled: boolean;
         };
         EmailRequest: {
             email: string;
         };
+        Evidence: {
+            clauseKey: string;
+            /** Format: int32 */
+            page: number | string;
+            quote: string;
+        };
         /** @enum {unknown} */
         FileType: "pdf" | "docx" | "jpg" | "png";
+        FindingHandlingRequest: {
+            status: components["schemas"]["HandlingStatus"];
+            note?: null | string;
+        };
+        FindingItem: {
+            /** Format: uuid */
+            findingId: string;
+            findingKey: string;
+            kind: components["schemas"]["FindingKind"];
+            title: string;
+            primaryDomain: components["schemas"]["RiskDomain"];
+            secondaryDomains: components["schemas"]["RiskDomain"][];
+            category: null | string;
+            severity: components["schemas"]["Severity"];
+            clauseKey: null | string;
+            evidence: components["schemas"]["Evidence"][];
+            missingDescription: null | string;
+            why: string;
+            impact: string;
+            recommendation: string;
+            references: components["schemas"]["FindingReference"][];
+            checkCode: null | string;
+            handlingStatus: components["schemas"]["HandlingStatus"];
+            handlingNote: null | string;
+            /** Format: date-time */
+            handledAt: null | string;
+        };
+        /** @enum {unknown} */
+        FindingKind: "problematic_clause" | "missing_clause";
+        FindingReference: {
+            source: string;
+            referenceNumber: string;
+        };
+        /** @enum {unknown} */
+        HandlingStatus: "open" | "risk_accepted" | "needs_negotiation" | "false_positive" | "resolved";
+        InjectionWarning: {
+            /** Format: int32 */
+            page: number | string;
+            region: null | components["schemas"]["PageRegion"];
+            excerpt: string;
+        };
+        InvitationItem: {
+            /** Format: uuid */
+            invitationId: string;
+            email: string;
+            /** Format: date-time */
+            sentAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        InvitationView: {
+            organizationName: string;
+            invitedBy: string;
+            email: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        InviteRequest: {
+            email: string;
+        };
         JobStarted: {
             /** Format: uuid */
             jobId: string;
@@ -744,9 +1744,27 @@ export interface components {
             /** Format: date-time */
             finishedAt: null | string;
         };
+        LibraryPage: {
+            items: components["schemas"]["ContractSummary"][];
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+        };
         LoginRequest: {
             email: string;
             password: string;
+        };
+        MemberItem: {
+            /** Format: uuid */
+            userId: string;
+            displayName: string;
+            email: string;
+            role: components["schemas"]["OrgRole"];
+            /** Format: date-time */
+            joinedAt: string;
         };
         MeResponse: {
             /** Format: uuid */
@@ -755,6 +1773,29 @@ export interface components {
             email: string;
             uiLanguage: components["schemas"]["UiLanguage"];
             workspaces: components["schemas"]["WorkspaceResponse"][];
+        };
+        MetadataRequest: {
+            parties?: null | string[];
+            contractType?: null | components["schemas"]["ContractType"];
+            /** Format: double */
+            contractValue?: null | number | string;
+            currency?: null | string;
+            /** Format: date */
+            effectiveDate?: null | string;
+            /** Format: date */
+            expiryDate?: null | string;
+            governingLaw?: null | string;
+        };
+        OrganizationDetail: {
+            /** Format: uuid */
+            organizationId: string;
+            organizationName: string;
+            myRole: components["schemas"]["OrgRole"];
+            members: components["schemas"]["MemberItem"][];
+            invitations: components["schemas"]["InvitationItem"][];
+        };
+        OrganizationNameRequest: {
+            name: string;
         };
         /** @enum {unknown} */
         OrgRole: "owner" | "member" | null;
@@ -772,6 +1813,12 @@ export interface components {
             /** Format: double */
             height: number | string;
         };
+        PersonItem: {
+            /** Format: uuid */
+            userId: string;
+            displayName: string;
+            email: string;
+        };
         RegisterRequest: {
             displayName: string;
             email: string;
@@ -784,9 +1831,41 @@ export interface components {
             newPassword: string;
         };
         /** @enum {unknown} */
-        RunStatus: "running" | "completed" | "failed";
+        RiskDomain: "legal" | "financial" | "operational" | "compliance" | "cybersecurity" | "data_privacy" | "third_party";
+        /** @enum {unknown} */
+        RiskLevel: "low" | "medium" | "high" | "critical" | null;
+        RiskScore: {
+            /** Format: int32 */
+            overallScore: number | string;
+            riskLevel: components["schemas"]["RiskLevel"];
+            domains: components["schemas"]["DomainScore"][];
+        };
+        RoleRequest: {
+            role: components["schemas"]["OrgRole"];
+        };
+        /** @enum {unknown} */
+        RunStatus: "running" | "completed" | "failed" | null;
         /** @enum {unknown} */
         ServiceCriticality: "low" | "medium" | "high" | null;
+        /** @enum {unknown} */
+        Severity: "low" | "medium" | "high" | "critical";
+        ShareItem: {
+            /** Format: uuid */
+            userId: string;
+            displayName: string;
+            email: string;
+            /** Format: date-time */
+            sharedAt: string;
+        };
+        ShareRequest: {
+            email?: null | string;
+            /** @default false */
+            wholeOrganization: boolean;
+        };
+        TransferOwnerRequest: {
+            /** Format: uuid */
+            userId: string;
+        };
         /** @enum {unknown} */
         UiLanguage: "vi" | "en";
         UploadRequest: {
@@ -806,6 +1885,19 @@ export interface components {
             /** Format: uuid */
             userId: string;
             token: string;
+        };
+        VersionItem: {
+            /** Format: uuid */
+            contractVersionId: string;
+            /** Format: int32 */
+            versionNumber: number | string;
+            originalFileName: string;
+            /** Format: date-time */
+            uploadedAt: string;
+            latestRunStatus: null | components["schemas"]["RunStatus"];
+            /** Format: int32 */
+            overallScore: null | number | string;
+            riskLevel: null | components["schemas"]["RiskLevel"];
         };
         WorkspaceResponse: {
             /** Format: uuid */

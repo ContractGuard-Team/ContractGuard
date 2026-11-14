@@ -88,4 +88,91 @@ public sealed class ExtractionConsistencyValidatorTests
 
         Assert.Contains(errors, e => e.Contains("outside pages 1..2", StringComparison.Ordinal));
     }
+
+    [Theory]
+    [InlineData(29, "low", true)]
+    [InlineData(30, "low", false)]
+    [InlineData(54, "medium", true)]
+    [InlineData(55, "high", true)]
+    [InlineData(84, "critical", false)]
+    [InlineData(85, "critical", true)]
+    public void Overall_level_must_match_the_thresholds(int score, string level, bool valid)
+    {
+        // BR-RISK-010. Score is kept >= 55 because the example has a critical finding.
+        var document = WithScoring(s => s with { OverallScore = score, RiskLevel = level });
+        if (score < 55)
+        {
+            document = document with { Findings = [.. document.Findings.Where(f => f.Severity != "critical")] };
+            document = document with { Checks = [.. document.Checks.Select(c => c.FindingId == "f-001" ? c with { FindingId = null } : c)] };
+        }
+
+        var errors = ExtractionConsistencyValidator.Validate(document, JobId, ContractId, 1);
+
+        Assert.Equal(valid, !errors.Any(e => e.Contains("BR-RISK-010", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public void Critical_finding_sets_a_floor_of_55()
+    {
+        var errors = Validate(WithScoring(s => s with { OverallScore = 40, RiskLevel = "medium" }));
+
+        Assert.Contains(errors, e => e.Contains("FR-RISK-022", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Na_domain_with_a_score_or_without_reason_is_rejected()
+    {
+        var document = WithScoring(s => s with
+        {
+            Domains = [.. s.Domains.Select(d => d.Domain == "compliance" ? d with { Score = 10, NaReason = null } : d)]
+        });
+
+        Assert.Contains(Validate(document), e => e.Contains("FR-VIEW-003", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Finding_in_a_na_domain_is_rejected()
+    {
+        var document = WithScoring(s => s with
+        {
+            Domains = [.. s.Domains.Select(d => d.Domain == "third_party" ? d with { Applicable = false, Score = null, RiskLevel = null, NaReason = "x" } : d)]
+        });
+
+        Assert.Contains(Validate(document), e => e.Contains("BR-RISK-003", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Missing_domain_is_rejected()
+    {
+        var document = WithScoring(s => s with { Domains = [.. s.Domains.Take(6), s.Domains[0]] });
+
+        Assert.Contains(Validate(document), e => e.Contains("REL-DATA-014", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Finding_from_a_check_takes_the_check_domain()
+    {
+        var document = TestData.ExampleExtraction(JobId, ContractId);
+        document = document with { Findings = [document.Findings[0] with { PrimaryDomain = "legal" }, .. document.Findings.Skip(1)] };
+
+        Assert.Contains(Validate(document), e => e.Contains("BR-RISK-002", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Result_without_scoring_is_still_accepted()
+    {
+        // Scoring is optional until the AI team agrees on it (docs/06-ai-integration-points.md).
+        var document = TestData.ExampleExtraction(JobId, ContractId) with { Scoring = null };
+
+        Assert.Empty(Validate(document));
+    }
+
+    private static IReadOnlyList<string> Validate(ExtractionDocument document) =>
+        ExtractionConsistencyValidator.Validate(document, JobId, ContractId, 1);
+
+    private static ExtractionDocument WithScoring(Func<ExtractedScoring, ExtractedScoring> change)
+    {
+        var document = TestData.ExampleExtraction(JobId, ContractId);
+        return document with { Scoring = change(document.Scoring!) };
+    }
 }

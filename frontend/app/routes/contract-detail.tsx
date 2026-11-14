@@ -1,17 +1,29 @@
-import { useCallback, useEffect, useRef } from "react";
-import { useRevalidator } from "react-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useRevalidator, useSearchParams } from "react-router";
 
 import { AnalysisProgress } from "~/components/AnalysisProgress";
+import { ApprovalControl } from "~/components/ApprovalControl";
+import { AuditPanel } from "~/components/AuditPanel";
 import { Button } from "~/components/Button";
-import { ClauseList } from "~/components/ClauseList";
+import { ChatPanel } from "~/components/ChatPanel";
+import { Checklist } from "~/components/Checklist";
 import { ContextForm } from "~/components/ContextForm";
+import { ContractSheet } from "~/components/ContractSheet";
 import { ContractWorkspace } from "~/components/ContractWorkspace";
 import { FileViewer } from "~/components/FileViewer";
+import { MetadataPanel } from "~/components/MetadataPanel";
 import { Notice } from "~/components/Notice";
-import { apiLoad, apiPut, type Schemas } from "~/lib/api";
+import type { PdfHighlight } from "~/components/PdfViewer";
+import { ReportExport } from "~/components/ReportExport";
+import { ResultOverview } from "~/components/ResultOverview";
+import { ShareDialog } from "~/components/ShareDialog";
+import { Tabs } from "~/components/Tabs";
+import { VersionsPanel } from "~/components/VersionsPanel";
+import { ApiError, apiFetch, apiLoad, apiPut, type Schemas } from "~/lib/api";
 import { errorMessage, failureMessage } from "~/lib/errors";
-import { approvalStatusLabels } from "~/lib/labels";
+import { approvalStatusLabels, severityOrder } from "~/lib/labels";
 import { useAction } from "~/lib/useAction";
+import { currentWorkspace, setWorkspace } from "~/lib/workspace";
 
 import type { Route } from "./+types/contract-detail";
 
@@ -22,25 +34,111 @@ export function meta({ loaderData }: Route.MetaArgs) {
   return [{ title: `${loaderData?.contract.contractName ?? "Hợp đồng"} · ContractGuard` }];
 }
 
-export async function clientLoader({ params }: Route.ClientLoaderArgs) {
-  const contract = await apiLoad<Schemas["ContractDetail"]>(`/contracts/${params.contractId}`);
-  const clauses = contract.completedJobId ? await apiLoad<Schemas["ClauseItem"][]>(`/jobs/${contract.completedJobId}/clauses`) : [];
-  return { contract, clauses };
+// ?v= opens an older version (FR-CTR-016); without it the latest one is shown.
+export async function clientLoader({ params, request }: Route.ClientLoaderArgs) {
+  const versionId = new URL(request.url).searchParams.get("v");
+  const contract = await loadInAnyWorkspace(`/contracts/${params.contractId}${versionId ? `?version=${encodeURIComponent(versionId)}` : ""}`);
+  const jobId = contract.completedJobId;
+  const [clauses, result] = jobId
+    ? await Promise.all([apiLoad<Schemas["ClauseItem"][]>(`/jobs/${jobId}/clauses`), apiLoad<Schemas["AnalysisResultView"]>(`/jobs/${jobId}/result`)])
+    : [[], null];
+  return { contract, clauses, result };
 }
 
-// The contract workspace: the status, the file and the clauses in the center, the context in a dialog,
-// the chat beside them. What it shows depends only on the data, so reloading lands in the right state.
+// A link to a contract (from a colleague, an email, another tab) may belong to another of the user's
+// workspaces than the one open. Rather than a 404, look in the others and switch to the one that has it.
+async function loadInAnyWorkspace(path: string): Promise<Schemas["ContractDetail"]> {
+  try {
+    return await apiFetch<Schemas["ContractDetail"]>(path);
+  } catch (error) {
+    if (!(error instanceof ApiError && error.status === 404)) {
+      return apiLoad<Schemas["ContractDetail"]>(path); // same error, through the loader's handling
+    }
+  }
+
+  const original = currentWorkspace();
+  const me = await apiLoad<Schemas["MeResponse"]>("/me");
+  for (const workspace of me.workspaces) {
+    const id = workspace.organizationId ?? null;
+    if (id === original) {
+      continue;
+    }
+
+    setWorkspace(id);
+    try {
+      return await apiFetch<Schemas["ContractDetail"]>(path);
+    } catch {
+      // Not in this one either.
+    }
+  }
+
+  setWorkspace(original);
+  return apiLoad<Schemas["ContractDetail"]>(path);
+}
+
+type View = "overview" | "document" | "file" | "checklist" | "versions" | "audit";
+
+const allViews: { value: View; label: string; needsResult?: boolean; ownerOnly?: boolean }[] = [
+  { value: "overview", label: "Tổng quan", needsResult: true },
+  { value: "document", label: "Văn bản", needsResult: true },
+  { value: "file", label: "File gốc" },
+  { value: "checklist", label: "Checklist", needsResult: true },
+  { value: "versions", label: "Phiên bản" },
+  { value: "audit", label: "Nhật ký", ownerOnly: true },
+];
+
+// The contract workspace: status and result in the center (overview, clauses with margin notes, original
+// file, checklist), the context in a dialog, the chat beside them. What it shows depends only on the data
+// and the ?view= of the address, so reloading lands in the same place.
 export default function ContractDetail({ loaderData }: Route.ComponentProps) {
-  const { contract, clauses } = loaderData;
-  const version = contract.latestVersion;
+  const { contract, clauses, result } = loaderData;
+  const version = contract.version;
+  const isOwner = contract.myRole === "owner";
+  const navigate = useNavigate();
+  const shareDialog = useRef<HTMLDialogElement>(null);
+  const deleteDialog = useRef<HTMLDialogElement>(null);
+  const [sharing, setSharing] = useState(false);
+  const remove = useAction();
   const job = contract.latestJob;
   const { revalidate } = useRevalidator();
   const contextDialog = useRef<HTMLDialogElement>(null);
   const rerun = useAction();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
+  const [focus, setFocus] = useState<{ clauseKey: string } | null>(null);
 
   const refresh = useCallback(() => void revalidate(), [revalidate]);
   const running = job?.status === "running";
   const hasContext = version.context !== null;
+  const hasResult = result !== null && !running;
+  const views = allViews.filter((v) => (!v.needsResult || hasResult) && (!v.ownerOnly || isOwner));
+  const requested = searchParams.get("view") as View | null;
+  const view: View = views.some((v) => v.value === requested) ? requested! : hasResult ? "overview" : "file";
+
+  function setView(next: View) {
+    setSearchParams((params) => {
+      params.set("view", next);
+      return params;
+    }, { replace: true, preventScrollReset: true });
+  }
+
+  const clauseName = useCallback(
+    (key: string) => {
+      const clause = clauses.find((c) => c.clauseKey === key);
+      return clause ? [clause.clauseNumber, clause.heading].filter(Boolean).join(". ") || key : key;
+    },
+    [clauses],
+  );
+
+  // FR-VIEW-011, FR-CHAT-004: from a finding, a check or (later) a chat citation to the clause.
+  const goToClause = useCallback(
+    (clauseKey: string) => {
+      setView("document");
+      setFocus({ clauseKey });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   // UC-CTR-001 step 6: a contract without a context asks for it on arrival. Once: the user may close the
   // dialog to read the contract first and open it again from the top bar.
@@ -58,17 +156,60 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
     });
   }
 
+  // F-CTR-006: permanent, so it asks first (DESIGN: a modal only for deleting and sharing).
+  function deleteContract() {
+    void remove.run(async () => {
+      await apiFetch(`/contracts/${contract.contractId}`, { method: "DELETE" });
+      await navigate("/contracts");
+    });
+  }
+
   const subtitle = [approvalStatusLabels[contract.approvalStatus], `V${version.versionNumber}`, version.originalFileName, version.pageCount !== null && `${version.pageCount} trang`]
     .filter(Boolean)
     .join(" · ");
+
+  const findings = result?.findings ?? [];
+  const highlights = pdfHighlights(clauses, findings, clauseName);
+  const openClauseFinding = (clauseKey: string) => {
+    const worst = findings.filter((f) => f.clauseKey === clauseKey).sort((a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity))[0];
+    setSelectedFindingId(worst?.findingId ?? null);
+    goToClause(clauseKey);
+  };
+
+  const fileViewer = (
+    <FileViewer
+      key={version.contractVersionId}
+      contractId={contract.contractId}
+      versionId={version.contractVersionId}
+      fileName={version.originalFileName}
+      fileType={version.fileType}
+      highlights={highlights}
+      onSelectClause={openClauseFinding}
+    />
+  );
 
   return (
     <>
       <ContractWorkspace
         title={contract.contractName}
         subtitle={subtitle}
+        chat={<ChatPanel contractId={contract.contractId} hasResult={hasResult} clauseName={clauseName} onCitation={goToClause} />}
         actions={
           <>
+            <ApprovalControl contractId={contract.contractId} status={contract.approvalStatus} onChanged={refresh} />
+            {isOwner && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setSharing(true);
+                  shareDialog.current?.showModal();
+                }}
+              >
+                Chia sẻ
+              </Button>
+            )}
+            {hasResult && contract.completedJobId && <ReportExport jobId={contract.completedJobId} />}
             <Button variant={hasContext ? "secondary" : "primary"} size="sm" disabled={running} onClick={() => contextDialog.current?.showModal()}>
               {hasContext ? "Ngữ cảnh" : "Khai báo ngữ cảnh"}
             </Button>
@@ -80,9 +221,18 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
           </>
         }
         document={
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-3 empty:hidden [&:not(:empty)]:pt-3">
-              {!contract.analysisAvailable && !running && (
+              {!contract.isLatestVersion && (
+                <Notice tone="info">
+                  Bạn đang xem phiên bản cũ V{version.versionNumber}.{" "}
+                  <Link to={`/contracts/${contract.contractId}`} className="text-review-ink underline underline-offset-2">
+                    Mở phiên bản mới nhất
+                  </Link>
+                </Notice>
+              )}
+
+              {!contract.analysisAvailable && !running && !hasResult && (
                 <Notice tone="info">
                   Dịch vụ phân tích AI chưa sẵn sàng, nên chưa có điều khoản và đánh giá rủi ro. Hợp đồng và ngữ cảnh của bạn vẫn được lưu để phân tích sau.
                 </Notice>
@@ -103,15 +253,66 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
               )}
             </div>
 
-            <FileViewer
-              key={version.contractVersionId}
-              contractId={contract.contractId}
-              versionId={version.contractVersionId}
-              fileName={version.originalFileName}
-              fileType={version.fileType}
-            />
-
-            {!running && clauses.length > 0 && <ClauseList clauses={clauses} />}
+            {/* The tabs are always there: versions and the log exist before any analysis result. */}
+            {
+              <>
+                <div className="sticky top-0 z-10 bg-desk">
+                  <Tabs id="result" label="Kết quả phân tích" tabs={views} value={view} onChange={setView} />
+                </div>
+                <div id="result-panel" role="tabpanel" aria-labelledby={`result-tab-${view}`}>
+                  {view === "overview" && result && (
+                    <ResultOverview
+                      result={result}
+                      clauseName={clauseName}
+                      selectedFindingId={selectedFindingId}
+                      onSelectFinding={setSelectedFindingId}
+                      onGoToClause={goToClause}
+                      onChanged={refresh}
+                      metadata={
+                        <MetadataPanel
+                          contractId={contract.contractId}
+                          versionId={version.contractVersionId}
+                          extracted={version.extractedMetadata}
+                          edited={version.editedMetadata}
+                          onSaved={refresh}
+                        />
+                      }
+                    />
+                  )}
+                  {view === "document" && result && (
+                    <ContractSheet clauses={clauses} findings={findings} focus={focus} selectedFindingId={selectedFindingId} onSelectFinding={setSelectedFindingId} onChanged={refresh} />
+                  )}
+                  {view === "file" && fileViewer}
+                  {view === "checklist" && result && <Checklist checks={result.checks} clauseName={clauseName} onGoToClause={goToClause} />}
+                  {view === "versions" && (
+                    <VersionsPanel
+                      contractId={contract.contractId}
+                      versions={contract.versions}
+                      shownVersionId={version.contractVersionId}
+                      busy={running}
+                      onUploaded={async () => {
+                        await navigate(`/contracts/${contract.contractId}`);
+                      }}
+                    />
+                  )}
+                  {view === "audit" && <AuditPanel contractId={contract.contractId} />}
+                  {isOwner && (
+                    <section aria-labelledby="danger-title" className="mx-auto mt-10 flex w-full max-w-sheet flex-col gap-2 border-t border-rule pt-4 empty:hidden">
+                      {view === "versions" && (
+                        <>
+                          <h2 id="danger-title" className="text-label text-ink-secondary">
+                            Xóa hợp đồng
+                          </h2>
+                          <Button variant="danger" size="sm" className="self-start" onClick={() => deleteDialog.current?.showModal()}>
+                            Xóa vĩnh viễn hợp đồng này
+                          </Button>
+                        </>
+                      )}
+                    </section>
+                  )}
+                </div>
+              </>
+            }
           </div>
         }
       />
@@ -127,7 +328,7 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
         <ContextForm
           contractId={contract.contractId}
           versionId={version.contractVersionId}
-          initial={version.context}
+          initial={version.context ?? contract.suggestedContext}
           analysisAvailable={contract.analysisAvailable}
           onSaved={() => {
             contextDialog.current?.close();
@@ -136,6 +337,66 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
           onCancel={() => contextDialog.current?.close()}
         />
       </dialog>
+
+      <dialog
+        ref={shareDialog}
+        aria-labelledby="share-title"
+        // React passes a nested dialog's close (the confirm inside) up to here: only react to our own.
+        onClose={(e) => e.target === e.currentTarget && setSharing(false)}
+        className="m-auto max-h-[calc(100vh-2rem)] w-[min(36rem,calc(100vw-2rem))] rounded-md border border-rule bg-sheet p-6 text-ink backdrop:bg-ink/30"
+      >
+        <h2 id="share-title" className="mb-3 text-title">
+          Chia sẻ “{contract.contractName}”
+        </h2>
+        {sharing && <ShareDialog contractId={contract.contractId} organizationId={contract.organizationId} onChanged={refresh} onClose={() => shareDialog.current?.close()} />}
+      </dialog>
+
+      <dialog
+        ref={deleteDialog}
+        aria-labelledby="delete-title"
+        className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-md border border-rule bg-sheet p-6 text-ink backdrop:bg-ink/30"
+      >
+        <h2 id="delete-title" className="mb-2 text-title">
+          Xóa vĩnh viễn hợp đồng?
+        </h2>
+        <p className="mb-4 max-w-prose">
+          File gốc, mọi phiên bản, kết quả phân tích, finding, lịch sử chat và nhật ký của “{contract.contractName}” sẽ bị xóa và không khôi phục được.
+        </p>
+        {remove.error !== null && (
+          <div className="mb-3">
+            <Notice tone="error">{errorMessage(remove.error)}</Notice>
+          </div>
+        )}
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => deleteDialog.current?.close()}>
+            Hủy
+          </Button>
+          <Button variant="danger" className="border border-severity-critical/40" loading={remove.pending} onClick={deleteContract}>
+            Xóa vĩnh viễn
+          </Button>
+        </div>
+      </dialog>
     </>
   );
+}
+
+// Every region of every clause that has findings, washed in the clause's worst severity.
+function pdfHighlights(clauses: Schemas["ClauseItem"][], findings: Schemas["FindingItem"][], clauseName: (key: string) => string): PdfHighlight[] {
+  return clauses.flatMap((clause) => {
+    const worst = severityOrder.find((s) => findings.some((f) => f.clauseKey === clause.clauseKey && f.severity === s));
+    if (!worst) {
+      return [];
+    }
+
+    return clause.location.regions.map((r) => ({
+      clauseKey: clause.clauseKey,
+      page: Number(r.page),
+      x: Number(r.x),
+      y: Number(r.y),
+      width: Number(r.width),
+      height: Number(r.height),
+      severity: worst,
+      label: clauseName(clause.clauseKey),
+    }));
+  });
 }

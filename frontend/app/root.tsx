@@ -3,11 +3,12 @@ import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration }
 import type { Route } from "./+types/root";
 
 // Self-hosted fonts (no request to Google): Be Vietnam Pro with Vietnamese glyphs, and the
-// variable Source Serif 4 for contract text.
+// variable Source Serif 4 for contract text. opsz.css adds the optical-size axis, so the 72px
+// headline of the landing page gets the display cut and 16px contract text the text cut.
 import "@fontsource/be-vietnam-pro/400.css";
 import "@fontsource/be-vietnam-pro/500.css";
 import "@fontsource/be-vietnam-pro/600.css";
-import "@fontsource-variable/source-serif-4/index.css";
+import "@fontsource-variable/source-serif-4/opsz.css";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [{ rel: "icon", href: "/favicon.svg", type: "image/svg+xml" }];
@@ -35,15 +36,13 @@ export default function App() {
   return <Outlet />;
 }
 
-// SPA mode: shown while the first clientLoader runs. A quiet skeleton, no blocking spinner.
+// SPA mode: shown on every path while the first clientLoader runs, the public landing page included,
+// so it is only the empty desk. No blocking spinner.
 export function HydrateFallback() {
   return (
-    <div className="flex min-h-screen">
-      <div className="w-sidebar shrink-0 bg-rail" aria-hidden="true" />
-      <p className="sr-only" role="status">
-        Đang tải…
-      </p>
-    </div>
+    <p className="sr-only" role="status">
+      Đang tải…
+    </p>
   );
 }
 
@@ -66,7 +65,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     <main className="mx-auto max-w-2xl p-8">
       <h1 className="text-headline">{title}</h1>
       <p className="mt-2 text-ink-secondary">{details}</p>
-      <a href="/" className="mt-4 inline-block text-review-ink underline underline-offset-2 hover:text-review-ink-hover">
+      <a href="/contracts" className="mt-4 inline-block text-review-ink underline underline-offset-2 hover:text-review-ink-hover">
         Về thư viện hợp đồng
       </a>
       {stack && <pre className="mt-4 overflow-x-auto rounded-md bg-sheet p-4 text-caption">{stack}</pre>}

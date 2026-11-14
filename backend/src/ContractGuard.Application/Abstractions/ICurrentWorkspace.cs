@@ -8,4 +8,7 @@ public interface ICurrentWorkspace
 
     // Null means the personal workspace of the user (FR-ORG-013).
     Guid? OrganizationId { get; }
+
+    // Owner of the organization of the current workspace: every right of a contract owner there (FR-SHARE-002).
+    bool IsOrganizationOwner { get; }
 }

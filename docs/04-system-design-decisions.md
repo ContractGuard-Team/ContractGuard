@@ -364,6 +364,22 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
     - Trước khi triển khai lên AWS, cần phải nhắc lại với các thành viên cấu hình billing, cảnh báo
 ---
 
+## Điểm phát sinh khi code
+
+### P3-02 Ghi chú lề khi vùng giữa hẹp
+
+**Bối cảnh:** DESIGN §5 đặt finding ở cột ghi chú lề 244px cạnh tờ hợp đồng 680px. Khi panel chat mở trên laptop 14", vùng giữa thường hẹp hơn 948px (680 + 24 + 244), nên không đủ chỗ cho cột lề.
+
+| Phương án | Mô tả | Ưu | Nhược |
+|---|---|---|---|
+| **A (đã code, đề xuất)** | Hẹp hơn 948px thì ghi chú chuyển vào trong tờ giấy, ngay dưới dòng loại điều khoản, mỗi ghi chú một dòng (ký hiệu và tiêu đề). Bấm vào thì mở chi tiết ngay dưới điều khoản | Không che chữ; dùng được bằng bàn phím và trình đọc màn hình; không cần popover | Tờ giấy dài hơn một chút |
+| B | Thu ghi chú thành chấm màu ở mép phải, bấm thì mở popover | Giữ nguyên chiều dài văn bản | Chấm nhỏ khó bấm (dưới 40px); popover che văn bản; phải quản lý focus |
+| C | Ẩn ghi chú, chỉ còn danh sách ở tab Tổng quan | Đơn giản | Mất liên kết hai chiều tại chỗ (FR-VIEW-010) |
+
+Đổi chế độ bằng container query trên vùng giữa, không theo độ rộng màn hình, nên kéo panel chat là đổi ngay.
+
+**Quyết định:**
+
 ## Việc của các nhóm khác (để theo dõi, không cần quyết ở đây)
 
 | Việc | Nhóm | Ảnh hưởng tới |

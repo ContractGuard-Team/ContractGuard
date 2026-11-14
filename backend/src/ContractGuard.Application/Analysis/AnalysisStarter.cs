@@ -16,6 +16,7 @@ public sealed partial class AnalysisStarter(
     IApplicationDbContext db,
     IObjectStorage storage,
     IAnalysisJobQueue queue,
+    Contracts.AuditLog audit,
     IOptions<AnalysisOptions> options,
     TimeProvider clock,
     ILogger<AnalysisStarter> logger)
@@ -36,6 +37,7 @@ public sealed partial class AnalysisStarter(
 
         var now = clock.GetUtcNow();
         contract.ConfirmContext(contractVersionId, details, now); // ERR-CTR-003 if one is running.
+        audit.Record(contract.ContractId, AuditAction.ContextConfirmed, $"V{contract.GetVersion(contractVersionId).VersionNumber}");
         if (!options.Value.WorkerEnabled)
         {
             await db.SaveChangesAsync(cancellationToken);

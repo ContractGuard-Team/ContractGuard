@@ -1,5 +1,6 @@
 using ContractGuard.Domain.Contracts;
 using ContractGuard.Infrastructure.Identity;
+using ContractGuard.Infrastructure.Persistence.Conventions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,6 +14,11 @@ public sealed class ContractVersionConfiguration : IEntityTypeConfiguration<Cont
         builder.Property(v => v.ContractVersionId).ValueGeneratedNever();
         builder.Property(v => v.SourceFileKey).HasMaxLength(1024);
         builder.Property(v => v.OriginalFileName).HasMaxLength(ContractVersion.FileNameMaxLength);
+
+        // ENT-DATA-008 kept on the version (1:1, REL-DATA-010): two jsonb columns instead of a table.
+        builder.Property(v => v.ExtractedMetadata).HasJsonColumn();
+        builder.Property(v => v.EditedMetadata).HasJsonColumn();
+        builder.Ignore(v => v.Metadata);
 
         // V1, V2, ... are unique inside one contract (BR-CTR-003).
         builder.HasIndex(v => new { v.ContractId, v.VersionNumber }).IsUnique();

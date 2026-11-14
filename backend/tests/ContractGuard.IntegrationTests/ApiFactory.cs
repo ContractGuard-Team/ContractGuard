@@ -38,6 +38,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         new(WithWebHostBuilder(builder => builder.UseSetting(key, value))
             .CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true }));
 
+    // A client of a second API on the same database and stand-ins, with some services replaced.
+    public ApiClient CreateApiClientWithServices(Action<IServiceCollection> configure) =>
+        new(WithWebHostBuilder(builder => builder.ConfigureTestServices(configure))
+            .CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true }));
+
     public async ValueTask InitializeAsync()
     {
         await _postgres.StartAsync();
@@ -63,6 +68,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Email:SmtpHost", "localhost");
         builder.UseSetting("Email:FromAddress", "no-reply@example.com");
         builder.UseSetting("Email:FrontendBaseUrl", "http://localhost:5173");
+
+        // Every test client comes from the same address; RateLimitTests lowers these on its own client.
+        builder.UseSetting("RateLimits:LoginPerMinute", "100000");
+        builder.UseSetting("RateLimits:PasswordResetPerMinute", "100000");
 
         builder.ConfigureTestServices(services =>
         {
