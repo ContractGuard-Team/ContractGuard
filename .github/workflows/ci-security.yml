@@ -10,12 +10,6 @@ on:
       - "scripts/**"
       - ".github/workflows/ci-security.yml"
   pull_request:
-    paths:
-      - "security/**"
-      - "contracts/**"
-      - "worker/**"
-      - "scripts/**"
-      - ".github/workflows/ci-security.yml"
 
 permissions:
   contents: read
@@ -40,7 +34,6 @@ jobs:
         run: python scripts/check_schemas.py
       - name: Compile Python sources
         run: python -m compileall -q security worker scripts
-
 
   security-rule-tests:
     name: Validate security rule fixtures
