@@ -122,7 +122,7 @@ export default function Landing() {
   return (
     // isolate + -z-10 on the art: the patterns sit under every text, inside this page only. clip, not hidden, so no scroll box.
     <div className="relative isolate flex min-h-screen flex-col overflow-x-clip text-[16px] leading-[1.6]">
-      <GuillocheRosette />
+      <DecoSunburst />
       <header className={`${container} flex h-20 items-center justify-between`}>
         <Link to="/" className="rounded-sm">
           <Logo />
@@ -223,7 +223,7 @@ export default function Landing() {
               </Link>
             </div>
           </div>
-          <GuillocheBand />
+          <DecoFrieze />
         </section>
       </main>
 
@@ -306,72 +306,61 @@ function SampleSheet() {
   );
 }
 
-// Guilloche: the engraved, interwoven lines of old certificates, bonds and banknotes (DESIGN §7).
-// Each pattern is one computed curve repeated with a small rotation or shift, so the DOM stays small.
-// Drawn in a faint ink tint, behind the text; decoration only, hidden from screen readers.
-const TAU = Math.PI * 2;
+// Art deco: a stepped sunburst rising from the corner of the hero, and a frieze of fans at the close (DESIGN §7).
+// Every line is computed. Drawn in a faint ink tint, behind the text; decoration only, hidden from screen readers.
 const artClass = "pointer-events-none absolute -z-10 text-ink/[0.13]";
+const n = (value: number) => value.toFixed(1);
+const polar = (cx: number, cy: number, r: number, t: number) => `${n(cx + r * Math.cos(t))} ${n(cy + r * Math.sin(t))}`;
+// Clockwise on screen, for spans up to half a turn.
+const arc = (cx: number, cy: number, r: number, from: number, to: number) => `M${polar(cx, cy, r, from)}A${r} ${r} 0 0 1 ${polar(cx, cy, r, to)}`;
 
-const rings = [
-  { radius: 150, a: 16, b: 7, n: 10, m: 20 },
-  { radius: 250, a: 24, b: 9, n: 14, m: 28 },
-  { radius: 350, a: 28, b: 10, n: 18, m: 36 },
-];
-
-function ringPath({ radius, a, b, n, m }: (typeof rings)[number]) {
-  const steps = 720;
-  const points: string[] = [];
-  for (let s = 0; s < steps; s++) {
-    const t = (s / steps) * TAU;
-    const r = radius + a * Math.sin(n * t) + b * Math.sin(m * t + 1.3);
-    points.push(`${(r * Math.cos(t)).toFixed(1)} ${(r * Math.sin(t)).toFixed(1)}`);
+// Rays fan from left to straight up and a little past; every fourth is long and filled, every second is medium.
+function sunburst() {
+  const [x, y, step] = [150, 400, Math.PI / 32];
+  const rays = ["", ""];
+  for (let k = 0; k <= 20; k++) {
+    const t = Math.PI + k * step;
+    const reach = k % 4 === 0 ? 540 : k % 2 === 0 ? 470 : 400;
+    rays[k % 4 === 0 ? 0 : 1] += `M${polar(x, y, 116, t)}L${polar(x, y, reach, t - 0.022)}L${polar(x, y, reach + 14, t)}L${polar(x, y, reach, t + 0.022)}Z`;
   }
-  return `M${points.join("L")}Z`;
+  const arcs = [50, 62, 74, 98, 104, 250, 256].map((r) => arc(x, y, r, Math.PI, Math.PI + 20 * step)).join("");
+  return [rays[0], rays[1] + arcs];
 }
 
-const ringPaths = rings.map(ringPath);
+const [longRays, sunLines] = sunburst();
 
-function GuillocheRosette() {
-  const copies = 8;
+function DecoSunburst() {
   return (
     <svg aria-hidden="true" viewBox="-400 -400 800 800" className={`${artClass} top-[-120px] right-[-260px] size-[860px] max-md:hidden`}>
-      <g fill="none" stroke="currentColor" strokeWidth="0.75">
-        {rings.map((ring, k) =>
-          Array.from({ length: copies }, (_, i) => (
-            <path key={`${k}-${i}`} d={ringPaths[k]} vectorEffect="non-scaling-stroke" transform={`rotate(${((i / copies) * 360) / ring.n})`} />
-          )),
-        )}
-        <circle r="392" vectorEffect="non-scaling-stroke" />
-        <circle r="398" vectorEffect="non-scaling-stroke" />
+      <g stroke="currentColor" strokeWidth="0.75" strokeLinejoin="round">
+        <path d={longRays} fill="currentColor" fillOpacity="0.3" vectorEffect="non-scaling-stroke" />
+        <path d={sunLines} fill="none" vectorEffect="non-scaling-stroke" />
       </g>
     </svg>
   );
 }
 
-// A band one period wider than the view on each side, so shifted copies never leave a gap at the edges.
-const bandPeriod = 240;
-function bandPath(sign: 1 | -1) {
-  const points: string[] = [];
-  for (let x = -bandPeriod; x <= 1440 + bandPeriod; x += 3) {
-    const y = 100 + sign * (40 * Math.sin((x / bandPeriod) * TAU) + 18 * Math.sin((x / (bandPeriod / 3)) * TAU + 0.8));
-    points.push(`${x} ${y.toFixed(1)}`);
-  }
-  return `M${points.join("L")}`;
+// One fan: nested half circles with spokes, and a stem topped by a diamond where it meets the next fan.
+const fanPeriod = 120;
+function fanPath() {
+  const [cx, cy] = [fanPeriod / 2, 150];
+  let d = "M0 150V88M0 70l6 9l-6 9l-6 -9Z";
+  for (const r of [60, 54, 36, 18]) d += arc(cx, cy, r, Math.PI, Math.PI * 2);
+  for (let k = 1; k < 8; k++) d += `M${polar(cx, cy, 18, Math.PI + (k * Math.PI) / 8)}L${polar(cx, cy, 54, Math.PI + (k * Math.PI) / 8)}`;
+  return d;
 }
 
-const bandPaths = [bandPath(1), bandPath(-1)];
+const fan = fanPath();
 
-function GuillocheBand() {
-  const copies = 12;
+function DecoFrieze() {
+  // The viewBox is narrow, so the height sets the scale; overflow-visible lets the fans run to the page edges.
   return (
-    <svg aria-hidden="true" viewBox="0 0 1440 200" preserveAspectRatio="none" className={`${artClass} inset-x-0 bottom-8 h-32 w-full lg:bottom-12 lg:h-44`}>
+    <svg aria-hidden="true" viewBox="0 0 240 200" className={`${artClass} inset-x-0 bottom-8 h-32 w-full overflow-visible lg:bottom-12 lg:h-44`}>
       <g fill="none" stroke="currentColor" strokeWidth="0.75">
-        {bandPaths.map((d, k) =>
-          Array.from({ length: copies }, (_, i) => (
-            <path key={`${k}-${i}`} d={d} vectorEffect="non-scaling-stroke" transform={`translate(${(i / copies) * bandPeriod} 0)`} />
-          )),
-        )}
-        <path d="M0 40H1440M0 160H1440" vectorEffect="non-scaling-stroke" />
+        {Array.from({ length: 38 }, (_, i) => (
+          <path key={i} d={fan} vectorEffect="non-scaling-stroke" transform={`translate(${(i - 18) * fanPeriod} 0)`} />
+        ))}
+        <path d="M-2400 56H2640M-2400 62H2640M-2400 150H2640M-2400 158H2640M-2400 164H2640" vectorEffect="non-scaling-stroke" />
       </g>
     </svg>
   );
