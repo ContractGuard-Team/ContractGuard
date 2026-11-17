@@ -17,7 +17,7 @@ if (builder.Environment.IsProduction() && string.Equals(builder.Configuration["C
 }
 
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
-builder.Services.AddApiAuth(builder.Environment);
+builder.Services.AddApiAuth(builder.Configuration, builder.Environment);
 builder.Services.AddScoped<AccountEmails>();
 builder.Services.AddOpenApi();
 

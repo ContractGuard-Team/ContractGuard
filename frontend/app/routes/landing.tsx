@@ -96,7 +96,7 @@ const sampleClauses: SampleClause[] = [
 const steps = [
   {
     title: "Tải hợp đồng lên",
-    body: "PDF, DOCX hoặc bản scan. Bạn cho biết mình là bên nào trong hợp đồng, để phân tích đứng về phía bạn.",
+    body: "PDF hoặc DOCX. Bạn cho biết mình là bên nào trong hợp đồng, để phân tích đứng về phía bạn.",
   },
   {
     title: "Đọc ghi chú ở lề",

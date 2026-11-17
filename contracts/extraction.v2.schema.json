@@ -33,11 +33,10 @@
       "additionalProperties": false,
       "required": ["file_type", "page_count", "language"],
       "properties": {
-        "file_type": { "enum": ["pdf", "docx", "jpg", "png"], "description": "Real file type detected from content, not from the extension." },
+        "file_type": { "enum": ["pdf", "docx"], "description": "Real file type detected from content, not from the extension." },
         "page_count": { "type": "integer", "minimum": 1, "maximum": 100 },
         "clean_file_key": { "type": "string", "pattern": "^clean/", "description": "Where the worker stored the sanitized file (SD-07)." },
-        "language": { "enum": ["vi", "en", "mixed"] },
-        "is_scanned": { "type": "boolean" }
+        "language": { "enum": ["vi", "en", "mixed"] }
       }
     },
     "output_language": { "enum": ["vi", "en"], "description": "Language of titles, explanations and recommendations." },

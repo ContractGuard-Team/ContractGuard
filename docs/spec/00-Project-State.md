@@ -49,8 +49,8 @@ The Agent reads this file first in every session and updates it at the end of ev
 |---:|---|---|---|---|---|---|---|---|
 | 0 | Project State | `00-Project-State.md` | - | - | - | - | S0 Intake | Passed 2026-10-24 by Approver |
 | 1 | BRS / BRD | - | - | - | - | - | S1 Business | Skipped (not in Document Set) |
-| 2 | PRD | `02-PRD.md` | Primary | Standard | `1.1` | REVIEW | S2 Stakeholder & Product | Passed 2026-10-24 by Approver (v0.2); v0.3 áp dụng trả lời OQ 2026-10-26; v0.4 thêm mô hình không gian làm việc 2026-10-27; v1.0 baseline tại Gate S5 2026-10-27; v1.1 bỏ MFA khỏi MVP (DEC-PRD-022) 2026-10-27, chờ Approver duyệt lại |
-| 3 | SRS | `03-SRS.md` | - | Tier 2 | `1.1` | REVIEW | S3 Outline, S4 Incremental | S3: Passed 2026-10-24 by Approver; S4: hoàn tất bản nháp đầy đủ 2026-10-24; v0.9 áp dụng trả lời OQ 2026-10-26; v0.10 mô hình không gian và §9 tiếng Anh 2026-10-27; v1.0 baseline 2026-10-27; v1.1 bỏ MFA khỏi MVP 2026-10-27, chờ Approver duyệt lại |
+| 2 | PRD | `02-PRD.md` | Primary | Standard | `1.2` | REVIEW | S2 Stakeholder & Product | Passed 2026-10-24 by Approver (v0.2); v0.3 áp dụng trả lời OQ 2026-10-26; v0.4 thêm mô hình không gian làm việc 2026-10-27; v1.0 baseline tại Gate S5 2026-10-27; v1.1 bỏ MFA khỏi MVP (DEC-PRD-022) 2026-10-27; v1.2 bỏ bản scan và OCR (CR-GEN-001, DEC-PRD-023) 2026-11-17; chờ Approver duyệt lại |
+| 3 | SRS | `03-SRS.md` | - | Tier 2 | `1.2` | REVIEW | S3 Outline, S4 Incremental | S3: Passed 2026-10-24 by Approver; S4: hoàn tất bản nháp đầy đủ 2026-10-24; v0.9 áp dụng trả lời OQ 2026-10-26; v0.10 mô hình không gian và §9 tiếng Anh 2026-10-27; v1.0 baseline 2026-10-27; v1.1 bỏ MFA khỏi MVP 2026-10-27; v1.2 bỏ bản scan và OCR (CR-GEN-001) 2026-11-17; chờ Approver duyệt lại |
 | 3 | Validation Report | `Reports/Validation-Report-2026-10-27.md` (thay các bản trước) | - | - | - | - | S5 Baseline | Passed 2026-10-27 by Approver: 0 Critical, 2 Warning (MC9, RS3) là known issues (DEC-GEN-026) |
 | 4 | Backlog / Release Plan | - | - | - | - | - | S6 Delivery | Skipped (not in Document Set) |
 
@@ -62,7 +62,7 @@ The Agent reads this file first in every session and updates it at the end of ev
 | Current Run Mode | - |
 | Current Focus | PRD v1.0 và SRS v1.0 đã baseline. Kế hoạch code theo phase ở `docs/03-implementation-phases.md`; sơ đồ tổng quan ở `docs/architecture/` |
 | Next Step | Làm tiếp system design (`docs/02-system-design.md` bước 2–8), rồi code theo phase. Mọi thay đổi PRD, SRS từ nay đi qua change request (`Agent/03-SRS/06-Change Request Workflow.md`) |
-| Blocked By | Approver duyệt lại các mục `REVIEW` sau khi bỏ MFA (F-AUTH-003, FR-AUTH-006, FR-AUTH-007). Known issue: ngày demo đầu 12/2026 (OQ-GEN-003) chưa khớp CON-PRJ-005 "hơn 4 tháng" |
+| Blocked By | Approver duyệt lại các mục `REVIEW` sau khi bỏ MFA (F-AUTH-003, FR-AUTH-006, FR-AUTH-007) và sau CR-GEN-001 bỏ bản scan (`Change-Requests/CR-GEN-001.md`). Known issue: ngày demo đầu 12/2026 (OQ-GEN-003) chưa khớp CON-PRJ-005 "hơn 4 tháng" |
 
 ## 4. Interview Progress
 
@@ -175,3 +175,4 @@ The Agent reads this file first in every session and updates it at the end of ev
 | 2026-10-27 | S5 | Approver yêu cầu §9 dùng tên tiếng Anh (DEC-GEN-025) và mô hình không gian kiểu GitHub: không gian cá nhân, nhiều tổ chức, chia sẻ hợp đồng cá nhân cho mọi tài khoản, không chuyển hợp đồng giữa các không gian (DEC-PRD-020, DEC-PRD-021). PRD v0.4, SRS v0.10; chạy lại kiểm tra. | Approver review và quyết định Gate S5 |
 | 2026-10-27 | S5 | Approver thông qua Gate S5 (DEC-GEN-026): PRD v1.0, SRS v1.0 chuyển `APPROVED`. Tạo kế hoạch code theo phase `docs/03-implementation-phases.md` và sơ đồ tổng quan `docs/architecture/` (theo `Idea/Tech stack and flow.pdf`). | System design bước 2, rồi code phase 0 |
 | 2026-10-27 | Sau S5 | System design: Approver chốt bước 1 và SD-01..SD-20 (`docs/02-system-design.md` §4); SD-04 = ASP.NET Core Identity, không dùng Cognito (DEC-GEN-028). Bỏ MFA khỏi MVP, sau MVP ưu tiên Should với MFA qua email mỗi lần đăng nhập (DEC-PRD-022): PRD v1.1, SRS v1.1. | Approver duyệt các mục REVIEW (F-AUTH-003, FR-AUTH-006, FR-AUTH-007) |
+| 2026-11-17 | Sau S5 | CR-GEN-001 (`Change-Requests/CR-GEN-001.md`): Approver bỏ đọc bản scan và OCR, chỉ nhận PDF có lớp chữ và DOCX (DEC-PRD-023). PRD v1.2, SRS v1.2: US-ANA-003, STR-QUAL-002, DEP-GEN-002, FR-ANA-007, NFR-PERF-003, EXT-INTG-002, IF-INTG-002 DEPRECATED; các mục sửa về REVIEW. Code, `contracts/` (bỏ `jpg`, `png`, `is_scanned`), system design và sơ đồ cập nhật theo. | Approver duyệt các mục REVIEW; nhóm AI và IA duyệt thay đổi `contracts/` |

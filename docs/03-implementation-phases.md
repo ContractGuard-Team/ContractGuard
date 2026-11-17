@@ -77,7 +77,7 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 | SE | Upload qua presigned URL thẳng lên S3, khai báo ngữ cảnh, tạo job (F-CTR-001) |
 | SE | `BackgroundService` đọc `analysis-results`, validate theo schema, lưu dữ liệu; job sai schema bị từ chối và ghi log theo `job_id` |
 | SE | UI: nối các trang Login, Library, NewContract với API thật; hiện tiến trình bằng cách gọi `GET /jobs/{id}` định kỳ (F-ANA-001) |
-| AI | Worker đọc `analysis-requests`, parse PDF/DOCX bằng Docling và bản scan bằng Textract, tách điều khoản, giữ vị trí trên trang, phân loại vào 21 loại cộng "Khác" (F-ANA-002) |
+| AI | Worker đọc `analysis-requests`, parse PDF có lớp chữ và DOCX bằng Docling (không OCR, CR-GEN-001), tách điều khoản, giữ vị trí trên trang, phân loại vào 21 loại cộng "Khác" (F-ANA-002) |
 | AI | Retry và DLQ: job quá số lần thử thì chuyển `failed` kèm lý do |
 | IA | Kiểm tra file ở tầng upload: loại file, kích thước, số trang (giới hạn theo SRS) |
 

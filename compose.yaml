@@ -89,6 +89,9 @@ services:
       # No chat model yet: the chat says it is not connected. CHAT_RESPONDER=fake streams a fixed,
       # clearly labelled answer to test the chat path (e2e); never set it on a demo.
       Chat__Responder: ${CHAT_RESPONDER:-}
+      # Google sign-in (F-AUTH-002). Empty: the button says Google sign-in is not enabled.
+      Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
     ports:
       - "8080:8080"
     depends_on:

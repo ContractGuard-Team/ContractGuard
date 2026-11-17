@@ -93,7 +93,7 @@ public sealed partial class ContractUploadService(
             await storage.DeleteAsync(key, cancellationToken);
             if (actualType is null)
             {
-                throw new DomainException(ErrorCodes.UnsupportedFileType, "The file content is not a PDF, DOCX, JPG or PNG.");
+                throw new DomainException(ErrorCodes.UnsupportedFileType, "The file content is not a PDF or DOCX.");
             }
 
             // Security event (ERR-UPL-002), without any file content.
@@ -142,7 +142,7 @@ public sealed partial class ContractUploadService(
         }
 
         return FileTypeDetector.FromFileName(fileName)
-            ?? throw new DomainException(ErrorCodes.UnsupportedFileType, "Only PDF, DOCX, JPG and PNG files are accepted.");
+            ?? throw new DomainException(ErrorCodes.UnsupportedFileType, "Only PDF and DOCX files are accepted.");
     }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Upload refused: declared {DeclaredType} but content is {ActualType}")]

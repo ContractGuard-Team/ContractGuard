@@ -28,7 +28,7 @@
     "source_file_key": { "type": "string", "pattern": "^(quarantine|clean)/", "description": "Uploaded file. Under quarantine/ until checked (SD-08)." },
     "clean_file_key": { "type": "string", "pattern": "^clean/", "description": "Where the worker must write the sanitized file." },
     "result_key": { "type": "string", "pattern": "^results/", "description": "Where the worker must write extraction.v2 JSON." },
-    "declared_file_type": { "enum": ["pdf", "docx", "jpg", "png"], "description": "From the file extension; the worker checks the real type (FR-UPL-003)." },
+    "declared_file_type": { "enum": ["pdf", "docx"], "description": "From the file extension; the worker checks the real type (FR-UPL-003)." },
     "output_language": { "enum": ["vi", "en"] },
     "context": {
       "type": "object",

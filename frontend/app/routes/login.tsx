@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { AuthPage, linkClass } from "~/components/AuthPage";
 import { Button } from "~/components/Button";
 import { TextField } from "~/components/Field";
+import { GoogleButton } from "~/components/GoogleButton";
 import { Notice } from "~/components/Notice";
 import { ApiError, apiPost } from "~/lib/api";
 import { errorMessage } from "~/lib/errors";
@@ -21,6 +22,13 @@ const notices: Record<string, string> = {
   reset: "Mật khẩu đã được đặt lại. Hãy đăng nhập bằng mật khẩu mới.",
 };
 
+// Where the API sends the browser back after Google (?google=...).
+const googleErrors: Record<string, string> = {
+  unavailable: "Đăng nhập bằng Google chưa được bật. Hãy dùng email và mật khẩu.",
+  cancelled: "Bạn đã hủy đăng nhập bằng Google.",
+  failed: "Không đăng nhập được bằng Google. Hãy thử lại.",
+};
+
 // FR-AUTH-006..008.
 export default function Login() {
   const navigate = useNavigate();
@@ -32,6 +40,7 @@ export default function Login() {
   const resend = useAction();
 
   const notice = notices[params.get("notice") ?? ""];
+  const googleError = googleErrors[params.get("google") ?? ""];
   const code = login.error instanceof ApiError ? login.error.code : undefined;
 
   function onSubmit(event: FormEvent) {
@@ -64,6 +73,8 @@ export default function Login() {
       }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
+        {googleError && !login.error && <Notice tone="error">{googleError}</Notice>}
+        <GoogleButton next={params.get("next")} />
         {notice && !login.error && !resent && <Notice tone="info">{notice}</Notice>}
         {resent && <Notice tone="info">Đã gửi lại email xác thực. Liên kết có hiệu lực trong 10 phút.</Notice>}
         {login.error !== null && (

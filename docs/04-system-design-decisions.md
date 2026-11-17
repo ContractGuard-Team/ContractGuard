@@ -391,6 +391,22 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
 
 **Quyết định:**
 
+### P6-01 Đăng nhập Google gặp tài khoản email chưa xác thực, hoặc đang bị khóa
+
+**Bối cảnh:** FR-AUTH-011 gộp tài khoản email và Google theo email. SRS không nói hai trường hợp sau:
+
+1. **Email chưa xác thực.** Ai cũng đăng ký được bằng email của người khác, kèm mật khẩu do mình đặt. Nếu chủ thật của email sau đó đăng nhập Google và hệ thống gộp nguyên tài khoản, người đăng ký trước vẫn đăng nhập được bằng mật khẩu đó. Kiểu tấn công này gọi là chiếm tài khoản đăng ký trước.
+2. **Đang bị khóa 15 phút** vì nhập sai mật khẩu 5 lần (SEC-AUTH-006).
+
+| Phương án | Mô tả | Ưu | Nhược |
+|---|---|---|---|
+| **A (đã code, đề xuất)** | (1) Gộp, nhưng gỡ mật khẩu cũ và đánh dấu email đã xác thực, vì Google đã chứng minh chủ email. Muốn có mật khẩu thì dùng "quên mật khẩu". (2) Google vẫn vào được, vì khóa chỉ áp dụng cho đăng nhập bằng mật khẩu (SEC-AUTH-006 ghi "khóa đăng nhập bằng mật khẩu") | Chặn được tấn công; chủ thật không bị kẹt | Người tự đăng ký nhưng chưa bấm link xác thực sẽ mất mật khẩu vừa đặt |
+| B | (1) Từ chối đăng nhập Google, bảo người dùng xác thực email trước. (2) Chặn cả Google khi đang khóa | Không đổi dữ liệu tài khoản | Chủ thật bị kẹt: link xác thực gửi tới chính họ, nhưng mật khẩu do người khác đặt |
+
+Code: `backend/src/ContractGuard.Infrastructure/Identity/GoogleAccounts.cs`, `Api/Endpoints/GoogleLoginEndpoints.cs`. Chỉ gộp khi Google báo `email_verified = true`.
+
+**Quyết định:**
+
 ## Việc của các nhóm khác (để theo dõi, không cần quyết ở đây)
 
 | Việc | Nhóm | Ảnh hưởng tới |

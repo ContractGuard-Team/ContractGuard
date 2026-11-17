@@ -1,6 +1,6 @@
 import { apiPost, type Schemas } from "./api";
 
-const allowedExtensions = [".pdf", ".docx", ".jpg", ".jpeg", ".png"];
+const allowedExtensions = [".pdf", ".docx"];
 
 export const acceptedFileTypes = allowedExtensions.join(",");
 export const maxFileBytes = 20 * 1024 * 1024; // FR-UPL-004: exactly 20 MB is still accepted.

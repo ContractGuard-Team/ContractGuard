@@ -16,7 +16,7 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    private static readonly byte[] PngBytes = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00];
+    private static readonly byte[] DocxBytes = [0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00, 0x08];
     private static readonly byte[] ExeBytes = "MZ not a document"u8.ToArray();
 
     [Theory]
@@ -137,7 +137,7 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
     [Fact]
     public async Task Content_that_differs_from_the_extension_is_refused_and_deleted()
     {
-        await AssertUploadRefusedAsync("a.pdf", PngBytes, "ERR-UPL-002");
+        await AssertUploadRefusedAsync("a.pdf", DocxBytes, "ERR-UPL-002");
     }
 
     [Fact]

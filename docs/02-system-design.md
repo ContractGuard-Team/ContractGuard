@@ -130,7 +130,7 @@ Cách làm: ghi rõ mọi giả định thành số, tính ra lưu lượng, tok
 
 | Dữ liệu | Mỗi phiên bản hợp đồng | 1.000 phiên bản |
 |---|---|---|
-| File gốc | ~2 MB (bản scan ~10 MB) | ~3–5 GB |
+| File gốc | ~2 MB | ~3–5 GB |
 | Kết quả trích xuất (JSON) | ~200 KB | ~200 MB |
 | Dòng dữ liệu nghiệp vụ (clause, finding, điểm, chat) | ~50 KB | ~50 MB |
 | Vector embedding | 40 clause × 1.024 chiều × 4 byte ≈ 160 KB | ~160 MB |
@@ -144,7 +144,7 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 | Giai đoạn | Ước lượng | Ghi chú |
 |---|---|---|
 | Upload và kiểm tra file | 1–3 s | |
-| Parse PDF có lớp text (Docling, CPU) | 5–15 s | Bản scan cần OCR, cộng thêm 20–60 s |
+| Parse PDF có lớp text (Docling, CPU) | 5–15 s | Không có OCR: bản scan đã bỏ theo CR-GEN-001 |
 | Phân loại điều khoản (model nhỏ) | 5–10 s | |
 | Đánh giá 7 nhóm (chạy **song song**) | 15–40 s | Phụ thuộc chủ yếu vào số token output. Nếu chạy tuần tự sẽ mất vài phút. |
 | Chấm điểm và lưu kết quả | < 2 s | |
@@ -169,7 +169,6 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 | KMS, Secrets Manager, CloudWatch, S3, CloudFront, SQS | ~5 | |
 | **Tổng cố định** | **~55** | **5 tháng ≈ $275** |
 | Worker phân tích (chạy theo job) | ~1 | 2 vCPU/4 GB × ~1 phút/job × vài trăm job |
-| Textract (chỉ bản scan) | ~vài $ | |
 
 **Đặt cạnh ngân sách:**
 
@@ -217,7 +216,7 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 |---|---|---|
 | Q1 | **Không** giữ worker chạy sẵn. Worker scale từ 0. | Job đầu tiên sau khi worker ngủ chờ thêm 1–3 phút. Không vi phạm NFR-PERF-001..003 vì các mục tiêu này đo khi worker đã chạy sẵn. Cách giữ buổi demo nhanh: xem SD-12. |
 | Q2 | Dev local trước, **dựng AWS sau**; thời điểm chưa chốt. | Môi trường local phải chạy được toàn bộ luồng (SD-17). |
-| Q3 | Đã giãn mục tiêu độ trễ: text 20 trang p50 ≤ 2 phút, p95 ≤ 5 phút; bản scan ≤ 50 trang p50 ≤ 5 phút; chatbot chữ đầu tiên p50 ≤ 15 giây (DEC-GEN-022, SRS NFR-PERF-001..004). | Thay mục tiêu 45 giây ở §2.6. |
+| Q3 | Đã giãn mục tiêu độ trễ: text 20 trang p50 ≤ 2 phút, p95 ≤ 5 phút; bản scan ≤ 50 trang p50 ≤ 5 phút (đã bỏ theo CR-GEN-001); chatbot chữ đầu tiên p50 ≤ 15 giây (DEC-GEN-022, SRS NFR-PERF-001..004). | Thay mục tiêu 45 giây ở §2.6. |
 | Rủi ro §2.9 | Region Singapore có model cần dùng (xác nhận của Approver). Credit, quota và đếm token là việc của **nhóm AI**. | Theo dõi ở `04-system-design-decisions.md`, mục "Việc của các nhóm khác". |
 
 ---

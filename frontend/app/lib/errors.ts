@@ -8,7 +8,7 @@ const messages: Record<string, string> = {
   "ERR-AUTH-004": "Liên kết không hợp lệ hoặc đã hết hạn.",
   "ERR-AUTH-005": "Email này tạm bị khóa đăng nhập vì nhập sai nhiều lần. Hãy thử lại sau 15 phút hoặc đặt lại mật khẩu.",
   "ERR-AUTH-006": "Bạn thao tác quá nhanh. Hãy thử lại sau 1 phút.",
-  "ERR-UPL-001": "Chỉ nhận file PDF, DOCX, JPG hoặc PNG.",
+  "ERR-UPL-001": "Chỉ nhận file PDF hoặc DOCX.",
   "ERR-UPL-002": "Nội dung file không khớp với phần mở rộng của tên file.",
   "ERR-UPL-003": "File lớn hơn giới hạn 20 MB.",
   "ERR-UPL-004": "File có nhiều hơn giới hạn 100 trang.",
