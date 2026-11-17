@@ -106,4 +106,4 @@ Chưa làm vì cần model. Gợi ý: thêm `suggested_questions` vào `extracti
 | 5 | Tổ chức, lời mời, vai trò, chia sẻ, thư viện, duyệt, phiên bản, xóa vĩnh viễn, nhật ký, rate limit, giới hạn email | Không |
 | 6 | Trạng thái xử lý finding, tùy chọn báo cáo, lịch sử chat | Câu hỏi gợi ý (§3.4) |
 
-Bỏ theo quyết định ngày 2026-11-10: Google login (F-AUTH-002), Phase 7 (AWS), Phase 8.
+Ngày 2026-11-10 tạm bỏ Google login (F-AUTH-002), Phase 7 (AWS), Phase 8. Ngày 2026-11-17 mở lại Google login và Phase 7 (database dùng Supabase); Phase 8 vẫn bỏ.

@@ -7,9 +7,10 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 ## Trạng thái (cập nhật khi đổi giai đoạn)
 
 - PRD v1.0 và SRS v1.0 đã **baseline** (Gate S5, 2026-10-27). Sửa spec chỉ qua change request (`RDK/Agent/03-SRS/06-Change Request Workflow.md`).
-- Đang ở: system design. Bước 1 đã chốt; bước 2–8 có đề xuất trong `docs/04-system-design-decisions.md`, chờ Approver quyết định. Sau đó code theo `docs/03-implementation-phases.md`.
+- Đang ở: code. System design bước 2–8 có đề xuất trong `docs/04-system-design-decisions.md` (dòng Quyết định trống = đồng ý).
 - Frontend: React Router framework mode, `ssr: false`, build ra file tĩnh (DEC-GEN-027).
-- Phase 1 đã merge. Phần SE không cần AI của Phase 2–6 đã code (2026-11-10), chờ review; phần cần AI dừng ở gửi/nhận, xem `docs/06-ai-integration-points.md`.
+- Phase 1 và phần SE không cần AI của Phase 2–6 đã merge (PR #9); phần cần AI dừng ở gửi/nhận, xem `docs/06-ai-integration-points.md`. Landing mới ở `/`, thư viện ở `/contracts`.
+- Thứ tự tiếp theo (2026-11-17): dọn tồn đọng → Google login (F-AUTH-002, FR-AUTH-011: gộp tài khoản theo email) → Phase 7 trên AWS, database dùng Supabase (cần phiếu đổi SD trong `docs/04` trước).
 
 ## Đọc gì, theo thứ tự
 

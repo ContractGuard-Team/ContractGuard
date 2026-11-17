@@ -380,6 +380,17 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
 
 **Quyết định:**
 
+### P5-01 Ai được dùng link mời tham gia tổ chức
+
+**Bối cảnh:** FR-ORG-004 viết "người được mời xác nhận tham gia qua link mời", nhưng không nói người bấm link có phải đăng nhập đúng email đã được mời hay không. Link nằm trong email, nên có thể bị chuyển tiếp hoặc dán vào chat nhóm.
+
+| Phương án | Mô tả | Ưu | Nhược |
+|---|---|---|---|
+| **A (đã code, đề xuất)** | Chỉ tài khoản có email trùng email được mời (không phân biệt hoa thường) mới tham gia được. Tài khoản khác nhận lỗi 403 "lời mời gửi tới email khác" (`OrganizationService.cs`, `AcceptAsync`) | Link bị chuyển tiếp không dùng được; Owner tổ chức biết chắc ai vào tổ chức (tổ chức xem được mọi hợp đồng của mình) | Người dùng có hai email phải nhờ Owner mời lại đúng email |
+| B | Ai đăng nhập và giữ link còn hạn đều tham gia được | Tiện khi người được mời dùng email khác | Lộ link là lộ quyền vào tổ chức; trái tinh thần cách ly không gian (BR-DATA-001) |
+
+**Quyết định:**
+
 ## Việc của các nhóm khác (để theo dõi, không cần quyết ở đây)
 
 | Việc | Nhóm | Ảnh hưởng tới |

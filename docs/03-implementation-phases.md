@@ -176,7 +176,7 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 | SE | OpenTelemetry gửi sang CloudWatch và X-Ray, dùng `job_id` làm correlation ID |
 | SE | Đọc IP thật qua `X-Forwarded-For` sau ALB để rate limit hoạt động đúng |
 | SE | Security group chỉ cho ALB gọi API, vì API tin header `X-Forwarded-Proto` từ mọi nguồn; CloudFront gọi ALB bằng HTTPS, nếu không API ở Production trả 500 (SD-03) |
-| SE | Dọn code demo của frontend theo [frontend/DEMO-CLEANUP.md](../frontend/DEMO-CLEANUP.md) |
+| SE | ~~Dọn code demo của frontend~~ Đã xong: trang `/demo` bỏ cùng landing mới (2026-11-17) |
 | SE, AI | Đo NFR hiệu năng trên staging: p50 ≤ 2 phút, p95 ≤ 5 phút với hợp đồng text 20 trang |
 | AI | Chạy eval lần cuối, chốt model cho từng bước (DEC-GEN-010) |
 | IA | Kiểm thử bảo mật trên staging: upload, injection, phân quyền, quét container |

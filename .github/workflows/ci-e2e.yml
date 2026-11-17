@@ -1,0 +1,84 @@
+name: "CI: E2E"
+
+# Playwright against the whole local stack (docker compose --profile app), as in Runbook §E2E.
+# The tests play the worker themselves, so no AI is needed.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "contracts/**"
+      - "infra/local/**"
+      - "compose.yaml"
+      - ".github/workflows/ci-e2e.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "contracts/**"
+      - "infra/local/**"
+      - "compose.yaml"
+      - ".github/workflows/ci-e2e.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright on the Docker stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # LocalStack needs a token. Without the secret (not set yet, or a PR from a fork) the job
+      # passes with a notice instead of failing.
+      LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+      ANALYSIS_WORKER_ENABLED: "true"
+      CHAT_RESPONDER: fake
+    steps:
+      - name: Skip without the LocalStack token
+        if: env.LOCALSTACK_AUTH_TOKEN == ''
+        run: echo "::notice::E2E skipped, add the LOCALSTACK_AUTH_TOKEN secret to run it."
+
+      - uses: actions/checkout@v7
+        if: env.LOCALSTACK_AUTH_TOKEN != ''
+
+      - uses: actions/setup-node@v7
+        if: env.LOCALSTACK_AUTH_TOKEN != ''
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Start the stack
+        if: env.LOCALSTACK_AUTH_TOKEN != ''
+        run: docker compose --profile app up -d --build --wait
+
+      - name: Install Playwright
+        if: env.LOCALSTACK_AUTH_TOKEN != ''
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run e2e
+        if: env.LOCALSTACK_AUTH_TOKEN != ''
+        working-directory: frontend
+        run: npm run e2e
+
+      - name: Stack logs
+        if: failure() && env.LOCALSTACK_AUTH_TOKEN != ''
+        run: docker compose --profile app logs --no-color --tail 300
+
+      - uses: actions/upload-artifact@v7
+        if: failure() && env.LOCALSTACK_AUTH_TOKEN != ''
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 7
