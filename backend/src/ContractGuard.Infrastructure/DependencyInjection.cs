@@ -88,7 +88,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             var database = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-            options.UseNpgsql(database.ConnectionString)
+            options.UseNpgsql(database.ConnectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", AppDbContext.AppSchema))
                 .UseSnakeCaseNamingConvention()
 
                 // ContractContext has no query filter of its own: it is only reached through its

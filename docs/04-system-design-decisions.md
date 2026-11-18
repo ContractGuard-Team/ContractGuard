@@ -24,7 +24,7 @@
 | SD-03 | Cổng vào và domain | Một domain: CloudFront → S3 (SPA) và `/api/*` → ALB | Phase 1 |
 | SD-04 | Xác thực | ASP.NET Core Identity tự quản, cookie httpOnly | Phase 1 |
 | SD-05 | Phân quyền và cách ly không gian | Lọc theo không gian ở EF Core + kiểm tra quyền theo tài nguyên | Phase 1 |
-| SD-06 | Database | RDS PostgreSQL 18 + pgvector, một instance nhỏ. **Đổi 2026-11-17 (C1):** Supabase | Phase 0 |
+| SD-06 | Database | RDS PostgreSQL 18 + pgvector, một instance nhỏ. **Đổi 2026-11-17 (C1):** Supabase; **2026-11-18 (C4):** bảng app ở schema `app` | Phase 0 |
 | SD-07 | File storage | Một bucket, tách prefix `quarantine/` và `clean/`, SSE-KMS khóa AWS quản lý | Phase 1 |
 | SD-08 | Upload và quét mã độc | Presigned POST giới hạn kích thước; GuardDuty Malware Protection for S3 | Phase 1–2 |
 | SD-09 | API giữa frontend và backend | REST + OpenAPI, sinh client TypeScript | Phase 1 |
@@ -34,8 +34,8 @@
 | SD-13 | Retry và trạng thái job | SQS retry 3 lần + DLQ; C# giữ máy trạng thái, bỏ message trùng | Phase 1 |
 | SD-14 | Chatbot: ai truy xuất, ai gọi model | C# truy xuất pgvector và gọi model; prompt do nhóm AI quản lý trong repo. **Đổi 2026-11-17 (C3):** gọi endpoint tự host thay Bedrock | Phase 4 |
 | SD-15 | Streaming câu trả lời chat | Server-Sent Events (SSE) | Phase 4 |
-| SD-16 | Email | Amazon SES; local dùng Mailpit | Phase 1 |
-| SD-17 | Môi trường | Docker Compose local (Postgres, LocalStack, Mailpit); AWS dựng sau | Phase 0 |
+| SD-16 | Email | Amazon SES; local dùng Mailpit. **Đổi 2026-11-18 (C5):** người gửi `contractguard.info@gmail.com`, không domain | Phase 1 |
+| SD-17 | Môi trường | Docker Compose local (Postgres, LocalStack, Mailpit); AWS dựng sau. **Đổi 2026-11-18 (C5):** có staging và production, Supabase ở Tokyo | Phase 0 |
 | SD-18 | Hạ tầng dưới dạng code và CI/CD | AWS CDK (C#), GitHub Actions với OIDC, không có khóa AWS tĩnh | Phase 7 |
 | SD-19 | Quan sát hệ thống | Log JSON có `job_id` lên CloudWatch; trace để sau | Phase 7 |
 | SD-20 | Kiểm soát chi phí | Tắt môi trường ngoài giờ demo; cảnh báo ngân sách | Phase 7 |
@@ -365,9 +365,9 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
     - Trước khi triển khai lên AWS, cần phải nhắc lại với các thành viên cấu hình billing, cảnh báo
 ---
 
-## Đổi sau khi chốt (2026-11-17)
+## Đổi sau khi chốt (2026-11-17, 2026-11-18)
 
-Approver đổi ba điểm khi chuẩn bị Phase 7, theo drawio `architecture/contractguard-architecture.drawio`. Phần dưới ghi lại hệ quả và trade-off để cả nhóm biết đã đánh đổi gì. Các mục SD cũ giữ nguyên để lưu vết; dòng Quyết định của chúng trỏ về đây.
+Approver đổi ba điểm khi chuẩn bị Phase 7 (C1–C3), thêm C4–C5 ngày 2026-11-18 khi nối Supabase, theo drawio `architecture/contractguard-architecture.drawio`. Phần dưới ghi lại hệ quả và trade-off để cả nhóm biết đã đánh đổi gì. Các mục SD cũ giữ nguyên để lưu vết; dòng Quyết định của chúng trỏ về đây.
 
 ### C1 Database: Supabase thay RDS (đổi SD-06, SD-20)
 
@@ -422,6 +422,67 @@ Approver đổi ba điểm khi chuẩn bị Phase 7, theo drawio `architecture/c
 3. Model embedding và số chiều vector (bảng pgvector đang chờ).
 
 **Quyết định:** Tự host trên EC2 (Approver chốt 2026-11-17, DEC-GEN-029).
+
+### C4 Database dùng chung với nhóm AI: schema `app` (đổi quy tắc "chỉ C# ghi DB", liên quan SD-06, X2)
+
+**Bối cảnh:** project Supabase (do nhóm AI tạo, Tokyo, PostgreSQL 17.11) đã có kho văn bản pháp luật của nhóm AI trước khi backend migrate. Đọc ngày 2026-11-18, nguồn là `data_pipeline/migrations/001_legal_schema.sql`, `postgres_writer.py` và `mcp_server/supabase_reader.py` trong repo `contract-risk-management`:
+
+| Bảng (`public`) | Dòng | Dùng để |
+|---|---|---|
+| `legal_documents` | 65 | Văn bản luật lấy từ vanban.chinhphu.vn: số ký hiệu, loại, hiệu lực, `replaced_by`, `s3_prefix` |
+| `legal_document_versions` | 65 | Mỗi lần tải: sha256, key PDF trên S3 của AI, cách trích (text/ocr), trạng thái xử lý |
+| `legal_articles` | 786 | Từng Điều: nội dung, chương, hiệu lực `valid_from/to`, `is_current`, bị sửa bởi văn bản nào |
+| `legal_relations` | 549 | Quan hệ sửa đổi/thay thế giữa các văn bản, trạng thái áp dụng (`applied`, `needs_review`...) |
+| `ingest_jobs` | 65 | Hàng đợi/nhật ký nạp từng văn bản |
+| `crawl_runs` | 2 | Nhật ký mỗi lần crawl |
+
+Data pipeline của AI ghi qua PostgREST bằng secret key. MCP gateway cho Agent 2/3 đọc cũng qua PostgREST bằng secret key, và trong code chỉ cho đọc. RLS bật, không có policy cho anon. Vector nằm ở Qdrant, không ở pgvector.
+
+**Rủi ro nếu bảng app nằm chung ở `public`:**
+1. Supabase cấp quyền mặc định cho `anon`/`authenticated` trên bảng mới trong `public`. Thiếu RLS thì ai có publishable key (key công khai) cũng đọc/ghi được `user_account`, `contract`.
+2. Secret key chạy dưới `service_role`, bỏ qua RLS. `list_tables` của MCP trả về mọi bảng được mở, và khi `SUPABASE_TABLES` trống thì agent LLM, vốn có thể bị prompt injection từ nội dung hợp đồng, đọc được user và hợp đồng của mọi workspace.
+
+| Phương án | Ưu | Nhược |
+|---|---|---|
+| **A. Schema riêng `app` cho bảng app** | PostgREST không mở `app`; `anon`, `authenticated`, `service_role` không có quyền `USAGE` trên `app`. Chỉ thêm một migration | DB local cũ phải tạo lại một lần |
+| B. Để ở `public`, bật RLS cho từng bảng | Không đổi code EF | Secret key vẫn bỏ qua RLS; phải nhớ bật RLS cho mỗi bảng mới |
+| C. Tách project Supabase cho AI | Cô lập hẳn | Gói Free chỉ 2 project, không đủ khi có cả staging và production |
+
+**Phân quyền:**
+
+| | Schema `app` | `public.legal_*`, `ingest_jobs`, `crawl_runs` |
+|---|---|---|
+| Sở hữu schema | SE (EF migration trong `backend/`) | AI (`data_pipeline/migrations/*.sql`) |
+| Ghi | Chỉ API C# | Chỉ data pipeline AI |
+| Đọc | API C# | Agent qua MCP; C# chỉ đọc khi X2/SD-14 chốt |
+| Kết nối | Npgsql, user `postgres` (mật khẩu chỉ SE giữ) | PostgREST, secret key |
+
+Quy tắc "chỉ C# ghi DB" đổi thành: C# là nơi duy nhất ghi **dữ liệu nghiệp vụ** (schema `app`); data pipeline AI ghi **kho tham chiếu pháp luật**. Dữ liệu trao đổi theo từng job vẫn đi qua `contracts/` (S3/SQS), không qua DB.
+
+**Còn mở:** X2/SD-14. Chatbot C# có cần đọc kho pháp luật không? Nếu có thì đọc bảng `public.legal_*` hay đi qua endpoint của AI? Vector đang ở Qdrant, không ở pgvector.
+
+**Quyết định:** A (Approver chọn 2026-11-18). Đã làm: `HasDefaultSchema("app")`, bảng lịch sử migration cũng ở `app`, migration `MoveToAppSchema`; staging đã migrate ngày 2026-11-18.
+
+### C5 Môi trường staging + production, email (đổi SD-16, SD-17, C1)
+
+**Bối cảnh:** SD-17 chốt một môi trường AWS (staging dùng luôn cho demo), không có production. Approver muốn có cả staging và production. Local vẫn không chạm Supabase.
+
+| Môi trường | ASP.NET | Database | Email |
+|---|---|---|---|
+| Local | `Development` (profile `http`) | Postgres trong Docker | Mailpit |
+| Staging | `Cloud` (profile `aws` trên máy dev); sau này Fargate | Supabase project hiện tại (`lglozpndorcilcfqtgce`, Tokyo) | SES, sandbox |
+| Production | Fargate (Phase 7) | Supabase project mới, Tokyo | SES (xin production access) hoặc dự phòng Gmail SMTP |
+
+- **Region:** cả hai project Supabase ở Tokyo (`ap-northeast-1`), AWS vẫn ở `ap-southeast-1`. Mỗi truy vấn từ API sang DB thêm khoảng 70 ms. Lệch với CON-PRJ-003 ("region Singapore") theo cách hiểu đã nêu ở C1.
+- **Migration:** chạy `dotnet ef database update` bằng chuỗi kết nối của từng môi trường (staging: `appsettings.Cloud.local.json`; production: biến `Database__ConnectionString`, chạy một lần). Phase 7 chuyển vào GitHub Actions. Không chuyển dữ liệu từ local lên.
+- **Mật khẩu `postgres`:** chỉ SE giữ. Production lưu trong Secrets Manager.
+- **Kho pháp luật:** nhóm AI chạy `001`/`002_*.sql` và pipeline vào từng project. Staging để thử, production chỉ nạp dữ liệu đã kiểm tra.
+- **Email (SD-16):** người gửi là `contractguard.info@gmail.com`, xác minh dạng email identity trên SES (`ap-southeast-1`, tài khoản `699061129385`). Sandbox tính theo tài khoản và region, nên staging và production dùng chung một trạng thái.
+  - Identity đã xác minh (trước 2026-11-18). IAM của API chỉ cần `ses:SendEmail` trên ARN của identity.
+  - Còn trong sandbox thì phải xác minh từng người nhận (thành viên nhóm, tài khoản test, giám khảo).
+  - **Rủi ro:** gửi với địa chỉ `@gmail.com` qua SES không đạt DMARC alignment (SPF/DKIM là của amazonses.com), nên thư dễ vào spam hoặc bị từ chối, và AWS thường không cho ra khỏi sandbox nếu không có domain riêng. **Dự phòng** khi bị từ chối: gửi qua SMTP của Gmail (`smtp.gmail.com:587`, App Password, khoảng 500 thư/ngày) bằng `SmtpEmailSender` có sẵn, thêm username/password và TLS vào `EmailOptions`.
+
+**Quyết định:** như bảng trên (Approver chọn 2026-11-18).
 
 ## Điểm phát sinh khi code
 

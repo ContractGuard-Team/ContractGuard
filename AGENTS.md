@@ -11,6 +11,7 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 - Frontend: React Router framework mode, `ssr: false`, build ra file tĩnh (DEC-GEN-027).
 - Phase 1 và phần SE không cần AI của Phase 2–6 đã merge (PR #9); phần cần AI dừng ở gửi/nhận, xem `docs/06-ai-integration-points.md`. Landing mới ở `/`, thư viện ở `/contracts`.
 - 2026-11-17: dọn tồn đọng xong; Google login (F-AUTH-002) đã code, chờ review, phiếu P6-01 trong `docs/04`. Tiếp theo: Phase 7 trên AWS, database dùng Supabase (cần phiếu đổi SD trong `docs/04` trước).
+- 2026-11-18: Supabase staging đã migrate, bảng app ở schema `app`, dùng chung DB với kho pháp luật của AI (`docs/04` C4). Staging/production và email SES gửi từ Gmail: `docs/04` C5.
 
 ## Đọc gì, theo thứ tự
 
@@ -34,8 +35,8 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 - **Không bao giờ tự đặt `APPROVED`.** Chỉ Approver (SE của nhóm) quyết định.
 - **Không sửa** `RDK/` (Requirements Documentation Kit, cài ở máy local bằng `npx req-doc-kit`, không có trên GitHub). Quy tắc làm spec nằm ở `RDK/Agent/AGENTS.md`.
 - Model AI do nhóm AI tự host bằng Docker trên EC2, không dùng Bedrock (DEC-GEN-029, CR-GEN-003); model cụ thể do eval quyết định (DEC-GEN-010). Nền tảng chạy worker do nhóm AI chọn.
-- Database trên AWS là Supabase (PostgreSQL + pgvector), local vẫn dùng Postgres trong Docker (`docs/04` mục C1).
-- Service C# là nơi duy nhất ghi DB; worker Python không chạm DB; `/contracts` chứa JSON Schema dùng chung.
+- Database trên AWS là Supabase (PostgreSQL + pgvector), staging và production là hai project ở Tokyo; local vẫn dùng Postgres trong Docker (`docs/04` mục C1, C5).
+- Service C# là nơi duy nhất ghi dữ liệu nghiệp vụ (schema `app`); data pipeline AI chỉ ghi kho pháp luật (`public.legal_*`) qua PostgREST (`docs/04` C4); worker Python không chạm DB; `/contracts` chứa JSON Schema dùng chung.
 
 ## Kiểm tra spec
 

@@ -17,6 +17,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("app")
                 .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -131,7 +132,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ux_analysis_run_one_running_per_contract")
                         .HasFilter("run_status = 'running'");
 
-                    b.ToTable("analysis_run", (string)null);
+                    b.ToTable("analysis_run", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Analysis.Clause", b =>
@@ -188,7 +189,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_clause_analysis_run_id_clause_key");
 
-                    b.ToTable("clause", (string)null);
+                    b.ToTable("clause", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Analysis.Finding", b =>
@@ -302,7 +303,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_finding_analysis_run_id_finding_key");
 
-                    b.ToTable("finding", (string)null);
+                    b.ToTable("finding", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Chat.ChatMessage", b =>
@@ -356,7 +357,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasIndex("ContractId", "CreatedAt")
                         .HasDatabaseName("ix_chat_message_contract_id_created_at");
 
-                    b.ToTable("chat_message", (string)null);
+                    b.ToTable("chat_message", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Contracts.AuditEvent", b =>
@@ -393,7 +394,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasIndex("ContractId", "OccurredAt")
                         .HasDatabaseName("ix_audit_event_contract_id_occurred_at");
 
-                    b.ToTable("audit_event", (string)null);
+                    b.ToTable("audit_event", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Contracts.Contract", b =>
@@ -442,7 +443,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasIndex("OwnerUserAccountId")
                         .HasDatabaseName("ix_contract_owner_user_account_id");
 
-                    b.ToTable("contract", (string)null);
+                    b.ToTable("contract", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Contracts.ContractContext", b =>
@@ -494,7 +495,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_contract_context_contract_version_id");
 
-                    b.ToTable("contract_context", (string)null);
+                    b.ToTable("contract_context", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Contracts.ContractShare", b =>
@@ -529,7 +530,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_contract_share_contract_id_user_account_id");
 
-                    b.ToTable("contract_share", (string)null);
+                    b.ToTable("contract_share", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Contracts.ContractVersion", b =>
@@ -609,7 +610,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_contract_version_contract_id_version_number");
 
-                    b.ToTable("contract_version", (string)null);
+                    b.ToTable("contract_version", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Workspaces.Invitation", b =>
@@ -657,7 +658,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_invitation_organization_id_email");
 
-                    b.ToTable("invitation", (string)null);
+                    b.ToTable("invitation", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Workspaces.Membership", b =>
@@ -693,7 +694,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_membership_organization_id_user_account_id");
 
-                    b.ToTable("membership", (string)null);
+                    b.ToTable("membership", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Workspaces.Organization", b =>
@@ -715,7 +716,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasKey("OrganizationId")
                         .HasName("pk_organization");
 
-                    b.ToTable("organization", (string)null);
+                    b.ToTable("organization", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Infrastructure.Identity.AppUser", b =>
@@ -818,7 +819,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_user_account_normalized_user_name");
 
-                    b.ToTable("user_account", (string)null);
+                    b.ToTable("user_account", "app");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -848,7 +849,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_user_account_claim_user_id");
 
-                    b.ToTable("user_account_claim", (string)null);
+                    b.ToTable("user_account_claim", "app");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -875,7 +876,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_user_account_login_user_id");
 
-                    b.ToTable("user_account_login", (string)null);
+                    b.ToTable("user_account_login", "app");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -899,7 +900,7 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name")
                         .HasName("pk_user_account_token");
 
-                    b.ToTable("user_account_token", (string)null);
+                    b.ToTable("user_account_token", "app");
                 });
 
             modelBuilder.Entity("ContractGuard.Domain.Analysis.AnalysisRun", b =>

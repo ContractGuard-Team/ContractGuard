@@ -16,6 +16,8 @@ namespace ContractGuard.Infrastructure.Persistence;
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options, CurrentWorkspace workspace)
     : IdentityUserContext<AppUser, Guid>(options), IApplicationDbContext
 {
+    public const string AppSchema = "app";
+
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<Membership> Memberships => Set<Membership>();
     public DbSet<Contract> Contracts => Set<Contract>();
@@ -35,6 +37,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, Current
         // Identity configures its own tables first; our configurations then override names.
         base.OnModelCreating(modelBuilder);
 
+        // Own schema: Supabase exposes `public` through its Data API, where the AI team keeps its legal corpus (docs/04 C4).
+        modelBuilder.HasDefaultSchema(AppSchema);
         modelBuilder.HasPostgresExtension("vector");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
