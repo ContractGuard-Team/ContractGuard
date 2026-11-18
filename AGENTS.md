@@ -17,7 +17,7 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 1. `docs/spec/00-Project-State.md`: quyết định (DEC-*), vị trí hiện tại. Đọc trước.
 2. `docs/03-implementation-phases.md`: phase và điểm cần chốt (§4).
 3. `docs/02-system-design.md`: ràng buộc, ước lượng, quyết định đã chốt. `docs/04-system-design-decisions.md`: phiếu quyết định bước 2–8.
-4. `docs/architecture/*.html`: sơ đồ tổng quan, luồng phân tích.
+4. `docs/architecture/contractguard-architecture.drawio`: sơ đồ kiến trúc AWS và software stack (nguồn chính duy nhất; mở bằng draw.io).
 5. `docs/DESIGN.md`: hệ thống giao diện (token, font, component, quy tắc). Đọc trước khi làm UI; `docs/PRODUCT.md` là định hướng sản phẩm.
 6. `docs/06-ai-integration-points.md`: chỗ nối với nhóm AI (`AI-HOOKUP` trong code), đề xuất khối `scoring`, câu hỏi chờ trả lời. Đọc trước khi đụng phân tích hoặc chat.
 7. `docs/05-ai-diagram-vs-system-design.md`: chia việc SE và AI, chỗ lệch với system design, tóm tắt repo nhóm AI (§9). Đọc file này thay vì rà `AI/` (bản clone local, Hermes khoảng 22.000 file).
@@ -33,7 +33,8 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 - **System design:** agent viết đề xuất kèm phương án và trade-off vào `docs/04-system-design-decisions.md`; Approver đọc và quyết định (dòng Quyết định để trống = đồng ý). Chỉ ghi vào `02-system-design.md` sau khi đã chốt.
 - **Không bao giờ tự đặt `APPROVED`.** Chỉ Approver (SE của nhóm) quyết định.
 - **Không sửa** `RDK/` (Requirements Documentation Kit, cài ở máy local bằng `npx req-doc-kit`, không có trên GitHub). Quy tắc làm spec nằm ở `RDK/Agent/AGENTS.md`.
-- AI chạy qua Amazon Bedrock; model chưa chốt, do eval quyết định (DEC-GEN-010, DEC-GEN-016).
+- Model AI do nhóm AI tự host bằng Docker trên EC2, không dùng Bedrock (DEC-GEN-029, CR-GEN-003); model cụ thể do eval quyết định (DEC-GEN-010). Nền tảng chạy worker do nhóm AI chọn.
+- Database trên AWS là Supabase (PostgreSQL + pgvector), local vẫn dùng Postgres trong Docker (`docs/04` mục C1).
 - Service C# là nơi duy nhất ghi DB; worker Python không chạm DB; `/contracts` chứa JSON Schema dùng chung.
 
 ## Kiểm tra spec

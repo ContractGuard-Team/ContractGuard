@@ -1,6 +1,7 @@
 using ContractGuard.Application.Abstractions;
 using ContractGuard.Domain.Common;
 using ContractGuard.Domain.Contracts;
+using ContractGuard.Domain.Workspaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ContractGuard.Application.Contracts;
@@ -14,12 +15,19 @@ public sealed class ShareService(IApplicationDbContext db, ICurrentWorkspace wor
     public async Task<ContractAccessView> ListAsync(Guid contractId, CancellationToken cancellationToken)
     {
         var contract = await LoadOwnedAsync(contractId, cancellationToken);
-        var shares = await db.ContractShares.Where(s => s.ContractId == contractId).OrderBy(s => s.SharedAt).ToListAsync(cancellationToken);
-        var people = await users.GetAsync(shares.Select(s => s.UserAccountId).Append(contract.OwnerUserAccountId), cancellationToken);
-        var owner = people.GetValueOrDefault(contract.OwnerUserAccountId);
+        var administrators = contract.OrganizationId is { } organizationId
+            ? (await OrganizationOwnersAsync(organizationId, cancellationToken)).Where(id => id != contract.OwnerUserAccountId).ToList()
+            : [];
+        // Share rows of administrators stay in the database (they apply again if the person stops being an owner).
+        var shares = (await db.ContractShares.Where(s => s.ContractId == contractId).OrderBy(s => s.SharedAt).ToListAsync(cancellationToken))
+            .Where(s => !administrators.Contains(s.UserAccountId))
+            .ToList();
+        var people = await users.GetAsync(shares.Select(s => s.UserAccountId).Concat(administrators).Append(contract.OwnerUserAccountId), cancellationToken);
+        PersonItem Person(Guid id) => new(id, people.GetValueOrDefault(id)?.DisplayName ?? "", people.GetValueOrDefault(id)?.Email ?? "");
         return new ContractAccessView(
-            new PersonItem(contract.OwnerUserAccountId, owner?.DisplayName ?? "", owner?.Email ?? ""),
+            Person(contract.OwnerUserAccountId),
             contract.OrganizationId is not null,
+            [.. administrators.Select(Person)],
             [.. shares.Select(s => new ShareItem(s.UserAccountId, people.GetValueOrDefault(s.UserAccountId)?.DisplayName ?? "", people.GetValueOrDefault(s.UserAccountId)?.Email ?? "", s.SharedAt))]);
     }
 
@@ -33,6 +41,12 @@ public sealed class ShareService(IApplicationDbContext db, ICurrentWorkspace wor
             if (user is null || !await IsMemberAsync(organizationId, user.UserId, cancellationToken))
             {
                 throw new DomainException(ErrorCodes.ShareNotOrgMember, "Organization contracts can only be shared with members of the organization.");
+            }
+
+            // CR-GEN-002: an organization owner already has every right on the contract (DEC-PRD-017).
+            if (user.UserId != contract.OwnerUserAccountId && (await OrganizationOwnersAsync(organizationId, cancellationToken)).Contains(user.UserId))
+            {
+                throw new DomainException(ErrorCodes.ShareAlreadyAdmin, "Organization owners already have full access to this contract.");
             }
         }
         else if (user is null)
@@ -58,7 +72,8 @@ public sealed class ShareService(IApplicationDbContext db, ICurrentWorkspace wor
         var contract = await LoadOwnedAsync(contractId, cancellationToken);
         var organizationId = contract.OrganizationId
             ?? throw new DomainException(ErrorCodes.Validation, "A personal contract has no organization to share with.");
-        var members = await db.Memberships.Where(m => m.OrganizationId == organizationId).Select(m => m.UserAccountId).ToListAsync(cancellationToken);
+        // CR-GEN-002: organization owners already have access, so only members get a share.
+        var members = await db.Memberships.Where(m => m.OrganizationId == organizationId && m.OrgRole != OrgRole.Owner).Select(m => m.UserAccountId).ToListAsync(cancellationToken);
         var added = 0;
         foreach (var member in members.Where(m => m != contract.OwnerUserAccountId))
         {
@@ -122,6 +137,9 @@ public sealed class ShareService(IApplicationDbContext db, ICurrentWorkspace wor
 
     private Task<bool> IsMemberAsync(Guid organizationId, Guid userAccountId, CancellationToken cancellationToken) =>
         db.Memberships.AnyAsync(m => m.OrganizationId == organizationId && m.UserAccountId == userAccountId, cancellationToken);
+
+    private Task<List<Guid>> OrganizationOwnersAsync(Guid organizationId, CancellationToken cancellationToken) =>
+        db.Memberships.Where(m => m.OrganizationId == organizationId && m.OrgRole == OrgRole.Owner).Select(m => m.UserAccountId).ToListAsync(cancellationToken);
 
     private async Task<bool> AddShareAsync(Guid contractId, Guid userAccountId, CancellationToken cancellationToken)
     {

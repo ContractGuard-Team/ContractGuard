@@ -40,7 +40,7 @@ public static class DependencyInjection
         AddPersistence(services);
         AddAws(services);
         AddAnalysis(services);
-        services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        AddEmail(services, configuration);
 
         // AI-HOOKUP (F-CHAT-001): the real model replaces UnconfiguredChatResponder here (docs/06).
         // "fake" is for development and e2e only; Program.cs refuses it in Production.
@@ -63,6 +63,20 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(sectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
+    }
+
+    // Mailpit over SMTP locally and in tests; Amazon SES in the Cloud environment and on AWS.
+    private static void AddEmail(IServiceCollection services, IConfiguration configuration)
+    {
+        if (string.Equals(configuration[$"{EmailOptions.SectionName}:Provider"], EmailOptions.SesProvider, StringComparison.Ordinal))
+        {
+            services.AddSingleton(sp => AwsClientFactory.CreateSes(sp.GetRequiredService<IOptions<AwsOptions>>().Value));
+            services.AddSingleton<IEmailSender, SesEmailSender>();
+        }
+        else
+        {
+            services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        }
     }
 
     private static void AddPersistence(IServiceCollection services)

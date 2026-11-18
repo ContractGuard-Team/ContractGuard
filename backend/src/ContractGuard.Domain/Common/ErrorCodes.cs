@@ -21,6 +21,7 @@ public static class ErrorCodes
 
     public const string ShareNotOrgMember = "ERR-SHARE-001";
     public const string ShareNoAccount = "ERR-SHARE-002";
+    public const string ShareAlreadyAdmin = "ERR-SHARE-003";
 
     public const string Forbidden = "ERR-SEC-001";
 

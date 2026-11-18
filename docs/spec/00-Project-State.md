@@ -2,7 +2,7 @@
 document_type: project_state
 state_schema_version: "1.1"
 project: "ContractGuard"
-last_updated: 2026-10-27
+last_updated: 2026-11-17
 ---
 
 # Project State - ContractGuard
@@ -49,8 +49,8 @@ The Agent reads this file first in every session and updates it at the end of ev
 |---:|---|---|---|---|---|---|---|---|
 | 0 | Project State | `00-Project-State.md` | - | - | - | - | S0 Intake | Passed 2026-10-24 by Approver |
 | 1 | BRS / BRD | - | - | - | - | - | S1 Business | Skipped (not in Document Set) |
-| 2 | PRD | `02-PRD.md` | Primary | Standard | `1.2` | REVIEW | S2 Stakeholder & Product | Passed 2026-10-24 by Approver (v0.2); v0.3 áp dụng trả lời OQ 2026-10-26; v0.4 thêm mô hình không gian làm việc 2026-10-27; v1.0 baseline tại Gate S5 2026-10-27; v1.1 bỏ MFA khỏi MVP (DEC-PRD-022) 2026-10-27; v1.2 bỏ bản scan và OCR (CR-GEN-001, DEC-PRD-023) 2026-11-17; chờ Approver duyệt lại |
-| 3 | SRS | `03-SRS.md` | - | Tier 2 | `1.2` | REVIEW | S3 Outline, S4 Incremental | S3: Passed 2026-10-24 by Approver; S4: hoàn tất bản nháp đầy đủ 2026-10-24; v0.9 áp dụng trả lời OQ 2026-10-26; v0.10 mô hình không gian và §9 tiếng Anh 2026-10-27; v1.0 baseline 2026-10-27; v1.1 bỏ MFA khỏi MVP 2026-10-27; v1.2 bỏ bản scan và OCR (CR-GEN-001) 2026-11-17; chờ Approver duyệt lại |
+| 2 | PRD | `02-PRD.md` | Primary | Standard | `1.3` | REVIEW | S2 Stakeholder & Product | Passed 2026-10-24 by Approver (v0.2); v0.3 áp dụng trả lời OQ 2026-10-26; v0.4 thêm mô hình không gian làm việc 2026-10-27; v1.0 baseline tại Gate S5 2026-10-27; v1.1 bỏ MFA khỏi MVP (DEC-PRD-022) 2026-10-27; v1.2 bỏ bản scan và OCR (CR-GEN-001, DEC-PRD-023) 2026-11-17; chờ Approver duyệt lại; v1.3 CR-GEN-003 model tự host trên EC2 2026-11-17 |
+| 3 | SRS | `03-SRS.md` | - | Tier 2 | `1.4` | REVIEW | S3 Outline, S4 Incremental | S3: Passed 2026-10-24 by Approver; S4: hoàn tất bản nháp đầy đủ 2026-10-24; v0.9 áp dụng trả lời OQ 2026-10-26; v0.10 mô hình không gian và §9 tiếng Anh 2026-10-27; v1.0 baseline 2026-10-27; v1.1 bỏ MFA khỏi MVP 2026-10-27; v1.2 bỏ bản scan và OCR (CR-GEN-001) 2026-11-17; chờ Approver duyệt lại; v1.4 CR-GEN-003 model tự host trên EC2 2026-11-17 |
 | 3 | Validation Report | `Reports/Validation-Report-2026-10-27.md` (thay các bản trước) | - | - | - | - | S5 Baseline | Passed 2026-10-27 by Approver: 0 Critical, 2 Warning (MC9, RS3) là known issues (DEC-GEN-026) |
 | 4 | Backlog / Release Plan | - | - | - | - | - | S6 Delivery | Skipped (not in Document Set) |
 
@@ -60,9 +60,9 @@ The Agent reads this file first in every session and updates it at the end of ev
 |---|---|
 | Current Stage | S5 hoàn tất (baseline). S6 Delivery không thuộc Document Set |
 | Current Run Mode | - |
-| Current Focus | PRD v1.0 và SRS v1.0 đã baseline. Kế hoạch code theo phase ở `docs/03-implementation-phases.md`; sơ đồ tổng quan ở `docs/architecture/` |
+| Current Focus | PRD v1.0 và SRS v1.0 đã baseline. Kế hoạch code theo phase ở `docs/03-implementation-phases.md`; sơ đồ kiến trúc ở `docs/architecture/contractguard-architecture.drawio` (thay hai sơ đồ HTML từ 2026-11-17) |
 | Next Step | Làm tiếp system design (`docs/02-system-design.md` bước 2–8), rồi code theo phase. Mọi thay đổi PRD, SRS từ nay đi qua change request (`Agent/03-SRS/06-Change Request Workflow.md`) |
-| Blocked By | Approver duyệt lại các mục `REVIEW` sau khi bỏ MFA (F-AUTH-003, FR-AUTH-006, FR-AUTH-007) và sau CR-GEN-001 bỏ bản scan (`Change-Requests/CR-GEN-001.md`). Known issue: ngày demo đầu 12/2026 (OQ-GEN-003) chưa khớp CON-PRJ-005 "hơn 4 tháng" |
+| Blocked By | Approver duyệt lại các mục `REVIEW` sau khi bỏ MFA (F-AUTH-003, FR-AUTH-006, FR-AUTH-007) và sau CR-GEN-001 bỏ bản scan (`Change-Requests/CR-GEN-001.md`), sau CR-GEN-003 model tự host trên EC2 (`Change-Requests/CR-GEN-003.md`). Known issue: ngày demo đầu 12/2026 (OQ-GEN-003) chưa khớp CON-PRJ-005 "hơn 4 tháng" |
 
 ## 4. Interview Progress
 
@@ -139,13 +139,13 @@ The Agent reads this file first in every session and updates it at the end of ev
 | DEC-GEN-007 | Output Location = `docs/spec/`, chấp nhận được commit vào git | 2026-10-24 | Approver | Toàn bộ tài liệu |
 | DEC-GEN-008 | Mục tiêu độ trễ phân tích hợp đồng 20 trang: p50 ≤ 60 giây, p95 ≤ 2 phút, đo khi worker đã chạy sẵn. Thay mức p50 ≤ 45 giây trong `docs/01-product-spec.md` §8. Được thay bởi DEC-GEN-022 (2026-10-26). | 2026-10-24 | Approver | PRD §9, SRS §11 |
 | DEC-GEN-009 | Ánh xạ mức "L" (làm sau) trong product spec sang MoSCoW: So sánh phiên bản (EXT-01) và Company Policy (EXT-02) là `Could`; các mục "L" còn lại là `Won't`. | 2026-10-24 | Approver | PRD §7 |
-| DEC-GEN-010 | Việc chọn model AI (open-weight trên Bedrock, Custom Model Import, hoặc Claude) được hoãn; spec không gắn với model cụ thể. | 2026-10-21 | Approver | PRD §11, SRS §2.5, §10.2 |
+| DEC-GEN-010 | Việc chọn model AI (open-weight trên Bedrock, Custom Model Import, hoặc Claude) được hoãn; spec không gắn với model cụ thể. Từ DEC-GEN-029 (2026-11-17), lựa chọn chỉ còn các model tự host được trên EC2. | 2026-10-21 | Approver | PRD §11, SRS §2.5, §10.2 |
 | DEC-GEN-011 | Tài liệu không chứa phần phân công thành viên. | 2026-10-20 | Approver | Toàn bộ tài liệu |
 | DEC-GEN-012 | Nguồn ưu tiên: quyết định trực tiếp của Approver (P1) > `docs/01-product-spec.md` v1.2, `docs/02-system-design.md` v0.2, `docs/PRODUCT.md` (P3, đang REVIEW) > thư mục `Idea/` (P4, đã được product spec thay thế). Các quyết định sản phẩm ở Phụ lục A của product spec do Approver đưa ra trực tiếp nên được tính là P1. | 2026-10-24 | Approver (xác nhận tại Gate S0) | Toàn bộ tài liệu |
 | DEC-GEN-013 | Mẫu user story tiếng Việt `Là <persona>, tôi muốn <khả năng>, để <lợi ích>.`; tiêu chí nghiệm thu giữ từ khóa tiếng Anh `Given / when / then`, nội dung viết tiếng Việt. | 2026-10-24 | Approver | PRD §8, SRS §8, §15 |
 | DEC-GEN-014 | Gate S0 thông qua | 2026-10-24 | Approver | `00-Project-State.md` |
 | DEC-GEN-015 | Region AWS: Singapore (`ap-southeast-1`) | 2026-10-24 | Approver | PRD CON-PRJ-003, SRS §2.4, §2.5 |
-| DEC-GEN-016 | Với các mục liên quan tới AI: viết theo hướng AI hoạt động ổn định và chạy qua Amazon Bedrock. Các mục Approver không trả lời được coi là chưa có quyết định và giữ `[TBD]`. | 2026-10-24 | Approver | PRD, SRS (các yêu cầu về phân tích AI và chatbot) |
+| DEC-GEN-016 | Với các mục liên quan tới AI: viết theo hướng AI hoạt động ổn định và chạy qua Amazon Bedrock. Các mục Approver không trả lời được coi là chưa có quyết định và giữ `[TBD]`. Phần "chạy qua Amazon Bedrock" được thay bởi DEC-GEN-029 (2026-11-17, CR-GEN-003). | 2026-10-24 | Approver | PRD, SRS (các yêu cầu về phân tích AI và chatbot) |
 | DEC-GEN-017 | Gate S2 thông qua (PRD v0.2) | 2026-10-24 | Approver | `02-PRD.md` |
 | DEC-GEN-018 | Gate S3 thông qua. Cấu trúc SRS theo Tier 2 + TEAM; giữ §13 State Models; §21, §22 bản gọn; §9.10, §10.3, §11.16 ghi "Không áp dụng" kèm lý do; bộ mã domain `AUTH`, `ORG`, `SHARE`, `CTR`, `UPL`, `ANA`, `RISK`, `VIEW`, `CHAT`, `EXP`, `AUD`, `DATA` và mã danh mục NFR | 2026-10-24 | Approver | `03-SRS.md` |
 | DEC-GEN-019 | S4 chạy theo Incremental Mode: viết từng mục, dừng để Approver review trước khi viết mục tiếp theo | 2026-10-24 | Approver | `03-SRS.md` |
@@ -156,8 +156,9 @@ The Agent reads this file first in every session and updates it at the end of ev
 | DEC-GEN-024 | Chống dò mật khẩu và spam email theo mô hình nhiều lớp, thay cách khóa theo IP ở OQ-AUTH-002 (d). (1) Đăng nhập: sai 5 lần liên tiếp với cùng email thì khóa đăng nhập bằng mật khẩu của email đó 15 phút, đếm ở server; vẫn cho đặt lại mật khẩu. (2) Quên mật khẩu: mỗi tài khoản chờ 3 phút giữa hai lần gửi, tối đa 5 email/giờ, luôn trả cùng thông báo; giao diện có đồng hồ đếm ngược 3 phút. (3) Rate limit theo IP: 30 request/phút cho đăng nhập, 10 request/phút cho quên mật khẩu. Email cảnh báo đăng nhập sai nhiều lần: Won't trong MVP. Lý do: khóa theo IP làm khóa lây mọi người dùng chung một mạng (NAT). | 2026-10-26 | Approver | SRS SEC-AUTH-006, SEC-AUTH-007, FR-AUTH-014, FR-AUTH-015, ERR-AUTH-005, ERR-AUTH-006, EF-AUTH-003 |
 | DEC-GEN-025 | Ngoại lệ ngôn ngữ cho SRS §9 (Data Requirements And Data Model): tên entity, thuộc tính, quan hệ, bảng, cột, data item, mã giá trị enum và nhãn trong ERD viết tiếng Anh; cột định nghĩa, mô tả, quy tắc giữ tiếng Việt. Mã enum viết thường (ví dụ `pending_review`), nhãn tiếng Việt hiển thị trên giao diện. | 2026-10-27 | Approver | SRS §9, §1.1 Language Conventions |
 | DEC-GEN-026 | Gate S5 thông qua: Approver baseline PRD v1.0 và SRS v1.0 ("SRS đã ổn"); mọi mục `REVIEW` chuyển `APPROVED`, mục `DEPRECATED` và OQ `CLOSED` giữ nguyên. MC9 (chưa có bảng cột chi tiết) và RS3 (khối lượng lớn so với 1 SE) là known issues. Kế hoạch code chia phase, không gắn ngày. | 2026-10-27 | Approver | `02-PRD.md`, `03-SRS.md`, `Reports/Validation-Report-2026-10-27.md`, `docs/03-implementation-phases.md` |
-| DEC-GEN-027 | Frontend dùng React Router framework mode với `ssr: false` (SPA, build ra file tĩnh đặt trên S3 + CloudFront), không dùng Next.js và không thêm server Node.js. Lý do: ứng dụng nằm sau đăng nhập, landing và about không cần SEO. `@react-router/dev` 8.5.0 cùng phiên bản `react-router` 8.5.0 của prototype, hỗ trợ Vite 8 và TypeScript 6. Quyết định kỹ thuật, không đổi PRD hay SRS. | 2026-10-27 | Approver | `docs/03-implementation-phases.md`, `docs/architecture/system-overview.html` |
+| DEC-GEN-027 | Frontend dùng React Router framework mode với `ssr: false` (SPA, build ra file tĩnh đặt trên S3 + CloudFront), không dùng Next.js và không thêm server Node.js. Lý do: ứng dụng nằm sau đăng nhập, landing và about không cần SEO. `@react-router/dev` 8.5.0 cùng phiên bản `react-router` 8.5.0 của prototype, hỗ trợ Vite 8 và TypeScript 6. Quyết định kỹ thuật, không đổi PRD hay SRS. | 2026-10-27 | Approver | `docs/03-implementation-phases.md`, `docs/architecture/system-overview.html` (đã xóa 2026-11-17, thay bằng `contractguard-architecture.drawio`) |
 | DEC-GEN-028 | Xác thực tự quản bằng ASP.NET Core Identity trong service C# (system design SD-04 = A). Không dùng Amazon Cognito. MFA không thuộc MVP (DEC-PRD-022). | 2026-10-27 | Approver | `docs/02-system-design.md` §4 |
+| DEC-GEN-029 | Model AI (phân tích, embedding, chatbot) do nhóm AI tự host bằng Docker trên Amazon EC2 ở `ap-southeast-1`, không dùng Amazon Bedrock. Thay DEC-GEN-016. DEC-GEN-010 vẫn áp dụng: model cụ thể do eval chọn, nhưng chỉ trong các model tự host được. Nền tảng chạy worker (EC2 hay ECS) do nhóm AI quyết. Áp dụng qua CR-GEN-003 | 2026-11-17 | Approver | PRD CON-PRJ-003, DEP-GEN-001, RISK-GEN-001, RISK-GEN-002; SRS CON-GEN-001, EXT-INTG-001, IF-INTG-001, RISK-SRS-003 |
 
 ## 7. Session Log
 
@@ -176,3 +177,4 @@ The Agent reads this file first in every session and updates it at the end of ev
 | 2026-10-27 | S5 | Approver thông qua Gate S5 (DEC-GEN-026): PRD v1.0, SRS v1.0 chuyển `APPROVED`. Tạo kế hoạch code theo phase `docs/03-implementation-phases.md` và sơ đồ tổng quan `docs/architecture/` (theo `Idea/Tech stack and flow.pdf`). | System design bước 2, rồi code phase 0 |
 | 2026-10-27 | Sau S5 | System design: Approver chốt bước 1 và SD-01..SD-20 (`docs/02-system-design.md` §4); SD-04 = ASP.NET Core Identity, không dùng Cognito (DEC-GEN-028). Bỏ MFA khỏi MVP, sau MVP ưu tiên Should với MFA qua email mỗi lần đăng nhập (DEC-PRD-022): PRD v1.1, SRS v1.1. | Approver duyệt các mục REVIEW (F-AUTH-003, FR-AUTH-006, FR-AUTH-007) |
 | 2026-11-17 | Sau S5 | CR-GEN-001 (`Change-Requests/CR-GEN-001.md`): Approver bỏ đọc bản scan và OCR, chỉ nhận PDF có lớp chữ và DOCX (DEC-PRD-023). PRD v1.2, SRS v1.2: US-ANA-003, STR-QUAL-002, DEP-GEN-002, FR-ANA-007, NFR-PERF-003, EXT-INTG-002, IF-INTG-002 DEPRECATED; các mục sửa về REVIEW. Code, `contracts/` (bỏ `jpg`, `png`, `is_scanned`), system design và sơ đồ cập nhật theo. | Approver duyệt các mục REVIEW; nhóm AI và IA duyệt thay đổi `contracts/` |
+| 2026-11-17 | Sau S5 | CR-GEN-003 (`Change-Requests/CR-GEN-003.md`): Approver chốt model AI tự host bằng Docker trên EC2 thay Bedrock (DEC-GEN-029). PRD v1.3, SRS v1.4; các mục sửa về REVIEW. Cùng ngày: database chuyển sang Supabase (system design, `docs/04`), nền tảng worker để nhóm AI quyết | Approver duyệt các mục REVIEW; nhóm AI chọn model và loại máy GPU, xin quota; IA sửa policy IAM trong `security/` |

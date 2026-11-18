@@ -1,5 +1,7 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { NavLink } from "react-router";
+
+import { useIsWideScreen } from "~/lib/media";
 
 import { Button } from "./Button";
 import { Logo } from "./Logo";
@@ -18,9 +20,21 @@ export interface WorkspaceOption {
   label: string;
 }
 
+const railKey = "cg.rail-open";
+
+function readRailOpen() {
+  try {
+    return window.localStorage.getItem(railKey) !== "false";
+  } catch {
+    return true;
+  }
+}
+
 // DESIGN §5 Navigation: 232px rail on the left, primary "upload" button under the logo, 40px nav items,
-// a skip link for keyboard users, main content on the desk background. The rail shrinks to 56px of icons
-// on a narrow screen, and always in a contract workspace (compact), which then gets all the height.
+// a skip link for keyboard users, main content on the desk background. A toggle switches the rail
+// between 232px and 56px of icons. On a wide screen the rail pushes the content and remembers its
+// state; on a narrow screen, and in a contract workspace (compact) that needs all the width, it stays
+// 56px and opens as a drawer over the content.
 export function AppShell({
   children,
   compact,
@@ -43,9 +57,38 @@ export function AppShell({
   onLogout: () => void;
 }) {
   const navItems = workspace ? [libraryItem, organizationItem] : [libraryItem];
+  const wide = useIsWideScreen();
+  const drawer = compact || !wide;
+  const [railOpen, setRailOpen] = useState(readRailOpen);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const open = drawer ? drawerOpen : railOpen;
   // Screen readers still get the words the icons replace.
-  const labelClass = compact ? "sr-only" : "max-lg:sr-only";
-  const iconOnlyClass = compact ? "justify-center" : "max-lg:justify-center";
+  const labelClass = open ? "" : "sr-only";
+  const iconOnlyClass = open ? "" : "justify-center";
+
+  function toggle() {
+    if (drawer) {
+      setDrawerOpen(!drawerOpen);
+      return;
+    }
+
+    setRailOpen(!railOpen);
+    try {
+      window.localStorage.setItem(railKey, String(!railOpen));
+    } catch {
+      // Private mode: the choice lasts until the tab closes.
+    }
+  }
+
+  // A drawer closes after the user picks something in it.
+  const closeDrawer = () => setDrawerOpen(false);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setDrawerOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [drawerOpen]);
 
   return (
     <div className="flex min-h-screen">
@@ -56,23 +99,43 @@ export function AppShell({
         Bỏ qua tới nội dung chính
       </a>
 
+      {/* Keeps the content clear of the rail: as wide as the rail, or as its 56px when it is a drawer. */}
+      <div aria-hidden="true" className={`shrink-0 transition-[width] duration-200 ease-out-quart ${open && !drawer ? "w-sidebar" : "w-sidebar-collapsed"}`} />
+
+      {drawerOpen && <div aria-hidden="true" className="fixed inset-0 z-30 bg-ink/30" onClick={closeDrawer} />}
+
       <aside
-        className={`sticky top-0 flex h-screen shrink-0 flex-col gap-4 border-r border-rule bg-rail p-2 ${compact ? "w-sidebar-collapsed" : "w-sidebar-collapsed lg:w-sidebar lg:p-3"}`}
+        id="app-rail"
+        className={`fixed top-0 left-0 z-40 flex h-screen flex-col gap-4 overflow-x-hidden border-r border-rule bg-rail transition-[width] duration-200 ease-out-quart ${open ? "w-sidebar p-3" : "w-sidebar-collapsed p-2"}`}
         aria-label="Điều hướng"
       >
-        <div className={`flex h-10 items-center px-2 ${iconOnlyClass}`}>
-          <Logo textClassName={labelClass} />
+        <div className={`flex h-10 items-center gap-1 ${open ? "justify-between pl-2" : "justify-center"}`}>
+          {open && <Logo />}
+          <button
+            type="button"
+            onClick={toggle}
+            aria-expanded={open}
+            aria-controls="app-rail"
+            title={open ? "Thu gọn thanh bên" : "Mở thanh bên"}
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-md text-ink-secondary transition-colors duration-150 hover:bg-ink/5 hover:text-ink"
+          >
+            <RailIcon open={open} />
+            <span className="sr-only">{open ? "Thu gọn thanh bên" : "Mở thanh bên"}</span>
+          </button>
         </div>
 
-        {/* FR-ORG-014. Hidden on the narrow rail: switching from inside a contract makes no sense. */}
-        <div className={compact ? "hidden" : "max-lg:hidden"}>
+        {/* FR-ORG-014. Only on the open rail: the select needs the width. */}
+        <div className={open ? "" : "hidden"}>
           <label htmlFor="workspace-switcher" className="mb-1 block px-1 text-caption text-ink-secondary">
             Không gian làm việc
           </label>
           <select
             id="workspace-switcher"
             value={workspace ?? ""}
-            onChange={(e) => onSwitchWorkspace(e.target.value === "" ? null : e.target.value)}
+            onChange={(e) => {
+              closeDrawer();
+              onSwitchWorkspace(e.target.value === "" ? null : e.target.value);
+            }}
             className="h-10 w-full rounded-md border border-rule-strong bg-sheet px-2 text-label font-semibold text-ink focus:border-review-ink focus:ring-3 focus:ring-review-ink/15 focus:outline-none"
           >
             {workspaces.map((option) => (
@@ -86,7 +149,10 @@ export function AppShell({
 
         <button
           type="button"
-          onClick={onUpload}
+          onClick={() => {
+            closeDrawer();
+            onUpload();
+          }}
           title="Tải hợp đồng lên"
           className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-review-ink text-button text-sheet transition-colors duration-150 ease-out-quart hover:bg-review-ink-hover active:bg-review-ink-pressed"
         >
@@ -102,6 +168,7 @@ export function AppShell({
                   to={item.to}
                   end
                   title={item.label}
+                  onClick={closeDrawer}
                   className={({ isActive }) =>
                     `flex h-10 items-center gap-2.5 rounded-md border px-2.5 text-button transition-colors duration-150 ${iconOnlyClass} ${
                       isActive ? "border-rule bg-sheet text-ink" : "border-transparent text-ink-secondary hover:bg-ink/5"
@@ -125,7 +192,7 @@ export function AppShell({
               {email}
             </p>
           </div>
-          <Button variant="ghost" size="sm" title="Đăng xuất" className={`w-full px-2.5 lg:justify-start ${iconOnlyClass}`} onClick={onLogout}>
+          <Button variant="ghost" size="sm" title="Đăng xuất" className={`w-full px-2.5 ${open ? "justify-start" : "justify-center"}`} onClick={onLogout}>
             <LogoutIcon />
             <span className={labelClass}>Đăng xuất</span>
           </Button>
@@ -136,6 +203,17 @@ export function AppShell({
         {children}
       </main>
     </div>
+  );
+}
+
+// A panel with its left column; the chevron points the way the rail will move.
+function RailIcon({ open }: { open: boolean }) {
+  return (
+    <svg className="size-4 shrink-0" viewBox="0 0 16 16" aria-hidden="true">
+      <rect x="2" y="2.5" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6 2.5v11" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d={open ? "M10.5 6.5 9 8l1.5 1.5" : "M9 6.5 10.5 8 9 9.5"} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

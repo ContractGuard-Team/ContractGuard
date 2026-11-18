@@ -5,7 +5,7 @@
 | Phiên bản | 0.1 |
 | Ngày | 2026-10-27 |
 | Đầu vào | [PRD v1.0](spec/02-PRD.md), [SRS v1.0](spec/03-SRS.md) (baseline 2026-10-27, DEC-GEN-026); [System design](02-system-design.md); `Idea/Tech stack and flow.pdf` |
-| Sơ đồ | [Tổng quan hệ thống](architecture/system-overview.html), [Luồng phân tích một hợp đồng](architecture/analysis-flow.html) |
+| Sơ đồ | [Kiến trúc và software stack](architecture/contractguard-architecture.drawio) (mở bằng draw.io; thay hai sơ đồ HTML cũ từ 2026-11-17) |
 
 ## 0. Cách đọc
 
@@ -52,19 +52,19 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 | Track | Việc |
 |---|---|
 | SE | Chuyển `/frontend` sang React Router framework mode (`ssr: false`, thêm `@react-router/dev` 8.5.0; DEC-GEN-027), giữ nguyên các trang prototype. Repo nhóm đã có khung thư mục:  `/frontend` (prototype đã có), `/backend` (.NET 10), `/worker` (Python 3.12), `/contracts` (JSON Schema dùng chung), `/infra` (CDK), `/eval` |
-| SE | Docker Compose: PostgreSQL + pgvector, giả lập S3 và SQS. Bedrock gọi bản thật (SD §2.7) |
+| SE | Docker Compose: PostgreSQL + pgvector, giả lập S3 và SQS. Model AI: Bedrock gọi bản thật (SD §2.7); từ 2026-11-17 là model tự host của nhóm AI (DEC-GEN-029) |
 | SE | Migration đầu tiên theo SRS §9 (bảng, khóa, `organization_id` cho phép rỗng ở `contract`) |
 | SE | CI trên GitHub Actions: build, test, lint cho cả ba phần |
 | SE, AI | `extraction.json` v0 trong `/contracts`, có `schema_version`; hai bên cùng validate theo file này |
 | AI | Bộ eval 20 hợp đồng có nhãn (DEP-GEN-003); đếm token tiếng Việt trên 3–5 hợp đồng (SD §2.9) |
-| AI | Kiểm tra quyền dùng model trên Bedrock ở `ap-southeast-1`, credit FCAJ có áp dụng không, và xin tăng quota **sớm** |
+| AI | Kiểm tra quyền dùng model trên Bedrock ở `ap-southeast-1`, credit FCAJ có áp dụng không, và xin tăng quota **sớm**. Từ 2026-11-17 (DEC-GEN-029): chọn loại máy GPU ở `ap-southeast-1` và xin quota vCPU GPU **sớm** |
 | IA | Threat model cho upload, prompt injection, cách ly không gian làm việc; checklist bảo mật cho code review |
 
 **Tiêu chí xong:**
 - Chạy `docker compose up` thì API và worker trao đổi được một message qua SQS giả lập.
 - CI chạy xanh.
 - Có schema `extraction.json` v0 và một file mẫu hợp lệ.
-- Gọi Bedrock thành công từ worker.
+- Gọi model thành công từ worker (Bedrock trước 2026-11-17; model tự host sau đó).
 
 ### Phase 1 — Lát cắt dọc luồng demo
 
@@ -170,8 +170,9 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 
 | Track | Việc |
 |---|---|
-| SE | Dựng staging ở `ap-southeast-1` bằng CDK, deploy bằng GitHub Actions và ECR |
-| SE | Chính sách bật/tắt để tiết kiệm credit (SD §2.7); quyết định worker chạy sẵn hay scale từ 0 (SD Q1) |
+| SE | Dựng staging ở `ap-southeast-1` bằng CDK, deploy bằng GitHub Actions và ECR. Database là Supabase (`04` mục C1); GitHub OIDC cần admin của org |
+| AI | Dựng máy GPU chạy model tự host và nền tảng chạy worker do nhóm chọn (`04` mục C2, C3); trả lời 3 câu hỏi ở mục C3 (API của model, đường mạng từ API tới model, model embedding) |
+| SE, AI | Chính sách bật/tắt để tiết kiệm credit (SD §2.7): API, máy GPU của model; worker chạy sẵn hay scale từ 0 do nhóm AI quyết (SD Q1, `04` mục C2) |
 | Cả nhóm | Trước khi dựng AWS: mọi thành viên cấu hình billing và cảnh báo ngân sách trên tài khoản của mình (SD-20) |
 | SE | OpenTelemetry gửi sang CloudWatch và X-Ray, dùng `job_id` làm correlation ID |
 | SE | Đọc IP thật qua `X-Forwarded-For` sau ALB để rate limit hoạt động đúng |
@@ -228,13 +229,13 @@ Bảng gồm mọi feature Must, Should, Could đang dùng trong PRD §7.1. Feat
 
 Đề xuất và trade-off cho từng điểm nằm ở [04-system-design-decisions.md](04-system-design-decisions.md): D1 → SD-04, D2 → SD-16, D3 → SD-14, D4 → SD-15, D5 → SD-12, D6 → SD-08.
 
-Đây là những chỗ file Tech stack và SRS chưa khớp nhau, hoặc chưa có quyết định. Nhóm tự chốt khi làm system design. Sơ đồ ở `docs/architecture/` đánh dấu các chỗ này là "dự kiến".
+Đây là những chỗ file Tech stack và SRS chưa khớp nhau, hoặc chưa có quyết định. Nhóm tự chốt khi làm system design. Sơ đồ ở `docs/architecture/contractguard-architecture.drawio` ghi chỗ còn chờ là "pending".
 
 | # | Câu hỏi | Vì sao cần chốt | Trước phase | Bước SD |
 |---|---|---|---|---|
 | D1 | ~~Tự viết auth hay Cognito?~~ **Đã chốt: ASP.NET Core Identity** (SD-04, DEC-GEN-028). Không có MFA trong MVP (DEC-PRD-022) | - | 1 | 7 |
 | D2 | Dịch vụ gửi email: Amazon SES hay dịch vụ khác? Ra khỏi sandbox thế nào? | Tài khoản SES mới ở chế độ sandbox, chỉ gửi được tới địa chỉ đã xác minh | 1 | 8 |
-| D3 | Ai gọi Bedrock cho chatbot và ai đọc pgvector? | File Tech stack quy định worker không chạm database, nhưng chatbot cần tìm điều khoản trong pgvector | 4 | 6 |
+| D3 | Ai gọi model cho chatbot (Bedrock trước 2026-11-17, nay là model tự host) và ai đọc pgvector? | File Tech stack quy định worker không chạm database, nhưng chatbot cần tìm điều khoản trong pgvector | 4 | 6 |
 | D4 | Chat streaming bằng gì: SSE, WebSocket (SignalR) hay polling? | Mục tiêu chữ đầu tiên ≤ 15 giây; file Tech stack ghi MVP chưa cần WebSocket | 4 | 6 |
 | D5 | Worker chạy sẵn hay scale từ 0? | Đánh đổi giữa chi phí và độ trễ (SD Q1) | 7 | 5, 8 |
 | D6 | Quét mã độc bằng gì, chạy ở đâu? | F-SEC-001; ảnh "Mẫu stack" gợi ý ClamAV | 2 | 7 |

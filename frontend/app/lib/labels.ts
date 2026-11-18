@@ -26,7 +26,11 @@ export const clauseTypeLabels: Record<string, string> = {
   C99: "Khác",
 };
 
-export const approvalStatusLabels: Record<Schemas["ApprovalStatus"], string> = {
+// CR-GEN-002: one name per role, the same on the organization page and in the share dialog.
+export const orgRoleLabels: Record<NonNullable<Schemas["OrgRole"]>, string> = { owner: "Quản trị viên", member: "Thành viên" };
+export const contractAccessLabels = { owner: "Người phụ trách", administrator: orgRoleLabels.owner, shared: "Được chia sẻ" } as const;
+
+export const approvalStatusLabels:Record<Schemas["ApprovalStatus"], string> = {
   new: "Mới",
   analyzing: "Đang phân tích",
   pending_review: "Chờ review",

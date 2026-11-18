@@ -20,3 +20,4 @@ worker/out
 real-contracts
 test-reports
 *.log
+**/appsettings.*.local.json

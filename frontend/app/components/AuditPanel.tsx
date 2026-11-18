@@ -15,7 +15,7 @@ export const auditActionLabels: Record<Schemas["AuditAction"], string> = {
   finding_handled: "Cập nhật xử lý rủi ro",
   shared: "Chia sẻ",
   share_revoked: "Thu hồi chia sẻ",
-  owner_transferred: "Chuyển quyền Owner",
+  owner_transferred: "Chuyển người phụ trách",
   report_exported: "Xuất báo cáo",
 };
 

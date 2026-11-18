@@ -1558,6 +1558,7 @@ export interface components {
         ContractAccessView: {
             owner: components["schemas"]["PersonItem"];
             isOrganizationContract: boolean;
+            administrators: components["schemas"]["PersonItem"][];
             shares: components["schemas"]["ShareItem"][];
         };
         ContractDetail: {

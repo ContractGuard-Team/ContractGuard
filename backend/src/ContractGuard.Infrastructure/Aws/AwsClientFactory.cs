@@ -1,6 +1,7 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.SimpleEmailV2;
 using Amazon.SQS;
 
 namespace ContractGuard.Infrastructure.Aws;
@@ -28,6 +29,13 @@ internal static class AwsClientFactory
         config.ForcePathStyle = true;
         return new AmazonS3Client(LocalCredentials, config);
     }
+
+    // Always the real regional endpoint: local runs send email through Mailpit, not LocalStack.
+    public static IAmazonSimpleEmailServiceV2 CreateSes(AwsOptions options) =>
+        new AmazonSimpleEmailServiceV2Client(new AmazonSimpleEmailServiceV2Config
+        {
+            RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region)
+        });
 
     public static IAmazonSQS CreateSqs(AwsOptions options)
     {

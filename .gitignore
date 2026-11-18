@@ -86,3 +86,6 @@ CLAUDE.md
 
 # Architecture
 docs/architecture
+
+# Secrets of one environment on a developer machine (backend Program.cs), e.g. Supabase for "Cloud"
+appsettings.*.local.json

@@ -7,6 +7,11 @@
 | Trạng thái | Đã chốt chấm điểm mức B (§4) và X1: nhóm AI chỉ làm worker, backend làm phần còn lại (§5). X2, X3 và schema chờ trả lời |
 | Nguồn | `docs/02`, `docs/04`, SRS baseline, `contracts/`, `security/docs/`, diagram `Quản lý rủi ro.svg`, repo AI ở commit `39c3defb` |
 
+> [!note] Đổi ngày 2026-11-17
+> - Model AI tự host bằng Docker trên EC2, **không còn dùng Bedrock** (CR-GEN-003, DEC-GEN-029). Các chỗ nhắc Bedrock bên dưới là bối cảnh lúc viết.
+> - Nền tảng chạy worker (EC2 hay ECS, §5–§6) **do nhóm AI quyết**; SE chỉ giữ ranh giới SQS, S3, không chạm DB (`docs/04` mục C2).
+> - Database trên AWS là Supabase thay RDS (`docs/04` mục C1).
+
 Hướng của nhóm AI trong file này được suy ra từ diagram, tài liệu và code của họ, **chưa được nhóm AI xác nhận**. Mục đầu tiên của cuộc họp nên là kiểm tra lại phần này.
 
 ## 1. Tóm tắt

@@ -18,6 +18,7 @@ const messages: Record<string, string> = {
   "ERR-ORG-003": "Tổ chức phải luôn còn ít nhất một Owner.",
   "ERR-SHARE-001": "Hợp đồng của tổ chức chỉ chia sẻ được cho thành viên của tổ chức đó.",
   "ERR-SHARE-002": "Email này chưa có tài khoản ContractGuard.",
+  "ERR-SHARE-003": "Người này là quản trị viên của tổ chức, đã có toàn quyền trên hợp đồng.",
   "ERR-CTR-001": "Không thể chuyển sang trạng thái này.",
   "ERR-CTR-002": "Hãy điền đủ các trường bắt buộc.",
   "ERR-CTR-003": "Hợp đồng đang được phân tích. Hãy chờ phân tích xong rồi thử lại.",

@@ -12,26 +12,27 @@
 - Mỗi mục có: bối cảnh (yêu cầu nào trong SRS bị ảnh hưởng), các phương án, trade-off, **đề xuất**, và dòng **Quyết định**.
 - **Để trống dòng Quyết định nghĩa là đồng ý với đề xuất** (cùng quy ước với phiếu OQ, DEC-GEN-023). Muốn chọn khác thì ghi phương án và lý do, hoặc sửa thẳng nội dung đề xuất.
 - Các mục được sắp theo thứ tự cần chốt: mục gắn **[Chặn phase 0–1]** phải chốt trước khi code.
-- Việc của nhóm AI (chọn model, quota Bedrock, đếm token tiếng Việt) không nằm trong phiếu này.
+- Việc của nhóm AI (chọn model, loại máy GPU và quota, đếm token tiếng Việt) không nằm trong phiếu này.
+- Ba điểm đổi ngày 2026-11-17 (Supabase, nền tảng worker, model tự host) ở mục "Đổi sau khi chốt".
 
 ## Tóm tắt đề xuất
 
 | # | Câu hỏi | Đề xuất | Chặn |
 |---|---|---|---|
 | SD-01 | Kiểu kiến trúc | Modular monolith C# + worker Python + hàng đợi | Phase 0 |
-| SD-02 | Chạy service ở đâu | ECS Fargate (ARM) cho API, Fargate Spot cho worker | Phase 7 |
+| SD-02 | Chạy service ở đâu | ECS Fargate (ARM) cho API, Fargate Spot cho worker. **Đổi 2026-11-17 (C2):** worker do nhóm AI chọn | Phase 7 |
 | SD-03 | Cổng vào và domain | Một domain: CloudFront → S3 (SPA) và `/api/*` → ALB | Phase 1 |
 | SD-04 | Xác thực | ASP.NET Core Identity tự quản, cookie httpOnly | Phase 1 |
 | SD-05 | Phân quyền và cách ly không gian | Lọc theo không gian ở EF Core + kiểm tra quyền theo tài nguyên | Phase 1 |
-| SD-06 | Database | RDS PostgreSQL 18 + pgvector, một instance nhỏ | Phase 0 |
+| SD-06 | Database | RDS PostgreSQL 18 + pgvector, một instance nhỏ. **Đổi 2026-11-17 (C1):** Supabase | Phase 0 |
 | SD-07 | File storage | Một bucket, tách prefix `quarantine/` và `clean/`, SSE-KMS khóa AWS quản lý | Phase 1 |
 | SD-08 | Upload và quét mã độc | Presigned POST giới hạn kích thước; GuardDuty Malware Protection for S3 | Phase 1–2 |
 | SD-09 | API giữa frontend và backend | REST + OpenAPI, sinh client TypeScript | Phase 1 |
 | SD-10 | Hợp đồng dữ liệu C# ↔ Python | Mở rộng `contracts/extraction.schema.json` của đồng đội, sinh code hai phía | Phase 0 |
 | SD-11 | Truyền kết quả qua hàng đợi | Message chỉ chứa ID + đường dẫn S3; cùng một hàng đợi cho tiến trình và kết quả | Phase 1 |
-| SD-12 | Worker khởi động từ 0 | Autoscaling theo độ dài hàng đợi; bật sẵn 1 worker theo lịch giờ demo | Phase 7 |
+| SD-12 | Worker khởi động từ 0 | Autoscaling theo độ dài hàng đợi; bật sẵn 1 worker theo lịch giờ demo. **Đổi 2026-11-17 (C2, C3):** nhóm AI quyết | Phase 7 |
 | SD-13 | Retry và trạng thái job | SQS retry 3 lần + DLQ; C# giữ máy trạng thái, bỏ message trùng | Phase 1 |
-| SD-14 | Chatbot: ai truy xuất, ai gọi model | C# truy xuất pgvector và gọi Bedrock; prompt do nhóm AI quản lý trong repo | Phase 4 |
+| SD-14 | Chatbot: ai truy xuất, ai gọi model | C# truy xuất pgvector và gọi model; prompt do nhóm AI quản lý trong repo. **Đổi 2026-11-17 (C3):** gọi endpoint tự host thay Bedrock | Phase 4 |
 | SD-15 | Streaming câu trả lời chat | Server-Sent Events (SSE) | Phase 4 |
 | SD-16 | Email | Amazon SES; local dùng Mailpit | Phase 1 |
 | SD-17 | Môi trường | Docker Compose local (Postgres, LocalStack, Mailpit); AWS dựng sau | Phase 0 |
@@ -69,7 +70,7 @@
 
 **Đề xuất:** A. B chỉ đáng chọn nếu credit gần hết.
 
-**Quyết định:**
+**Quyết định:** A cho API. Phần worker đổi ngày 2026-11-17: nhóm AI chọn nền tảng (mục C2).
 
 ### SD-03 Cổng vào và domain **[Chặn phase 1]**
 
@@ -173,7 +174,7 @@ Threat model của IA (`security/docs/THREAT_MODEL.md`, T01) đang giả định
 
 **Đề xuất:** A. Bảng theo SRS §9 (tên tiếng Anh, DEC-GEN-025); migration bằng EF Core; chỉ mục HNSW cho embedding. Số chiều vector do nhóm AI chốt khi chọn model embedding.
 
-**Quyết định:** A. Ngày 2026-10-29 đổi bản PostgreSQL từ 16 sang 18, vì lúc này chưa có dữ liệu và bản 18 được hỗ trợ lâu hơn. pgvector chỉ dùng tính năng có từ 0.8.1 trở xuống, vì đó là bản RDS PG 18 có lúc ra mắt.
+**Quyết định:** A. Ngày 2026-10-29 đổi bản PostgreSQL từ 16 sang 18, vì lúc này chưa có dữ liệu và bản 18 được hỗ trợ lâu hơn. pgvector chỉ dùng tính năng có từ 0.8.1 trở xuống, vì đó là bản RDS PG 18 có lúc ra mắt. **Đổi ngày 2026-11-17: Supabase thay RDS (mục C1).**
 
 ### SD-07 File storage **[Chặn phase 1]**
 
@@ -250,7 +251,7 @@ Embedding điều khoản do worker tính, gửi kèm kết quả để C# ghi v
 
 **Đề xuất:** A. Mỗi task xử lý tối đa ~4 job song song (asyncio, có giới hạn số lời gọi Bedrock đồng thời), 3 task × 4 = 12 ≥ 10 (NFR-SCAL-001). Nhóm AI chốt số này sau khi có quota thật.
 
-**Quyết định:**
+**Quyết định:** Đổi ngày 2026-11-17: nhóm AI quyết cách chạy và scale worker; model tự host thay Bedrock (mục C2, C3).
 
 ### SD-13 Retry và trạng thái job **[Chặn phase 1]**
 
@@ -364,6 +365,64 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
     - Trước khi triển khai lên AWS, cần phải nhắc lại với các thành viên cấu hình billing, cảnh báo
 ---
 
+## Đổi sau khi chốt (2026-11-17)
+
+Approver đổi ba điểm khi chuẩn bị Phase 7, theo drawio `architecture/contractguard-architecture.drawio`. Phần dưới ghi lại hệ quả và trade-off để cả nhóm biết đã đánh đổi gì. Các mục SD cũ giữ nguyên để lưu vết; dòng Quyết định của chúng trỏ về đây.
+
+### C1 Database: Supabase thay RDS (đổi SD-06, SD-20)
+
+**Bối cảnh:** SD-06 chốt RDS PostgreSQL 18 + pgvector. Approver chọn Supabase (PostgreSQL có sẵn pgvector, quản lý ngoài tài khoản AWS của nhóm).
+
+| | RDS (SD-06 cũ) | **Supabase (Approver chọn)** |
+|---|---|---|
+| Chi phí | ~$15/tháng, trừ vào credit FCAJ; phải dừng ngoài giờ test | Gói Free $0 (500 MB, đủ cho MVP); gói Pro $25/tháng nếu cần. **Không** trừ vào credit AWS |
+| Vận hành | Trong VPC; CDK dựng; tự dừng/bật | Không phải dựng; bảng điều khiển có sẵn. Gói Free **tạm dừng project sau 7 ngày không có truy cập**, phải bật lại tay trước buổi test và demo |
+| Mạng | API gọi trong VPC, không ra internet | API trên Fargate gọi ra internet có TLS (`SSL Mode=Require`). Kết nối trực tiếp của Supabase chỉ có IPv6, nên dùng **pooler Supavisor ở chế độ session** (IPv4, cổng 5432). Chế độ transaction (cổng 6543) không hợp với prepared statement của Npgsql và migration |
+| Region | `ap-southeast-1` | Chọn region Singapore khi tạo project (Supabase chạy trên AWS ở region đó) |
+| Dữ liệu | Trong tài khoản AWS của nhóm | Nội dung hợp đồng (văn bản điều khoản, embedding, chat) nằm ở nhà cung cấp thứ ba. **IA cần xem lại** NFR-PRIV và threat model |
+| Sao lưu | Snapshot tự động của RDS | Gói Free không có bản sao lưu tải về được; Pro có sao lưu hằng ngày 7 ngày |
+| Code | Không đổi | Không đổi: vẫn Npgsql + EF Core + pgvector. Chỉ đổi chuỗi kết nối (đặt trong Secrets Manager) |
+
+**Cần Approver xem:** PRD CON-PRJ-003 ghi "hạ tầng triển khai trên AWS (chương trình FCAJ), region Singapore". Supabase ở Singapore và chạy trên hạ tầng AWS, nhưng không nằm trong tài khoản FCAJ. Nếu Approver hiểu CON-PRJ-003 là "mọi thành phần trong tài khoản AWS của nhóm" thì cần một change request; nếu hiểu là "region và nhà cung cấp hạ tầng" thì không cần.
+
+**Quyết định:** Supabase (Approver chốt 2026-11-17). SD-20 bỏ việc dừng RDS; thêm việc bật lại project Supabase nếu bị tạm dừng.
+
+### C2 Nền tảng chạy worker: nhóm AI quyết (đổi SD-02 phần worker, SD-12)
+
+**Bối cảnh:** SD-02 chốt worker chạy Fargate Spot 0→N, SD-12 chốt scale theo số message. Nhóm AI đang chạy worker bằng Docker trên EC2 ở tài khoản AWS của họ (`docs/07`). Approver để nhóm AI chọn nền tảng.
+
+**SE giữ ranh giới, nền tảng nào cũng phải đáp ứng:**
+- Đọc `analysis-requests`, ghi `results/` lên S3 và gửi message lên `analysis-results`, theo `contracts/`. Không chạm database.
+- Dùng IAM role, không dùng access key tĩnh (`docs/07` §6).
+- Đạt NFR-SCAL-001 (10 phân tích đồng thời) và NFR-PERF-001 (p50 ≤ 2 phút cho 20 trang) khi đã chạy sẵn.
+- Bật sẵn trước giờ demo và giờ test, vì Q1 cho phép worker tắt ngoài giờ.
+
+| Nếu nhóm AI chọn | Hệ quả |
+|---|---|
+| EC2 + Docker Compose | Đơn giản, giống local; máy bật là tính tiền; không tự scale, nên 10 job đồng thời phải chạy song song trong một máy |
+| ECS (Fargate hoặc EC2 có GPU) | Scale theo hàng đợi như SD-12; phải viết thêm task definition, autoscaling |
+
+**Quyết định:** Nhóm AI quyết (Approver 2026-11-17). API vẫn chạy ECS Fargate ARM như SD-02.
+
+### C3 Model AI tự host trên EC2 thay Bedrock (CR-GEN-003, DEC-GEN-029; đổi SD-12, SD-13, SD-14, SD-17, SD-20)
+
+**Bối cảnh:** model AI (phân tích, embedding, chatbot) do nhóm AI tự host bằng Docker trên EC2, region `ap-southeast-1`, thay Amazon Bedrock. Spec đã sửa qua CR-GEN-003.
+
+| Mục | Trước (Bedrock) | Sau (tự host) |
+|---|---|---|
+| Chi phí (SD §2.4, §2.7) | Theo token | Theo giờ máy GPU bật, kể cả khi không có job. Cần lịch bật/tắt (SD-20) |
+| Giới hạn tốc độ (SD-12, SD-13) | Quota token/phút của Bedrock | Số request song song mà máy GPU phục vụ được. Worker và API vẫn giới hạn số lời gọi đồng thời và retry có backoff khi endpoint quá tải |
+| Quota | Quota Bedrock | Quota vCPU cho họ instance G, VT; account mới thường bằng 0 (RISK-GEN-002) |
+| Chat (SD-14 A) | C# gọi Bedrock bằng AWS SDK .NET | C# truy xuất pgvector rồi gọi **endpoint HTTP** của model (stream). Port `IChatResponder` không đổi. Câu hỏi cũng cần endpoint embedding |
+| Local (SD-17) | Gọi Bedrock thật | Gọi endpoint model của nhóm AI nếu có, hoặc `FakeChatResponder` để thử đường đi |
+
+**Câu hỏi cho nhóm AI** (chặn phần chat thật của Phase 7):
+1. Serving stack và định dạng API: có tương thích OpenAI (`/v1/chat/completions`, `/v1/embeddings`) không? Nếu có, C# dùng được thư viện có sẵn.
+2. API (Fargate, tài khoản SE) gọi endpoint (EC2, tài khoản AI) qua đường nào: internet có TLS và khóa dịch vụ, hay VPC peering? Chưa chốt thì không mở cổng model ra internet mà không có xác thực.
+3. Model embedding và số chiều vector (bảng pgvector đang chờ).
+
+**Quyết định:** Tự host trên EC2 (Approver chốt 2026-11-17, DEC-GEN-029).
+
 ## Điểm phát sinh khi code
 
 ### P3-02 Ghi chú lề khi vùng giữa hẹp
@@ -412,7 +471,9 @@ Code: `backend/src/ContractGuard.Infrastructure/Identity/GoogleAccounts.cs`, `Ap
 | Việc | Nhóm | Ảnh hưởng tới |
 |---|---|---|
 | Chọn model cho từng bước, model embedding và số chiều vector | AI | SD-06, SD-14 |
-| Credit FCAJ áp dụng cho Bedrock, quota, xin tăng quota | AI | SD-12 (số task, số job song song) |
+| Chọn loại máy GPU, serving stack, xin quota GPU (C3) | AI | C2, C3, Phase 7 |
+| Nền tảng chạy worker (C2) | AI | SD-12, NFR-SCAL-001 |
+| Xem lại NFR-PRIV và threat model khi dữ liệu nằm ở Supabase (C1); sửa policy IAM bỏ quyền Bedrock (C3) | IA | `security/` |
 | Đếm token tiếng Việt thật | AI | Chi phí, độ trễ |
 | Cập nhật threat model theo SD-04, SD-08, SD-14 | IA | `security/docs/THREAT_MODEL.md` |
 | Ký biên bản chốt giao diện sau SD-10 | AI, IA, SE | `security/docs/CONTRACT_FOR_TEAM.md` |

@@ -38,7 +38,7 @@ export default function OrganizationNew() {
         Tạo tổ chức
       </h1>
       <p className="text-ink-secondary">
-        Hợp đồng trong tổ chức thuộc về tổ chức. Bạn là Owner và có thể mời đồng nghiệp tham gia. Không gian cá nhân của bạn vẫn giữ nguyên.
+        Hợp đồng trong tổ chức thuộc về tổ chức. Bạn là quản trị viên và có thể mời đồng nghiệp tham gia. Không gian cá nhân của bạn vẫn giữ nguyên.
       </p>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         {create.error !== null && <Notice tone="error">{errorMessage(create.error)}</Notice>}
