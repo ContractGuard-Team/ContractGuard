@@ -9,7 +9,7 @@ vi.mock("./DocxViewer", () => ({ default: ({ url }: { url: string }) => <p>docx:
 const link = (url: string) => Response.json({ url });
 
 function setup(fileType: "pdf" | "docx") {
-  render(<FileViewer contractId="c1" versionId="v1" fileName="hop-dong" fileType={fileType} />);
+  render(<FileViewer contractId="c1" versionId="v1" fileType={fileType} />);
 }
 
 describe("FileViewer", () => {

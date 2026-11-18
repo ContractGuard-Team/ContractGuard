@@ -24,14 +24,12 @@ function fileError(error: unknown) {
 export function FileViewer({
   contractId,
   versionId,
-  fileName,
   fileType,
   highlights,
   onSelectClause,
 }: {
   contractId: string;
   versionId: string;
-  fileName: string;
   fileType: Schemas["FileType"];
   highlights?: PdfHighlight[];
   onSelectClause?: (clauseKey: string) => void;
