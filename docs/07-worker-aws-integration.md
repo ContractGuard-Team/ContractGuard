@@ -5,7 +5,7 @@
 | Ngày | 2026-11-13 |
 | Người viết | SE (soạn cùng Claude) |
 | Dành cho | Nhóm AI (worker Python, chạy Docker trên EC2) |
-| Trạng thái | Backend **đã chạy thật** với S3/SQS trên AWS: đã thử trọn luồng upload → job → kết quả → lưu 8 điều khoản. Phía ContractGuard đã mở bucket và queue cho `ContractRisk-EC2-Role` (§5). **Worker chưa chạy**: ngày 2026-11-14 chưa có lần nhận message nào, ping không có `pong` |
+| Trạng thái | Backend **đã chạy thật** với S3/SQS trên AWS: đã thử trọn luồng upload → job → kết quả → lưu 8 điều khoản. Phía ContractGuard đã mở bucket và queue cho `ContractRisk-EC2-Role` (§5). **Worker chưa đọc queue này**: ngày 2026-11-14 và 2026-11-17 (sau khi nhóm AI báo đã nối SQS) ping đều không có `pong`; message ping vẫn nằm nguyên trong `contractguard-dev-analysis-requests`, chưa ai nhận |
 | Đọc kèm | `docs/06-ai-integration-points.md` (điểm nối, khối `scoring`), `contracts/` (schema) |
 
 ## 1. Tài nguyên dùng chung
@@ -97,7 +97,7 @@ Inline policy cho `ContractRisk-EC2-Role` (IAM → Roles → `ContractRisk-EC2-R
   ]
 }
 ```
-Quyền Bedrock nằm trong tài khoản AI, nhóm AI tự quản.
+Quyền Bedrock nằm trong tài khoản AI, nhóm AI tự quản. Từ 2026-11-17 không dùng Bedrock nữa: model tự host trên EC2 (DEC-GEN-029), nên role của worker không cần quyền `bedrock:*`.
 
 Bucket chặn mọi truy cập không dùng HTTPS (`aws:SecureTransport`). `boto3` mặc định dùng HTTPS nên không phải làm gì.
 
@@ -165,5 +165,25 @@ Không upload hợp đồng thật lên môi trường dev.
 | # | Câu hỏi |
 |---|---|
 | 1 | ~~EC2 chạy ở tài khoản nào?~~ Đã rõ: tài khoản AI `333596350642`, role `ContractRisk-EC2-Role` |
-| 2 | Bedrock: dùng trong tài khoản AI. Xác nhận lại model và chi phí khi eval xong |
+| 2 | ~~Bedrock: dùng trong tài khoản AI.~~ Đổi 2026-11-17: model tự host trên EC2 (DEC-GEN-029). Nhóm AI chọn model, loại máy GPU, xin quota GPU; trả lời 3 câu hỏi ở `docs/04` mục C3 |
 | 3 | Nhóm AI có cần quyền đọc bucket, queue và log để gỡ lỗi không? Policy `contractguard-dev-ai-developer-access` đã có nhưng chưa gắn cho ai, và cũng phải sửa prefix theo §2 |
+
+## 10. Supabase dùng chung (2026-11-18)
+
+Chi tiết và lý do: `docs/04` mục C4, C5.
+
+| | Schema `app` | `public.legal_*`, `ingest_jobs`, `crawl_runs` |
+|---|---|---|
+| Sở hữu schema | SE (EF migration trong `backend/`) | AI (`data_pipeline/migrations/*.sql`) |
+| Ghi | Chỉ API C# | Chỉ data pipeline AI |
+| Đọc | API C# | Agent qua MCP; C# chỉ đọc khi X2/SD-14 chốt |
+| Kết nối | Npgsql, user `postgres` (mật khẩu chỉ SE giữ) | PostgREST, secret key |
+
+Môi trường: **staging** là project hiện tại (`lglozpndorcilcfqtgce`, Tokyo), **production** là project mới cũng ở Tokyo. Mỗi project có `SUPABASE_URL` và key riêng.
+
+Nhờ nhóm AI:
+- Đặt `SUPABASE_TABLES=legal_documents,legal_document_versions,legal_articles,legal_relations` cho MCP gateway, không để trống, để agent không liệt kê được bảng khác.
+- Không tạo hay sửa gì trong schema `app`, và không thêm `app` vào "Exposed schemas" của Data API. Đổi bảng của mình thì báo SE nếu có đụng tới extension hoặc cấu hình Data API.
+- Không dùng mật khẩu `postgres`. Cần SQL Editor thì dùng tài khoản dashboard của mình.
+- Staging để thử; production chỉ nạp dữ liệu đã kiểm tra (chạy `001`/`002_*.sql` rồi pipeline).
+- Dữ liệu theo từng job vẫn đi qua S3/SQS theo `contracts/`, không qua DB.

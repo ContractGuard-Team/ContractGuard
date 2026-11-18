@@ -26,6 +26,7 @@ internal static partial class AuthEndpoints
         auth.MapPost("/login", Login).RequireRateLimiting(RateLimits.Login);
         auth.MapPost("/forgot-password", ForgotPassword).RequireRateLimiting(RateLimits.PasswordReset);
         auth.MapPost("/reset-password", ResetPassword).RequireRateLimiting(RateLimits.PasswordReset);
+        auth.MapGoogleLogin(); // F-AUTH-002
         return api;
     }
 

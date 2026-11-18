@@ -50,7 +50,7 @@ export default function Invitation({ loaderData, params }: Route.ComponentProps)
   return (
     <AuthPage title="Lời mời tham gia tổ chức" footer={<Link to="/" className={linkClass}>Về trang chủ</Link>}>
       {invalid || !invitation ? (
-        <Notice tone="error">Liên kết mời không còn hiệu lực. Hãy nhờ Owner của tổ chức gửi lời mời mới.</Notice>
+        <Notice tone="error">Liên kết mời không còn hiệu lực. Hãy nhờ quản trị viên của tổ chức gửi lời mời mới.</Notice>
       ) : (
         <div className="flex flex-col gap-4">
           <p>

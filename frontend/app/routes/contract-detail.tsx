@@ -181,7 +181,6 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
       key={version.contractVersionId}
       contractId={contract.contractId}
       versionId={version.contractVersionId}
-      fileName={version.originalFileName}
       fileType={version.fileType}
       highlights={highlights}
       onSelectClause={openClauseFinding}

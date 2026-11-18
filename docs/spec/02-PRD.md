@@ -11,7 +11,7 @@ prd_scope: Whole Product
 output_language: vi
 role_in_layer: Primary
 upstream: []
-version: "1.1"
+version: "1.3"
 status: REVIEW
 authors:
   - "Agent"
@@ -21,7 +21,7 @@ reviewers:
 approvers:
   - "SE của nhóm"
 created: 2026-10-24
-last_updated: 2026-10-27
+last_updated: 2026-11-17
 tags:
   - prd
   - requirements
@@ -57,7 +57,7 @@ PRD này theo thực tiễn quản lý sản phẩm (SVPG, Aha!, Atlassian), n�
 | Product Name | ContractGuard |
 | Document Name | Product Requirements Document |
 | Document ID | CG-PRD |
-| Version | `1.1` |
+| Version | `1.3` |
 | Variant | Standard |
 | PRD Scope | Whole Product |
 | Role In Layer | Primary (không có StRS) |
@@ -73,6 +73,8 @@ PRD này theo thực tiễn quản lý sản phẩm (SVPG, Aha!, Atlassian), n�
 | 0.4 | 2026-10-27 | Agent | §3, §4, §5, §7, §8, §9, §14 | Mô hình không gian làm việc kiểu GitHub: thêm F-ORG-002 (không gian cá nhân, nhiều tổ chức), US-ORG-004, US-ORG-005, US-SHARE-005, F-CTR-009 (Won't); chia sẻ hợp đồng cá nhân cho mọi tài khoản; DEC-PRD-020, DEC-PRD-021 | REVIEW |
 | 1.0 | 2026-10-27 | Approver | Toàn bộ | Baseline tại Gate S5: Approver thông qua PRD (DEC-GEN-026); mọi mục REVIEW chuyển APPROVED | APPROVED |
 | 1.1 | 2026-10-27 | Agent | §7, §8, §14 | Bỏ MFA khỏi MVP. F-AUTH-003 Should → Won't, US-AUTH-004 DEPRECATED; thêm DEC-PRD-022 | REVIEW |
+| 1.2 | 2026-11-17 | Agent | §6, §7, §8, §10, §11, §14 | CR-GEN-001: bỏ đọc bản scan và OCR, chỉ nhận PDF có lớp chữ và DOCX. US-ANA-003, STR-QUAL-002, DEP-GEN-002 DEPRECATED; F-CTR-001, F-ANA-002, US-CTR-001 sửa và về REVIEW; thêm DEC-PRD-023 | REVIEW |
+| 1.3 | 2026-11-17 | Agent | §11, §12 | CR-GEN-003 (DEC-GEN-029): model AI tự host bằng Docker trên Amazon EC2 thay Amazon Bedrock. CON-PRJ-003, DEP-GEN-001, RISK-GEN-001, RISK-GEN-002 sửa và về REVIEW | REVIEW |
 
 ### 0.1 Tài liệu nguồn
 
@@ -221,7 +223,7 @@ PRD sở hữu `UCL`, `STR` và `OPS` vì không có StRS.
 
 **OPS-GEN-001 Thẩm định một hợp đồng mới** (PS §2.2, §10)
 
-1. Nhân viên kéo thả file PDF, DOCX hoặc ảnh scan vào hệ thống.
+1. Nhân viên kéo thả file PDF có lớp chữ hoặc DOCX vào hệ thống.
 2. Nhân viên khai báo ngữ cảnh: bên mình là bên nào, đối tác, loại hợp đồng, đối tác cung cấp gì, có xử lý dữ liệu cá nhân hay không. Hệ thống điền sẵn những gì trích xuất được.
 3. Hệ thống phân tích tự động và hiển thị tiến trình theo bước.
 4. Nhân viên và giám đốc xem điểm tổng, điểm từng nhóm, danh sách finding và các điều khoản được tô màu trên văn bản.
@@ -284,7 +286,7 @@ Target Release:
 | F-ORG-001 | Tổ chức và thành viên | Tạo tổ chức, mời thành viên qua email, vai trò Owner/Member cấp tổ chức | UCL-GEN-004 | BG-GEN-004 | STR-SHARE-001, STR-SEC-001 | Must | MVP | APPROVED |
 | F-ORG-002 | Không gian cá nhân và nhiều tổ chức | Không gian cá nhân có sẵn khi đăng ký; tạo hoặc tham gia nhiều tổ chức; chuyển giữa các không gian | UCL-GEN-001, UCL-GEN-002, UCL-GEN-004 | BG-GEN-004 | STR-CTR-001, STR-SEC-001 | Must | MVP | APPROVED |
 | F-SHARE-001 | Chia sẻ hợp đồng | Chia sẻ hợp đồng theo email (thành viên tổ chức với hợp đồng của tổ chức; mọi tài khoản với hợp đồng cá nhân), vai trò Owner/Member cấp hợp đồng, thu hồi quyền | UCL-GEN-002, UCL-GEN-004 | BG-GEN-004 | STR-SHARE-001 | Must | MVP | APPROVED |
-| F-CTR-001 | Upload và khai báo ngữ cảnh | Upload file hợp đồng; khai báo bên mình, đối tác, loại hợp đồng, dịch vụ, dữ liệu, mức quan trọng | UCL-GEN-002 | BG-GEN-001, BG-GEN-003 | STR-RISK-001 | Must | MVP | APPROVED |
+| F-CTR-001 | Upload và khai báo ngữ cảnh | Upload file hợp đồng; khai báo bên mình, đối tác, loại hợp đồng, dịch vụ, dữ liệu, mức quan trọng | UCL-GEN-002 | BG-GEN-001, BG-GEN-003 | STR-RISK-001 | Must | MVP | REVIEW |
 | F-CTR-002 | Metadata tự trích xuất | Tự trích các bên, loại, giá trị, đồng tiền, ngày hiệu lực, ngày hết hạn, luật áp dụng; người dùng sửa được | UCL-GEN-002 | BG-GEN-002 | STR-RISK-002 | Must | MVP | APPROVED |
 | F-CTR-003 | Thư viện hợp đồng | Danh sách, tìm kiếm, lọc, sắp xếp hợp đồng | UCL-GEN-002, UCL-GEN-001 | BG-GEN-004 | STR-CTR-001 | Must | MVP | APPROVED |
 | F-CTR-004 | Trạng thái duyệt | Luồng trạng thái từ `Mới` tới `Đã duyệt` hoặc `Từ chối` | UCL-GEN-002, UCL-GEN-001 | BG-GEN-004 | STR-CTR-001 | Must | MVP | APPROVED |
@@ -292,7 +294,7 @@ Target Release:
 | F-CTR-006 | Xóa vĩnh viễn hợp đồng | Xóa file gốc, dữ liệu trích xuất, embedding, finding và lịch sử chat | UCL-GEN-002 | BG-GEN-004 | STR-SEC-001 | Must | MVP | APPROVED |
 | F-AUD-001 | Nhật ký hoạt động | Ghi ai upload, xem, chia sẻ, xuất, đổi trạng thái trên mỗi hợp đồng | UCL-GEN-001, UCL-GEN-003 | BG-GEN-004 | STR-CTR-001 | Should | MVP | APPROVED |
 | F-ANA-001 | Phân tích tự động | Tự động chạy sau khi xác nhận ngữ cảnh, hiển thị tiến trình, báo lỗi, chạy lại | UCL-GEN-002 | BG-GEN-001, BG-GEN-002 | STR-RISK-001, STR-RISK-002 | Must | MVP | APPROVED |
-| F-ANA-002 | Đọc và tách điều khoản | Trích xuất văn bản kể cả OCR, giữ cấu trúc và vị trí, tách và phân loại điều khoản vào 21 loại cộng "Khác" | UCL-GEN-002, UCL-GEN-003 | BG-GEN-001 | STR-RISK-001, STR-RISK-003 | Must | MVP | APPROVED |
+| F-ANA-002 | Đọc và tách điều khoản | Trích xuất văn bản từ PDF có lớp chữ và DOCX, giữ cấu trúc và vị trí, tách và phân loại điều khoản vào 21 loại cộng "Khác" | UCL-GEN-002, UCL-GEN-003 | BG-GEN-001 | STR-RISK-001, STR-RISK-003 | Must | MVP | REVIEW |
 | F-RISK-001 | Đánh giá rủi ro 7 nhóm | Sinh finding theo cấu trúc chuẩn, mỗi finding một nhóm chính; phát hiện điều khoản thiếu; căn cứ tham khảo; nhóm N/A | UCL-GEN-002, UCL-GEN-003 | BG-GEN-001 | STR-RISK-001, STR-RISK-003, STR-RISK-004 | Must | MVP | APPROVED |
 | F-RISK-002 | Checklist Cyber/Privacy/Third-Party | Chạy 20 check, trả trạng thái PASS/PARTIAL/MISSING/N/A, hiển thị kèm liên kết tới điều khoản | UCL-GEN-003 | BG-GEN-001 | STR-RISK-005 | Must | MVP | APPROVED |
 | F-RISK-003 | Chấm điểm rủi ro | Điểm 0–100 theo từng nhóm và cho cả hợp đồng, có điều chỉnh theo ngữ cảnh | UCL-GEN-001 | BG-GEN-001, BG-GEN-002 | STR-RISK-002 | Must | MVP | APPROVED |
@@ -410,7 +412,7 @@ Cột "Nguồn" giữ mã yêu cầu trong `docs/01-product-spec.md` (PS) để 
 
 | Attribute | Value |
 |---|---|
-| Description | Upload hợp đồng bằng kéo thả hoặc chọn file (PDF có lớp text, PDF scan, DOCX, JPG, PNG). Kiểm tra định dạng và kích thước ngay ở bước upload. Khai báo ngữ cảnh: bên mình là bên nào (bên mua/khách hàng hay bên bán/nhà cung cấp), tên đối tác, loại hợp đồng, đối tác cung cấp gì, có xử lý dữ liệu cá nhân hoặc nhạy cảm không, mức độ quan trọng của dịch vụ. Hệ thống điền sẵn thông tin trích xuất được để người dùng xác nhận. |
+| Description | Upload hợp đồng bằng kéo thả hoặc chọn file (PDF có lớp text, DOCX). Kiểm tra định dạng và kích thước ngay ở bước upload. Khai báo ngữ cảnh: bên mình là bên nào (bên mua/khách hàng hay bên bán/nhà cung cấp), tên đối tác, loại hợp đồng, đối tác cung cấp gì, có xử lý dữ liệu cá nhân hoặc nhạy cảm không, mức độ quan trọng của dịch vụ. Hệ thống điền sẵn thông tin trích xuất được để người dùng xác nhận. [CHANGE] Changed by CR-GEN-001 (2026-11-17): bỏ PDF scan, JPG, PNG (DEC-PRD-023). |
 | Personas | UCL-GEN-002 |
 | Goals | BG-GEN-001, BG-GEN-003 |
 | Needs | STR-RISK-001 |
@@ -418,7 +420,7 @@ Cột "Nguồn" giữ mã yêu cầu trong `docs/01-product-spec.md` (PS) để 
 | Business Rules | Rủi ro luôn được đánh giá từ góc nhìn bên mình, định nghĩa tại SRS §7 |
 | Priority | Must |
 | Source | PS §2.2, §5, §6.2 CON-01, CON-02 |
-| Status | APPROVED |
+| Status | REVIEW |
 
 #### F-CTR-002 Metadata tự trích xuất
 
@@ -522,15 +524,15 @@ Cột "Nguồn" giữ mã yêu cầu trong `docs/01-product-spec.md` (PS) để 
 
 | Attribute | Value |
 |---|---|
-| Description | Trích xuất văn bản, kể cả OCR cho bản scan, giữ lại cấu trúc (mục, điều, khoản) và vị trí trên trang. Tách hợp đồng thành từng điều khoản và phân loại vào 21 loại điều khoản (PS §7.2) cộng nhóm "Khác". Hỗ trợ hợp đồng tiếng Việt, tiếng Anh và song ngữ. |
+| Description | Trích xuất văn bản từ PDF có lớp chữ và DOCX, giữ lại cấu trúc (mục, điều, khoản) và vị trí trên trang. Tách hợp đồng thành từng điều khoản và phân loại vào 21 loại điều khoản (PS §7.2) cộng nhóm "Khác". Hỗ trợ hợp đồng tiếng Việt, tiếng Anh và song ngữ. [CHANGE] Changed by CR-GEN-001 (2026-11-17): bỏ OCR cho bản scan (DEC-PRD-023). |
 | Personas | UCL-GEN-002, UCL-GEN-003 |
 | Goals | BG-GEN-001 |
 | Needs | STR-RISK-001, STR-RISK-003 |
-| User Stories | US-ANA-003, US-ANA-004 |
+| User Stories | US-ANA-004; US-ANA-003 đã DEPRECATED (DEC-PRD-023) |
 | Business Rules | Danh mục 21 loại điều khoản, định nghĩa tại SRS §7 |
 | Priority | Must |
 | Source | PS §5, §6.3 ANA-03, ANA-04, §7.2 |
-| Status | APPROVED |
+| Status | REVIEW |
 
 #### F-RISK-001 Đánh giá rủi ro 7 nhóm
 
@@ -958,12 +960,12 @@ Mẫu story và từ khóa tiêu chí nghiệm thu theo DEC-GEN-013. Story chỉ
 - **Feature**: F-CTR-001
 - **Need**: STR-RISK-001
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: PS §2.2, §5, §6.2 CON-01
 - **Acceptance Criteria**:
-  1. Given người dùng ở thư viện hợp đồng, when kéo thả hoặc chọn một file PDF, DOCX, JPG hoặc PNG hợp lệ, then hệ thống nhận file và chuyển sang bước khai báo ngữ cảnh.
+  1. Given người dùng ở thư viện hợp đồng, when kéo thả hoặc chọn một file PDF hoặc DOCX hợp lệ, then hệ thống nhận file và chuyển sang bước khai báo ngữ cảnh.
   2. Given file có định dạng khác các định dạng trên, lớn hơn 20 MB hoặc nhiều hơn 100 trang, when người dùng upload, then hệ thống từ chối ngay ở bước upload và hiển thị lý do (DEC-PRD-014).
-- **Notes**: None
+- **Notes**: [CHANGE] Changed by CR-GEN-001 (2026-11-17): bỏ JPG, PNG (DEC-PRD-023).
 
 #### US-CTR-002 Khai báo ngữ cảnh
 
@@ -1099,11 +1101,11 @@ Mẫu story và từ khóa tiêu chí nghiệm thu theo DEC-GEN-013. Story chỉ
 - **Feature**: F-ANA-002
 - **Need**: STR-RISK-001
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: DEPRECATED
 - **Source**: PS §5, §6.3 ANA-03
 - **Acceptance Criteria**:
   1. Given file là PDF scan hoặc ảnh JPG/PNG, when hệ thống phân tích, then văn bản được nhận dạng và các điều khoản giữ đúng cấu trúc mục, điều, khoản cùng vị trí trên trang.
-- **Notes**: Mục tiêu thời gian cho bản scan theo STR-QUAL-002.
+- **Notes**: [DEPRECATED] Bỏ theo CR-GEN-001 (DEC-PRD-023, 2026-11-17): hệ thống không đọc bản scan và ảnh, chỉ nhận PDF có lớp chữ và DOCX. Giữ lại để lưu vết. Trước đó: mục tiêu thời gian cho bản scan theo STR-QUAL-002.
 
 #### US-ANA-004 Tách và phân loại điều khoản
 
@@ -1453,7 +1455,7 @@ Các yêu cầu dưới đây được SRS §11 tinh chỉnh thành `NFR` đo đ
 | ID | ISO/IEC 25010 Characteristic | Expectation | Target | Persona Or Stakeholder | Source | Status |
 |---|---|---|---|---|---|---|
 | STR-QUAL-001 | Performance Efficiency | Thời gian phân tích hợp đồng có lớp text 20 trang, đo khi worker đã chạy sẵn | p50 ≤ 2 phút; p95 ≤ 5 phút | UCL-GEN-001, UCL-GEN-002 | DI 2026-10-24, Q-PRD-007; DEC-GEN-022 (thay DEC-GEN-008). [CONFLICT] PS §2.2 và §8 (P3) ghi "≤ 45 giây (p50)"; Approver (P1) chốt mục tiêu mới; giải quyết theo P1, Source Priority Rule 3.1. | APPROVED |
-| STR-QUAL-002 | Performance Efficiency | Thời gian phân tích hợp đồng scan ≤ 50 trang | ≤ 5 phút (p50) | UCL-GEN-002 | PS §8; DEC-GEN-022. [CONFLICT] PS §8 (P3) ghi "≤ 3 phút"; Approver (P1) chốt ≤ 5 phút; giải quyết theo P1 | APPROVED |
+| STR-QUAL-002 | Performance Efficiency | Thời gian phân tích hợp đồng scan ≤ 50 trang | ≤ 5 phút (p50) | UCL-GEN-002 | PS §8; DEC-GEN-022. [CONFLICT] PS §8 (P3) ghi "≤ 3 phút"; Approver (P1) chốt ≤ 5 phút; giải quyết theo P1. [DEPRECATED] Bỏ theo DEC-PRD-023 (CR-GEN-001) | DEPRECATED |
 | STR-QUAL-003 | Performance Efficiency | Chatbot bắt đầu hiển thị câu trả lời | Chữ đầu tiên xuất hiện ≤ 15 giây (p50) | UCL-GEN-001, UCL-GEN-002 | PS §8; DEC-GEN-022. [CONFLICT] PS §8 (P3) ghi "≤ 3 giây"; Approver (P1) chốt ≤ 15 giây; giải quyết theo P1 | APPROVED |
 | STR-QUAL-004 | Functional Suitability | Độ chính xác phát hiện rủi ro trên bộ eval 20 hợp đồng có nhãn; ưu tiên không bỏ sót hơn báo nhầm | Recall High/Critical ≥ 85% (SC-GEN-001); precision ≥ 70% (SC-GEN-002) | UCL-GEN-002, UCL-GEN-003 | PS §8; DI 2026-10-24, Q-PRD-001 | APPROVED |
 | STR-QUAL-005 | Functional Suitability | Độ chính xác phân loại điều khoản trên bộ eval | F1 ≥ 0,85 | UCL-GEN-003 | PS §8 | APPROVED |
@@ -1497,12 +1499,12 @@ Không có giả định nào do Agent tự ghi, vì Assumption Policy là `ask`
 |---|---|---|---|---|---|
 | CON-PRJ-001 | Constraint | Nhóm gồm 1 SE (fullstack), 3 thành viên AI, 1 thành viên IA | SD §1 | Phạm vi phải cắt nếu thiếu người | APPROVED |
 | CON-PRJ-002 | Constraint | Service nền tảng viết bằng C#/.NET; phần AI viết bằng Python | DI 2026-10-21 | Thay đổi ngôn ngữ ảnh hưởng thiết kế và phân chia ranh giới hệ thống | APPROVED |
-| CON-PRJ-003 | Constraint | Hạ tầng triển khai trên AWS (chương trình FCAJ), region Singapore (`ap-southeast-1`) | DI 2026-10-21; DI 2026-10-24, OQ-GEN-008 | Model AI cần dùng phải có ở region này hoặc dùng được qua cross-region inference | APPROVED |
+| CON-PRJ-003 | Constraint | Hạ tầng triển khai trên AWS (chương trình FCAJ), region Singapore (`ap-southeast-1`) | DI 2026-10-21; DI 2026-10-24, OQ-GEN-008 | Loại instance GPU để chạy model AI tự host phải có ở region này. [CHANGE] Changed by CR-GEN-003 (2026-11-17): bỏ cross-region inference của Bedrock | REVIEW |
 | CON-PRJ-004 | Constraint | Ngân sách hạ tầng là credit AWS của chương trình FCAJ, khoảng $200 cho mỗi thành viên | DI 2026-10-21 | Vượt credit thì phải trả tiền thật hoặc cắt môi trường | APPROVED |
 | CON-PRJ-005 | Constraint | Thời gian tới hạn demo hoặc nộp MVP: hơn 4 tháng | DI 2026-10-21 | - | APPROVED |
 | CON-PRJ-006 | Constraint | Ứng dụng web, không cần cài đặt; ưu tiên desktop | PS §2.2, §8 | - | APPROVED |
-| DEP-GEN-001 | Dependency | Dịch vụ model AI trên Amazon Bedrock; model cụ thể chưa chọn (DEC-GEN-010) | SD §2.4; DI 2026-10-21 | Không có model thì không có phân tích và chatbot | APPROVED |
-| DEP-GEN-002 | Dependency | Dịch vụ nhận dạng ký tự (OCR) cho bản scan | PS §6.3 ANA-03 | Không đọc được bản scan và ảnh | APPROVED |
+| DEP-GEN-001 | Dependency | Model AI tự host bằng Docker trên Amazon EC2, do nhóm AI vận hành; model cụ thể chưa chọn (DEC-GEN-010) | SD §2.4; DI 2026-10-21; DEC-GEN-029 | Không có model thì không có phân tích và chatbot. [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock | REVIEW |
+| DEP-GEN-002 | Dependency | Dịch vụ nhận dạng ký tự (OCR) cho bản scan | PS §6.3 ANA-03 | Không đọc được bản scan và ảnh. [DEPRECATED] Bỏ theo DEC-PRD-023 (CR-GEN-001): không còn OCR | DEPRECATED |
 | DEP-GEN-003 | Dependency | Bộ eval 20 hợp đồng có nhãn do nhóm soạn và gán nhãn | DI 2026-10-21; PS §11 (P0) | Không đo được SC-GEN-001, SC-GEN-002 | APPROVED |
 | DEP-GEN-004 | Dependency | Bộ căn cứ pháp lý chọn lọc (luật Việt Nam và chuẩn quốc tế) đã được nhóm xác minh | PS §7.7 | Căn cứ tham khảo sai hoặc hết hiệu lực (OQ-RISK-001) | APPROVED |
 | DEP-GEN-005 | Dependency | Dịch vụ gửi email (xác thực email, đặt lại mật khẩu, mời thành viên) | PS §6.1 ACC-01, ACC-04 | Không đăng ký, mời thành viên được | APPROVED |
@@ -1581,13 +1583,14 @@ Các quyết định cấp dự án (profile, bộ tài liệu, độ trễ, ưu
 | DEC-PRD-020 | Mô hình không gian làm việc kiểu GitHub: mỗi tài khoản có sẵn một không gian cá nhân; người dùng tạo hoặc tham gia được nhiều tổ chức; mỗi hợp đồng thuộc đúng một không gian (không gian cá nhân của Owner, hoặc một tổ chức). Thay phần "mỗi người chỉ thuộc một tổ chức" của DEC-PRD-013 | 2026-10-27 | Approver | Người dùng dùng được hệ thống một mình, tạo tổ chức khi cần làm việc nhóm | F-ORG-001, F-ORG-002; SRS BR-ORG-004, BR-ORG-001 (DEPRECATED), FR-ORG-002 (DEPRECATED) | APPROVED |
 | DEC-PRD-021 | Chia sẻ theo loại không gian: hợp đồng của tổ chức chỉ chia sẻ cho thành viên tổ chức đó; hợp đồng cá nhân chia sẻ cho email của bất kỳ tài khoản đã đăng ký. Chuyển hợp đồng giữa các không gian và chuyển quyền Owner của hợp đồng cá nhân là Won't (F-CTR-009) | 2026-10-27 | Approver | Hợp đồng cá nhân cần nhờ được người review bên ngoài; giữ phạm vi MVP gọn | F-SHARE-001, F-SHARE-002, F-CTR-009, US-SHARE-005; SRS BR-SHARE-003, FR-SHARE-009, FR-SHARE-010 | APPROVED |
 | DEC-PRD-022 | F-AUTH-003 (MFA) không thuộc MVP, chuyển Won't. Lý do: không cần cho buổi demo. Định hướng sau MVP: ưu tiên Should; mỗi lần đăng nhập đều bắt buộc nhập mã gửi qua email; không dùng ứng dụng xác thực bên thứ ba | 2026-10-27 | Approver | F-AUTH-003, US-AUTH-004; SRS FR-AUTH-012, FR-AUTH-013, SEC-AUTH-004 |
+| DEC-PRD-023 | Bỏ đọc bản scan và OCR khỏi sản phẩm. Hệ thống chỉ nhận file PDF có lớp chữ và DOCX; PDF không có lớp chữ phân tích thất bại vì không nhận diện được điều khoản (SRS EDGE-ANA-001) | 2026-11-17 | Approver | Hợp đồng thường dài từ chục trang trở lên, chụp từng trang không thiết thực; bớt một dịch vụ ngoài. Áp dụng qua CR-GEN-001 | F-CTR-001, F-ANA-002, US-CTR-001, US-ANA-003, STR-QUAL-002, DEP-GEN-002; SRS FR-ANA-007, NFR-PERF-003, EXT-INTG-002, IF-INTG-002, BR-CTR-001, FR-UPL-002, FR-UPL-003 | REVIEW |
 
 ### 14.3 Product Risks
 
 | Risk ID | Risk | Cause | Impact | Probability | Severity | Mitigation | Owner | Status |
 |---|---|---|---|---|---|---|---|---|
-| RISK-GEN-001 | Credit FCAJ không dùng được cho model trên Bedrock | Một số loại credit không áp dụng cho model của bên thứ ba | Phần LLM phải trả tiền thật | Low | Low | Kiểm tra mục "Applicable products" của credit hoặc hỏi mentor trước khi chọn model | Nhóm dự án | APPROVED |
-| RISK-GEN-002 | Quota Bedrock của account mới thấp | Account mới thường có quota token/phút thấp | Nghẽn hoặc lỗi trong buổi demo khi nhiều người dùng cùng lúc | Low | Low | Xin tăng quota sớm; giới hạn số phân tích đồng thời | Nhóm dự án | APPROVED |
+| RISK-GEN-001 | Credit FCAJ không đủ cho máy EC2 GPU chạy model | EC2 tính tiền theo giờ máy bật, kể cả khi không có job; máy GPU đắt hơn nhiều so với máy thường | Hết credit trước buổi demo, phải trả tiền thật | Medium | Medium | Chỉ bật máy GPU trong giờ test và demo; chọn instance nhỏ nhất đạt eval; AWS Budgets cảnh báo 50%, 80%. [CHANGE] Changed by CR-GEN-003 (2026-11-17): rủi ro của Bedrock đổi sang EC2 GPU | Nhóm dự án | REVIEW |
+| RISK-GEN-002 | Quota vCPU cho instance GPU của account mới thấp hoặc bằng 0 | AWS giới hạn số vCPU của họ instance G và VT cho account mới | Không bật được máy GPU, chặn Phase 7 và buổi demo | High | High | Xin tăng quota (Service Quotas) ngay khi nhóm AI chọn loại máy; giới hạn số phân tích đồng thời. [CHANGE] Changed by CR-GEN-003 (2026-11-17): quota Bedrock đổi sang quota GPU | Nhóm dự án | REVIEW |
 | RISK-GEN-003 | Chi phí hạ tầng cố định vượt credit | Các thành phần luôn bật (load balancer, database, IPv4) tính tiền theo giờ | Hết credit trước buổi demo | Low | Low | Dev local phần lớn thời gian; chỉ dựng môi trường AWS ở giai đoạn cuối (SD §2.7) | Nhóm dự án | APPROVED |
 | RISK-GEN-004 | Chất lượng AI không đạt SC-GEN-001, SC-GEN-002 | Model hoặc prompt chưa đủ tốt với hợp đồng tiếng Việt | Không đạt RC-GEN-002; người dùng nhận kết quả không chính xác | High | High | Chạy eval hằng tuần; chọn model dựa trên eval (DEC-GEN-010) | Nhóm dự án | APPROVED |
 | RISK-GEN-005 | Số token của hợp đồng tiếng Việt cao hơn ước lượng | Tiếng Việt có dấu tốn nhiều token hơn tiếng Anh | Chi phí và độ trễ cao hơn dự kiến | Low | Low | Đếm token trên hợp đồng mẫu sớm (SD §2.9) | Nhóm dự án | APPROVED |

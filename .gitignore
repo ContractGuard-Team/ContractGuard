@@ -83,3 +83,9 @@ CLAUDE.md
 
 # Công cụ thiết kế fk: file sinh ra, chỉ ở máy local
 .fk-skills/
+
+# Architecture
+docs/architecture
+
+# Secrets of one environment on a developer machine (backend Program.cs), e.g. Supabase for "Cloud"
+appsettings.*.local.json

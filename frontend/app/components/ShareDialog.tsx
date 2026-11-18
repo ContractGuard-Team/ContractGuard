@@ -2,6 +2,7 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 
 import { apiFetch, apiPost, apiPut, type Schemas } from "~/lib/api";
 import { errorMessage } from "~/lib/errors";
+import { contractAccessLabels } from "~/lib/labels";
 import { useAction } from "~/lib/useAction";
 
 import { Button } from "./Button";
@@ -29,6 +30,7 @@ export function ShareDialog({
   const [newOwner, setNewOwner] = useState("");
   const [confirmWhole, setConfirmWhole] = useState(false);
   const [confirmTransfer, setConfirmTransfer] = useState(false);
+  const [revoking, setRevoking] = useState<Schemas["PersonItem"] | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const action = useAction();
 
@@ -74,8 +76,23 @@ export function ShareDialog({
   }
 
   const candidates = members.filter((m) => m.userId !== access?.owner.userId);
-  // Organization members who do not have access yet, offered when the email box is clicked.
-  const suggestions = candidates.filter((m) => !access?.shares.some((s) => s.userId === m.userId));
+  // Organization members who do not have access yet (administrators always do), offered when the email box is clicked.
+  const suggestions = candidates.filter((m) => m.role !== "owner" && !access?.shares.some((s) => s.userId === m.userId));
+  // CR-GEN-002: everyone who can open the contract, each with one effective role.
+  const people = access
+    ? [
+        {
+          ...access.owner,
+          // Both roles give full rights, but the owner should still see that the person administers the organization.
+          role: members.some((m) => m.userId === access.owner.userId && m.role === "owner")
+            ? `${contractAccessLabels.administrator} / ${contractAccessLabels.owner}`
+            : contractAccessLabels.owner,
+          revocable: false,
+        },
+        ...access.administrators.map((p) => ({ ...p, role: contractAccessLabels.administrator, revocable: false })),
+        ...access.shares.map((p) => ({ ...p, role: contractAccessLabels.shared, revocable: true })),
+      ]
+    : null;
   const suggestionsId = useId();
 
   return (
@@ -117,37 +134,34 @@ export function ShareDialog({
 
       <div>
         <h3 className="mb-2 text-label">Người có quyền truy cập</h3>
-        {access === null ? (
+        {people === null ? (
           <div className="h-16 animate-pulse rounded-md bg-rule/40" aria-hidden="true" />
         ) : (
           <ul className="divide-y divide-rule rounded-md border border-rule">
-            <li className="flex items-center justify-between gap-2 px-3 py-2">
-              <span>
-                {access.owner.displayName} <span className="text-caption text-ink-muted">{access.owner.email}</span>
-              </span>
-              <span className="text-label text-ink-secondary">Owner</span>
-            </li>
-            {access.shares.map((share) => (
-              <li key={share.userId} className="flex items-center justify-between gap-2 px-3 py-2">
+            {people.map((person) => (
+              <li key={person.userId} className="flex items-center justify-between gap-2 px-3 py-2">
                 <span>
-                  {share.displayName} <span className="text-caption text-ink-muted">{share.email}</span>
+                  {person.displayName} <span className="text-caption text-ink-muted">{person.email}</span>
                 </span>
                 <span className="flex items-center gap-3">
-                  <span className="text-label text-ink-secondary">Member</span>
-                  <Button variant="danger" size="sm" disabled={action.pending} onClick={() => run(() => apiFetch(`/contracts/${contractId}/shares/${share.userId}`, { method: "DELETE" }), "Đã thu hồi quyền.")}>
-                    Thu hồi
-                  </Button>
+                  <span className="text-label text-ink-secondary">{person.role}</span>
+                  {person.revocable && (
+                    <Button variant="danger" size="sm" disabled={action.pending} onClick={() => setRevoking(person)}>
+                      Thu hồi
+                    </Button>
+                  )}
                 </span>
               </li>
             ))}
           </ul>
         )}
+        {access?.isOrganizationContract && <p className="mt-2 text-caption text-ink-muted">Quản trị viên của tổ chức luôn có toàn quyền trên hợp đồng.</p>}
       </div>
 
       {organizationId && candidates.length > 0 && (
         <div className="flex items-end gap-2 border-t border-rule pt-4">
           <label className="flex min-w-0 flex-1 flex-col gap-1 text-label">
-            Chuyển quyền Owner hợp đồng cho
+            Chuyển người phụ trách hợp đồng cho
             <select
               value={newOwner}
               onChange={(e) => setNewOwner(e.target.value)}
@@ -181,12 +195,12 @@ export function ShareDialog({
           run(() => apiPost(`/contracts/${contractId}/shares`, { wholeOrganization: true }), "Đã chia sẻ cho mọi thành viên hiện có của tổ chức.");
         }}
       >
-        Tất cả {candidates.length} thành viên còn lại của tổ chức sẽ xem được hợp đồng này và kết quả phân tích.
+        Tất cả {candidates.filter((m) => m.role !== "owner").length} thành viên còn lại của tổ chức sẽ xem được hợp đồng này và kết quả phân tích (quản trị viên đã có quyền sẵn).
       </ConfirmDialog>
 
       <ConfirmDialog
         open={confirmTransfer}
-        title={`Chuyển quyền Owner cho ${candidates.find((m) => m.userId === newOwner)?.displayName ?? ""}?`}
+        title={`Giao hợp đồng cho ${candidates.find((m) => m.userId === newOwner)?.displayName ?? ""} phụ trách?`}
         confirmLabel="Chuyển quyền"
         danger
         onCancel={() => setConfirmTransfer(false)}
@@ -200,7 +214,22 @@ export function ShareDialog({
           });
         }}
       >
-        Người này sẽ trở thành Owner của hợp đồng. Bạn vẫn xem và làm việc trên hợp đồng với quyền Member, nhưng không còn quản lý chia sẻ, trừ khi bạn là Owner tổ chức.
+        Người này sẽ phụ trách hợp đồng. Bạn chuyển sang vai trò {contractAccessLabels.shared}: vẫn làm việc trên hợp đồng nhưng không còn quản lý chia sẻ. Nếu bạn là quản trị viên của tổ chức thì vẫn giữ toàn quyền.
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={revoking !== null}
+        title={`Thu hồi quyền của ${revoking?.displayName ?? ""}?`}
+        confirmLabel="Thu hồi"
+        danger
+        onCancel={() => setRevoking(null)}
+        onConfirm={() => {
+          const person = revoking!;
+          setRevoking(null);
+          run(() => apiFetch(`/contracts/${contractId}/shares/${person.userId}`, { method: "DELETE" }), "Đã thu hồi quyền.");
+        }}
+      >
+        Người này không còn xem được hợp đồng và kết quả phân tích, có hiệu lực ngay.
       </ConfirmDialog>
     </div>
   );

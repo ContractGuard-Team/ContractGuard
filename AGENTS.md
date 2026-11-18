@@ -7,16 +7,18 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 ## Trạng thái (cập nhật khi đổi giai đoạn)
 
 - PRD v1.0 và SRS v1.0 đã **baseline** (Gate S5, 2026-10-27). Sửa spec chỉ qua change request (`RDK/Agent/03-SRS/06-Change Request Workflow.md`).
-- Đang ở: system design. Bước 1 đã chốt; bước 2–8 có đề xuất trong `docs/04-system-design-decisions.md`, chờ Approver quyết định. Sau đó code theo `docs/03-implementation-phases.md`.
+- Đang ở: code. System design bước 2–8 có đề xuất trong `docs/04-system-design-decisions.md` (dòng Quyết định trống = đồng ý).
 - Frontend: React Router framework mode, `ssr: false`, build ra file tĩnh (DEC-GEN-027).
-- Phase 1 đã merge. Phần SE không cần AI của Phase 2–6 đã code (2026-11-10), chờ review; phần cần AI dừng ở gửi/nhận, xem `docs/06-ai-integration-points.md`.
+- Phase 1 và phần SE không cần AI của Phase 2–6 đã merge (PR #9); phần cần AI dừng ở gửi/nhận, xem `docs/06-ai-integration-points.md`. Landing mới ở `/`, thư viện ở `/contracts`.
+- 2026-11-17: dọn tồn đọng xong; Google login (F-AUTH-002) đã code, chờ review, phiếu P6-01 trong `docs/04`. Tiếp theo: Phase 7 trên AWS, database dùng Supabase (cần phiếu đổi SD trong `docs/04` trước).
+- 2026-11-18: Supabase staging đã migrate, bảng app ở schema `app`, dùng chung DB với kho pháp luật của AI (`docs/04` C4). Staging/production và email SES gửi từ Gmail: `docs/04` C5.
 
 ## Đọc gì, theo thứ tự
 
 1. `docs/spec/00-Project-State.md`: quyết định (DEC-*), vị trí hiện tại. Đọc trước.
 2. `docs/03-implementation-phases.md`: phase và điểm cần chốt (§4).
 3. `docs/02-system-design.md`: ràng buộc, ước lượng, quyết định đã chốt. `docs/04-system-design-decisions.md`: phiếu quyết định bước 2–8.
-4. `docs/architecture/*.html`: sơ đồ tổng quan, luồng phân tích.
+4. `docs/architecture/contractguard-architecture.drawio`: sơ đồ kiến trúc AWS và software stack (nguồn chính duy nhất; mở bằng draw.io).
 5. `docs/DESIGN.md`: hệ thống giao diện (token, font, component, quy tắc). Đọc trước khi làm UI; `docs/PRODUCT.md` là định hướng sản phẩm.
 6. `docs/06-ai-integration-points.md`: chỗ nối với nhóm AI (`AI-HOOKUP` trong code), đề xuất khối `scoring`, câu hỏi chờ trả lời. Đọc trước khi đụng phân tích hoặc chat.
 7. `docs/05-ai-diagram-vs-system-design.md`: chia việc SE và AI, chỗ lệch với system design, tóm tắt repo nhóm AI (§9). Đọc file này thay vì rà `AI/` (bản clone local, Hermes khoảng 22.000 file).
@@ -32,8 +34,9 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 - **System design:** agent viết đề xuất kèm phương án và trade-off vào `docs/04-system-design-decisions.md`; Approver đọc và quyết định (dòng Quyết định để trống = đồng ý). Chỉ ghi vào `02-system-design.md` sau khi đã chốt.
 - **Không bao giờ tự đặt `APPROVED`.** Chỉ Approver (SE của nhóm) quyết định.
 - **Không sửa** `RDK/` (Requirements Documentation Kit, cài ở máy local bằng `npx req-doc-kit`, không có trên GitHub). Quy tắc làm spec nằm ở `RDK/Agent/AGENTS.md`.
-- AI chạy qua Amazon Bedrock; model chưa chốt, do eval quyết định (DEC-GEN-010, DEC-GEN-016).
-- Service C# là nơi duy nhất ghi DB; worker Python không chạm DB; `/contracts` chứa JSON Schema dùng chung.
+- Model AI do nhóm AI tự host bằng Docker trên EC2, không dùng Bedrock (DEC-GEN-029, CR-GEN-003); model cụ thể do eval quyết định (DEC-GEN-010). Nền tảng chạy worker do nhóm AI chọn.
+- Database trên AWS là Supabase (PostgreSQL + pgvector), staging và production là hai project ở Tokyo; local vẫn dùng Postgres trong Docker (`docs/04` mục C1, C5).
+- Service C# là nơi duy nhất ghi dữ liệu nghiệp vụ (schema `app`); data pipeline AI chỉ ghi kho pháp luật (`public.legal_*`) qua PostgREST (`docs/04` C4); worker Python không chạm DB; `/contracts` chứa JSON Schema dùng chung.
 
 ## Kiểm tra spec
 

@@ -24,7 +24,7 @@ Tên bucket, queue, quyền IAM trên AWS thật và cách chạy worker trên E
 |---|---|---|---|
 | 1 | Worker đọc `analysis-requests`, ghi `extraction.v2` lên S3, gửi `progress`/`completed`/`failed` lên `analysis-results` | `contracts/queue-messages.v1.schema.json`, `contracts/analysis-request.v1.schema.json`, `contracts/extraction.v2.schema.json` | Gửi job (`AnalysisStarter`), nhận và kiểm tra (`AnalysisResultHandler`, `ExtractionConsistencyValidator`), lưu (`AnalysisResultProcessor`) |
 | 2 | Gửi khối `scoring` (mới, xem §3.1) | `extraction.v2.schema.json` → `scoring` | Kiểm tra luật điểm, lưu, hiển thị thước rủi ro, lọc và sắp xếp thư viện theo điểm, đưa vào báo cáo |
-| 3 | Chatbot theo SD-14 (A: C# gọi Bedrock, B: service Python) | Hiện thực `IChatResponder` (`backend/src/ContractGuard.Application/Chat/IChatResponder.cs`), đăng ký ở `Infrastructure/DependencyInjection.cs` thay cho `UnconfiguredChatResponder` | Endpoint SSE, lưu lịch sử chung, lọc trích dẫn sai, UI stream và nhảy tới điều khoản |
+| 3 | Chatbot theo SD-14 (A: C# gọi model, B: service Python). Từ 2026-11-17 model tự host trên EC2 thay Bedrock (DEC-GEN-029); cần 3 câu trả lời ở `docs/04` mục C3 | Hiện thực `IChatResponder` (`backend/src/ContractGuard.Application/Chat/IChatResponder.cs`), đăng ký ở `Infrastructure/DependencyInjection.cs` thay cho `UnconfiguredChatResponder` | Endpoint SSE, lưu lịch sử chung, lọc trích dẫn sai, UI stream và nhảy tới điều khoản |
 | 4 | Embedding điều khoản (nếu chọn SD-14 A) | `extraction.v2` → `embeddings` (đang `dimensions: 1024`) | **Chưa lưu.** Bảng pgvector chờ chốt số chiều và model embedding |
 | 5 | Worker xóa bản trong `quarantine/` sau khi ghi `clean/` | SD-07 | Khi xóa hợp đồng, backend chỉ biết key mà version đang trỏ tới, cùng key `clean/` tính được (`ContractCommands.DeleteAsync`) |
 
@@ -106,4 +106,4 @@ Chưa làm vì cần model. Gợi ý: thêm `suggested_questions` vào `extracti
 | 5 | Tổ chức, lời mời, vai trò, chia sẻ, thư viện, duyệt, phiên bản, xóa vĩnh viễn, nhật ký, rate limit, giới hạn email | Không |
 | 6 | Trạng thái xử lý finding, tùy chọn báo cáo, lịch sử chat | Câu hỏi gợi ý (§3.4) |
 
-Bỏ theo quyết định ngày 2026-11-10: Google login (F-AUTH-002), Phase 7 (AWS), Phase 8.
+Ngày 2026-11-10 tạm bỏ Google login (F-AUTH-002), Phase 7 (AWS), Phase 8. Ngày 2026-11-17 mở lại Google login (đã code cùng ngày, không cần AI) và Phase 7 (database dùng Supabase); Phase 8 vẫn bỏ.

@@ -1,22 +1,11 @@
-import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Group, Panel, Separator, useDefaultLayout, usePanelRef } from "react-resizable-panels";
+
+import { useIsWideScreen } from "~/lib/media";
 
 import { Button } from "./Button";
 
-const wideScreen = "(min-width: 1024px)";
 const panelTitle = "Trợ lý AI";
-
-function useIsWideScreen() {
-  return useSyncExternalStore(
-    (onChange) => {
-      const query = window.matchMedia(wideScreen);
-      query.addEventListener("change", onChange);
-      return () => query.removeEventListener("change", onChange);
-    },
-    () => window.matchMedia(wideScreen).matches,
-    () => true,
-  );
-}
 
 // UI-GEN-001, UI-GEN-002: the contract fills the center, the chat sits next to it like the agent panel
 // of an IDE (resizable, can be hidden, remembers its width). On a narrow screen it becomes a drawer

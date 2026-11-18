@@ -12,29 +12,30 @@
 - Mỗi mục có: bối cảnh (yêu cầu nào trong SRS bị ảnh hưởng), các phương án, trade-off, **đề xuất**, và dòng **Quyết định**.
 - **Để trống dòng Quyết định nghĩa là đồng ý với đề xuất** (cùng quy ước với phiếu OQ, DEC-GEN-023). Muốn chọn khác thì ghi phương án và lý do, hoặc sửa thẳng nội dung đề xuất.
 - Các mục được sắp theo thứ tự cần chốt: mục gắn **[Chặn phase 0–1]** phải chốt trước khi code.
-- Việc của nhóm AI (chọn model, quota Bedrock, đếm token tiếng Việt) không nằm trong phiếu này.
+- Việc của nhóm AI (chọn model, loại máy GPU và quota, đếm token tiếng Việt) không nằm trong phiếu này.
+- Ba điểm đổi ngày 2026-11-17 (Supabase, nền tảng worker, model tự host) ở mục "Đổi sau khi chốt".
 
 ## Tóm tắt đề xuất
 
 | # | Câu hỏi | Đề xuất | Chặn |
 |---|---|---|---|
 | SD-01 | Kiểu kiến trúc | Modular monolith C# + worker Python + hàng đợi | Phase 0 |
-| SD-02 | Chạy service ở đâu | ECS Fargate (ARM) cho API, Fargate Spot cho worker | Phase 7 |
+| SD-02 | Chạy service ở đâu | ECS Fargate (ARM) cho API, Fargate Spot cho worker. **Đổi 2026-11-17 (C2):** worker do nhóm AI chọn | Phase 7 |
 | SD-03 | Cổng vào và domain | Một domain: CloudFront → S3 (SPA) và `/api/*` → ALB | Phase 1 |
 | SD-04 | Xác thực | ASP.NET Core Identity tự quản, cookie httpOnly | Phase 1 |
 | SD-05 | Phân quyền và cách ly không gian | Lọc theo không gian ở EF Core + kiểm tra quyền theo tài nguyên | Phase 1 |
-| SD-06 | Database | RDS PostgreSQL 18 + pgvector, một instance nhỏ | Phase 0 |
+| SD-06 | Database | RDS PostgreSQL 18 + pgvector, một instance nhỏ. **Đổi 2026-11-17 (C1):** Supabase; **2026-11-18 (C4):** bảng app ở schema `app` | Phase 0 |
 | SD-07 | File storage | Một bucket, tách prefix `quarantine/` và `clean/`, SSE-KMS khóa AWS quản lý | Phase 1 |
 | SD-08 | Upload và quét mã độc | Presigned POST giới hạn kích thước; GuardDuty Malware Protection for S3 | Phase 1–2 |
 | SD-09 | API giữa frontend và backend | REST + OpenAPI, sinh client TypeScript | Phase 1 |
 | SD-10 | Hợp đồng dữ liệu C# ↔ Python | Mở rộng `contracts/extraction.schema.json` của đồng đội, sinh code hai phía | Phase 0 |
 | SD-11 | Truyền kết quả qua hàng đợi | Message chỉ chứa ID + đường dẫn S3; cùng một hàng đợi cho tiến trình và kết quả | Phase 1 |
-| SD-12 | Worker khởi động từ 0 | Autoscaling theo độ dài hàng đợi; bật sẵn 1 worker theo lịch giờ demo | Phase 7 |
+| SD-12 | Worker khởi động từ 0 | Autoscaling theo độ dài hàng đợi; bật sẵn 1 worker theo lịch giờ demo. **Đổi 2026-11-17 (C2, C3):** nhóm AI quyết | Phase 7 |
 | SD-13 | Retry và trạng thái job | SQS retry 3 lần + DLQ; C# giữ máy trạng thái, bỏ message trùng | Phase 1 |
-| SD-14 | Chatbot: ai truy xuất, ai gọi model | C# truy xuất pgvector và gọi Bedrock; prompt do nhóm AI quản lý trong repo | Phase 4 |
+| SD-14 | Chatbot: ai truy xuất, ai gọi model | C# truy xuất pgvector và gọi model; prompt do nhóm AI quản lý trong repo. **Đổi 2026-11-17 (C3):** gọi endpoint tự host thay Bedrock | Phase 4 |
 | SD-15 | Streaming câu trả lời chat | Server-Sent Events (SSE) | Phase 4 |
-| SD-16 | Email | Amazon SES; local dùng Mailpit | Phase 1 |
-| SD-17 | Môi trường | Docker Compose local (Postgres, LocalStack, Mailpit); AWS dựng sau | Phase 0 |
+| SD-16 | Email | Amazon SES; local dùng Mailpit. **Đổi 2026-11-18 (C5):** người gửi `contractguard.info@gmail.com`, không domain | Phase 1 |
+| SD-17 | Môi trường | Docker Compose local (Postgres, LocalStack, Mailpit); AWS dựng sau. **Đổi 2026-11-18 (C5):** có staging và production, Supabase ở Tokyo | Phase 0 |
 | SD-18 | Hạ tầng dưới dạng code và CI/CD | AWS CDK (C#), GitHub Actions với OIDC, không có khóa AWS tĩnh | Phase 7 |
 | SD-19 | Quan sát hệ thống | Log JSON có `job_id` lên CloudWatch; trace để sau | Phase 7 |
 | SD-20 | Kiểm soát chi phí | Tắt môi trường ngoài giờ demo; cảnh báo ngân sách | Phase 7 |
@@ -69,7 +70,7 @@
 
 **Đề xuất:** A. B chỉ đáng chọn nếu credit gần hết.
 
-**Quyết định:**
+**Quyết định:** A cho API. Phần worker đổi ngày 2026-11-17: nhóm AI chọn nền tảng (mục C2).
 
 ### SD-03 Cổng vào và domain **[Chặn phase 1]**
 
@@ -173,7 +174,7 @@ Threat model của IA (`security/docs/THREAT_MODEL.md`, T01) đang giả định
 
 **Đề xuất:** A. Bảng theo SRS §9 (tên tiếng Anh, DEC-GEN-025); migration bằng EF Core; chỉ mục HNSW cho embedding. Số chiều vector do nhóm AI chốt khi chọn model embedding.
 
-**Quyết định:** A. Ngày 2026-10-29 đổi bản PostgreSQL từ 16 sang 18, vì lúc này chưa có dữ liệu và bản 18 được hỗ trợ lâu hơn. pgvector chỉ dùng tính năng có từ 0.8.1 trở xuống, vì đó là bản RDS PG 18 có lúc ra mắt.
+**Quyết định:** A. Ngày 2026-10-29 đổi bản PostgreSQL từ 16 sang 18, vì lúc này chưa có dữ liệu và bản 18 được hỗ trợ lâu hơn. pgvector chỉ dùng tính năng có từ 0.8.1 trở xuống, vì đó là bản RDS PG 18 có lúc ra mắt. **Đổi ngày 2026-11-17: Supabase thay RDS (mục C1).**
 
 ### SD-07 File storage **[Chặn phase 1]**
 
@@ -250,7 +251,7 @@ Embedding điều khoản do worker tính, gửi kèm kết quả để C# ghi v
 
 **Đề xuất:** A. Mỗi task xử lý tối đa ~4 job song song (asyncio, có giới hạn số lời gọi Bedrock đồng thời), 3 task × 4 = 12 ≥ 10 (NFR-SCAL-001). Nhóm AI chốt số này sau khi có quota thật.
 
-**Quyết định:**
+**Quyết định:** Đổi ngày 2026-11-17: nhóm AI quyết cách chạy và scale worker; model tự host thay Bedrock (mục C2, C3).
 
 ### SD-13 Retry và trạng thái job **[Chặn phase 1]**
 
@@ -364,6 +365,125 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
     - Trước khi triển khai lên AWS, cần phải nhắc lại với các thành viên cấu hình billing, cảnh báo
 ---
 
+## Đổi sau khi chốt (2026-11-17, 2026-11-18)
+
+Approver đổi ba điểm khi chuẩn bị Phase 7 (C1–C3), thêm C4–C5 ngày 2026-11-18 khi nối Supabase, theo drawio `architecture/contractguard-architecture.drawio`. Phần dưới ghi lại hệ quả và trade-off để cả nhóm biết đã đánh đổi gì. Các mục SD cũ giữ nguyên để lưu vết; dòng Quyết định của chúng trỏ về đây.
+
+### C1 Database: Supabase thay RDS (đổi SD-06, SD-20)
+
+**Bối cảnh:** SD-06 chốt RDS PostgreSQL 18 + pgvector. Approver chọn Supabase (PostgreSQL có sẵn pgvector, quản lý ngoài tài khoản AWS của nhóm).
+
+| | RDS (SD-06 cũ) | **Supabase (Approver chọn)** |
+|---|---|---|
+| Chi phí | ~$15/tháng, trừ vào credit FCAJ; phải dừng ngoài giờ test | Gói Free $0 (500 MB, đủ cho MVP); gói Pro $25/tháng nếu cần. **Không** trừ vào credit AWS |
+| Vận hành | Trong VPC; CDK dựng; tự dừng/bật | Không phải dựng; bảng điều khiển có sẵn. Gói Free **tạm dừng project sau 7 ngày không có truy cập**, phải bật lại tay trước buổi test và demo |
+| Mạng | API gọi trong VPC, không ra internet | API trên Fargate gọi ra internet có TLS (`SSL Mode=Require`). Kết nối trực tiếp của Supabase chỉ có IPv6, nên dùng **pooler Supavisor ở chế độ session** (IPv4, cổng 5432). Chế độ transaction (cổng 6543) không hợp với prepared statement của Npgsql và migration |
+| Region | `ap-southeast-1` | Chọn region Singapore khi tạo project (Supabase chạy trên AWS ở region đó) |
+| Dữ liệu | Trong tài khoản AWS của nhóm | Nội dung hợp đồng (văn bản điều khoản, embedding, chat) nằm ở nhà cung cấp thứ ba. **IA cần xem lại** NFR-PRIV và threat model |
+| Sao lưu | Snapshot tự động của RDS | Gói Free không có bản sao lưu tải về được; Pro có sao lưu hằng ngày 7 ngày |
+| Code | Không đổi | Không đổi: vẫn Npgsql + EF Core + pgvector. Chỉ đổi chuỗi kết nối (đặt trong Secrets Manager) |
+
+**Cần Approver xem:** PRD CON-PRJ-003 ghi "hạ tầng triển khai trên AWS (chương trình FCAJ), region Singapore". Supabase ở Singapore và chạy trên hạ tầng AWS, nhưng không nằm trong tài khoản FCAJ. Nếu Approver hiểu CON-PRJ-003 là "mọi thành phần trong tài khoản AWS của nhóm" thì cần một change request; nếu hiểu là "region và nhà cung cấp hạ tầng" thì không cần.
+
+**Quyết định:** Supabase (Approver chốt 2026-11-17). SD-20 bỏ việc dừng RDS; thêm việc bật lại project Supabase nếu bị tạm dừng.
+
+### C2 Nền tảng chạy worker: nhóm AI quyết (đổi SD-02 phần worker, SD-12)
+
+**Bối cảnh:** SD-02 chốt worker chạy Fargate Spot 0→N, SD-12 chốt scale theo số message. Nhóm AI đang chạy worker bằng Docker trên EC2 ở tài khoản AWS của họ (`docs/07`). Approver để nhóm AI chọn nền tảng.
+
+**SE giữ ranh giới, nền tảng nào cũng phải đáp ứng:**
+- Đọc `analysis-requests`, ghi `results/` lên S3 và gửi message lên `analysis-results`, theo `contracts/`. Không chạm database.
+- Dùng IAM role, không dùng access key tĩnh (`docs/07` §6).
+- Đạt NFR-SCAL-001 (10 phân tích đồng thời) và NFR-PERF-001 (p50 ≤ 2 phút cho 20 trang) khi đã chạy sẵn.
+- Bật sẵn trước giờ demo và giờ test, vì Q1 cho phép worker tắt ngoài giờ.
+
+| Nếu nhóm AI chọn | Hệ quả |
+|---|---|
+| EC2 + Docker Compose | Đơn giản, giống local; máy bật là tính tiền; không tự scale, nên 10 job đồng thời phải chạy song song trong một máy |
+| ECS (Fargate hoặc EC2 có GPU) | Scale theo hàng đợi như SD-12; phải viết thêm task definition, autoscaling |
+
+**Quyết định:** Nhóm AI quyết (Approver 2026-11-17). API vẫn chạy ECS Fargate ARM như SD-02.
+
+### C3 Model AI tự host trên EC2 thay Bedrock (CR-GEN-003, DEC-GEN-029; đổi SD-12, SD-13, SD-14, SD-17, SD-20)
+
+**Bối cảnh:** model AI (phân tích, embedding, chatbot) do nhóm AI tự host bằng Docker trên EC2, region `ap-southeast-1`, thay Amazon Bedrock. Spec đã sửa qua CR-GEN-003.
+
+| Mục | Trước (Bedrock) | Sau (tự host) |
+|---|---|---|
+| Chi phí (SD §2.4, §2.7) | Theo token | Theo giờ máy GPU bật, kể cả khi không có job. Cần lịch bật/tắt (SD-20) |
+| Giới hạn tốc độ (SD-12, SD-13) | Quota token/phút của Bedrock | Số request song song mà máy GPU phục vụ được. Worker và API vẫn giới hạn số lời gọi đồng thời và retry có backoff khi endpoint quá tải |
+| Quota | Quota Bedrock | Quota vCPU cho họ instance G, VT; account mới thường bằng 0 (RISK-GEN-002) |
+| Chat (SD-14 A) | C# gọi Bedrock bằng AWS SDK .NET | C# truy xuất pgvector rồi gọi **endpoint HTTP** của model (stream). Port `IChatResponder` không đổi. Câu hỏi cũng cần endpoint embedding |
+| Local (SD-17) | Gọi Bedrock thật | Gọi endpoint model của nhóm AI nếu có, hoặc `FakeChatResponder` để thử đường đi |
+
+**Câu hỏi cho nhóm AI** (chặn phần chat thật của Phase 7):
+1. Serving stack và định dạng API: có tương thích OpenAI (`/v1/chat/completions`, `/v1/embeddings`) không? Nếu có, C# dùng được thư viện có sẵn.
+2. API (Fargate, tài khoản SE) gọi endpoint (EC2, tài khoản AI) qua đường nào: internet có TLS và khóa dịch vụ, hay VPC peering? Chưa chốt thì không mở cổng model ra internet mà không có xác thực.
+3. Model embedding và số chiều vector (bảng pgvector đang chờ).
+
+**Quyết định:** Tự host trên EC2 (Approver chốt 2026-11-17, DEC-GEN-029).
+
+### C4 Database dùng chung với nhóm AI: schema `app` (đổi quy tắc "chỉ C# ghi DB", liên quan SD-06, X2)
+
+**Bối cảnh:** project Supabase (do nhóm AI tạo, Tokyo, PostgreSQL 17.11) đã có kho văn bản pháp luật của nhóm AI trước khi backend migrate. Đọc ngày 2026-11-18, nguồn là `data_pipeline/migrations/001_legal_schema.sql`, `postgres_writer.py` và `mcp_server/supabase_reader.py` trong repo `contract-risk-management`:
+
+| Bảng (`public`) | Dòng | Dùng để |
+|---|---|---|
+| `legal_documents` | 65 | Văn bản luật lấy từ vanban.chinhphu.vn: số ký hiệu, loại, hiệu lực, `replaced_by`, `s3_prefix` |
+| `legal_document_versions` | 65 | Mỗi lần tải: sha256, key PDF trên S3 của AI, cách trích (text/ocr), trạng thái xử lý |
+| `legal_articles` | 786 | Từng Điều: nội dung, chương, hiệu lực `valid_from/to`, `is_current`, bị sửa bởi văn bản nào |
+| `legal_relations` | 549 | Quan hệ sửa đổi/thay thế giữa các văn bản, trạng thái áp dụng (`applied`, `needs_review`...) |
+| `ingest_jobs` | 65 | Hàng đợi/nhật ký nạp từng văn bản |
+| `crawl_runs` | 2 | Nhật ký mỗi lần crawl |
+
+Data pipeline của AI ghi qua PostgREST bằng secret key. MCP gateway cho Agent 2/3 đọc cũng qua PostgREST bằng secret key, và trong code chỉ cho đọc. RLS bật, không có policy cho anon. Vector nằm ở Qdrant, không ở pgvector.
+
+**Rủi ro nếu bảng app nằm chung ở `public`:**
+1. Supabase cấp quyền mặc định cho `anon`/`authenticated` trên bảng mới trong `public`. Thiếu RLS thì ai có publishable key (key công khai) cũng đọc/ghi được `user_account`, `contract`.
+2. Secret key chạy dưới `service_role`, bỏ qua RLS. `list_tables` của MCP trả về mọi bảng được mở, và khi `SUPABASE_TABLES` trống thì agent LLM, vốn có thể bị prompt injection từ nội dung hợp đồng, đọc được user và hợp đồng của mọi workspace.
+
+| Phương án | Ưu | Nhược |
+|---|---|---|
+| **A. Schema riêng `app` cho bảng app** | PostgREST không mở `app`; `anon`, `authenticated`, `service_role` không có quyền `USAGE` trên `app`. Chỉ thêm một migration | DB local cũ phải tạo lại một lần |
+| B. Để ở `public`, bật RLS cho từng bảng | Không đổi code EF | Secret key vẫn bỏ qua RLS; phải nhớ bật RLS cho mỗi bảng mới |
+| C. Tách project Supabase cho AI | Cô lập hẳn | Gói Free chỉ 2 project, không đủ khi có cả staging và production |
+
+**Phân quyền:**
+
+| | Schema `app` | `public.legal_*`, `ingest_jobs`, `crawl_runs` |
+|---|---|---|
+| Sở hữu schema | SE (EF migration trong `backend/`) | AI (`data_pipeline/migrations/*.sql`) |
+| Ghi | Chỉ API C# | Chỉ data pipeline AI |
+| Đọc | API C# | Agent qua MCP; C# chỉ đọc khi X2/SD-14 chốt |
+| Kết nối | Npgsql, user `postgres` (mật khẩu chỉ SE giữ) | PostgREST, secret key |
+
+Quy tắc "chỉ C# ghi DB" đổi thành: C# là nơi duy nhất ghi **dữ liệu nghiệp vụ** (schema `app`); data pipeline AI ghi **kho tham chiếu pháp luật**. Dữ liệu trao đổi theo từng job vẫn đi qua `contracts/` (S3/SQS), không qua DB.
+
+**Còn mở:** X2/SD-14. Chatbot C# có cần đọc kho pháp luật không? Nếu có thì đọc bảng `public.legal_*` hay đi qua endpoint của AI? Vector đang ở Qdrant, không ở pgvector.
+
+**Quyết định:** A (Approver chọn 2026-11-18). Đã làm: `HasDefaultSchema("app")`, bảng lịch sử migration cũng ở `app`, migration `MoveToAppSchema`; staging đã migrate ngày 2026-11-18.
+
+### C5 Môi trường staging + production, email (đổi SD-16, SD-17, C1)
+
+**Bối cảnh:** SD-17 chốt một môi trường AWS (staging dùng luôn cho demo), không có production. Approver muốn có cả staging và production. Local vẫn không chạm Supabase.
+
+| Môi trường | ASP.NET | Database | Email |
+|---|---|---|---|
+| Local | `Development` (profile `http`) | Postgres trong Docker | Mailpit |
+| Staging | `Cloud` (profile `aws` trên máy dev); sau này Fargate | Supabase project hiện tại (`lglozpndorcilcfqtgce`, Tokyo) | SES, sandbox |
+| Production | Fargate (Phase 7) | Supabase project mới, Tokyo | SES (xin production access) hoặc dự phòng Gmail SMTP |
+
+- **Region:** cả hai project Supabase ở Tokyo (`ap-northeast-1`), AWS vẫn ở `ap-southeast-1`. Mỗi truy vấn từ API sang DB thêm khoảng 70 ms. Lệch với CON-PRJ-003 ("region Singapore") theo cách hiểu đã nêu ở C1.
+- **Migration:** chạy `dotnet ef database update` bằng chuỗi kết nối của từng môi trường (staging: `appsettings.Cloud.local.json`; production: biến `Database__ConnectionString`, chạy một lần). Phase 7 chuyển vào GitHub Actions. Không chuyển dữ liệu từ local lên.
+- **Mật khẩu `postgres`:** chỉ SE giữ. Production lưu trong Secrets Manager.
+- **Kho pháp luật:** nhóm AI chạy `001`/`002_*.sql` và pipeline vào từng project. Staging để thử, production chỉ nạp dữ liệu đã kiểm tra.
+- **Email (SD-16):** người gửi là `contractguard.info@gmail.com`, xác minh dạng email identity trên SES (`ap-southeast-1`, tài khoản `699061129385`). Sandbox tính theo tài khoản và region, nên staging và production dùng chung một trạng thái.
+  - Identity đã xác minh (trước 2026-11-18). IAM của API chỉ cần `ses:SendEmail` trên ARN của identity.
+  - Còn trong sandbox thì phải xác minh từng người nhận (thành viên nhóm, tài khoản test, giám khảo).
+  - **Rủi ro:** gửi với địa chỉ `@gmail.com` qua SES không đạt DMARC alignment (SPF/DKIM là của amazonses.com), nên thư dễ vào spam hoặc bị từ chối, và AWS thường không cho ra khỏi sandbox nếu không có domain riêng. **Dự phòng** khi bị từ chối: gửi qua SMTP của Gmail (`smtp.gmail.com:587`, App Password, khoảng 500 thư/ngày) bằng `SmtpEmailSender` có sẵn, thêm username/password và TLS vào `EmailOptions`.
+
+**Quyết định:** như bảng trên (Approver chọn 2026-11-18).
+
 ## Điểm phát sinh khi code
 
 ### P3-02 Ghi chú lề khi vùng giữa hẹp
@@ -380,12 +500,41 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
 
 **Quyết định:**
 
+### P5-01 Ai được dùng link mời tham gia tổ chức
+
+**Bối cảnh:** FR-ORG-004 viết "người được mời xác nhận tham gia qua link mời", nhưng không nói người bấm link có phải đăng nhập đúng email đã được mời hay không. Link nằm trong email, nên có thể bị chuyển tiếp hoặc dán vào chat nhóm.
+
+| Phương án | Mô tả | Ưu | Nhược |
+|---|---|---|---|
+| **A (đã code, đề xuất)** | Chỉ tài khoản có email trùng email được mời (không phân biệt hoa thường) mới tham gia được. Tài khoản khác nhận lỗi 403 "lời mời gửi tới email khác" (`OrganizationService.cs`, `AcceptAsync`) | Link bị chuyển tiếp không dùng được; Owner tổ chức biết chắc ai vào tổ chức (tổ chức xem được mọi hợp đồng của mình) | Người dùng có hai email phải nhờ Owner mời lại đúng email |
+| B | Ai đăng nhập và giữ link còn hạn đều tham gia được | Tiện khi người được mời dùng email khác | Lộ link là lộ quyền vào tổ chức; trái tinh thần cách ly không gian (BR-DATA-001) |
+
+**Quyết định:**
+
+### P6-01 Đăng nhập Google gặp tài khoản email chưa xác thực, hoặc đang bị khóa
+
+**Bối cảnh:** FR-AUTH-011 gộp tài khoản email và Google theo email. SRS không nói hai trường hợp sau:
+
+1. **Email chưa xác thực.** Ai cũng đăng ký được bằng email của người khác, kèm mật khẩu do mình đặt. Nếu chủ thật của email sau đó đăng nhập Google và hệ thống gộp nguyên tài khoản, người đăng ký trước vẫn đăng nhập được bằng mật khẩu đó. Kiểu tấn công này gọi là chiếm tài khoản đăng ký trước.
+2. **Đang bị khóa 15 phút** vì nhập sai mật khẩu 5 lần (SEC-AUTH-006).
+
+| Phương án | Mô tả | Ưu | Nhược |
+|---|---|---|---|
+| **A (đã code, đề xuất)** | (1) Gộp, nhưng gỡ mật khẩu cũ và đánh dấu email đã xác thực, vì Google đã chứng minh chủ email. Muốn có mật khẩu thì dùng "quên mật khẩu". (2) Google vẫn vào được, vì khóa chỉ áp dụng cho đăng nhập bằng mật khẩu (SEC-AUTH-006 ghi "khóa đăng nhập bằng mật khẩu") | Chặn được tấn công; chủ thật không bị kẹt | Người tự đăng ký nhưng chưa bấm link xác thực sẽ mất mật khẩu vừa đặt |
+| B | (1) Từ chối đăng nhập Google, bảo người dùng xác thực email trước. (2) Chặn cả Google khi đang khóa | Không đổi dữ liệu tài khoản | Chủ thật bị kẹt: link xác thực gửi tới chính họ, nhưng mật khẩu do người khác đặt |
+
+Code: `backend/src/ContractGuard.Infrastructure/Identity/GoogleAccounts.cs`, `Api/Endpoints/GoogleLoginEndpoints.cs`. Chỉ gộp khi Google báo `email_verified = true`.
+
+**Quyết định:**
+
 ## Việc của các nhóm khác (để theo dõi, không cần quyết ở đây)
 
 | Việc | Nhóm | Ảnh hưởng tới |
 |---|---|---|
 | Chọn model cho từng bước, model embedding và số chiều vector | AI | SD-06, SD-14 |
-| Credit FCAJ áp dụng cho Bedrock, quota, xin tăng quota | AI | SD-12 (số task, số job song song) |
+| Chọn loại máy GPU, serving stack, xin quota GPU (C3) | AI | C2, C3, Phase 7 |
+| Nền tảng chạy worker (C2) | AI | SD-12, NFR-SCAL-001 |
+| Xem lại NFR-PRIV và threat model khi dữ liệu nằm ở Supabase (C1); sửa policy IAM bỏ quyền Bedrock (C3) | IA | `security/` |
 | Đếm token tiếng Việt thật | AI | Chi phí, độ trễ |
 | Cập nhật threat model theo SD-04, SD-08, SD-14 | IA | `security/docs/THREAT_MODEL.md` |
 | Ký biên bản chốt giao diện sau SD-10 | AI, IA, SE | `security/docs/CONTRACT_FOR_TEAM.md` |

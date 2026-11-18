@@ -7,6 +7,7 @@ import { TextField } from "~/components/Field";
 import { Notice } from "~/components/Notice";
 import { apiFetch, apiLoad, apiPost, apiPut, type Schemas } from "~/lib/api";
 import { errorMessage } from "~/lib/errors";
+import { orgRoleLabels } from "~/lib/labels";
 import { useAction } from "~/lib/useAction";
 import { currentWorkspace } from "~/lib/workspace";
 
@@ -27,7 +28,6 @@ export async function clientLoader() {
 }
 
 const dateFormat = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short" });
-const roleLabels = { owner: "Owner", member: "Member" } as const;
 
 // F-ORG-001, F-ORG-002: members with email and role for everyone (FR-ORG-006); invitations, roles,
 // removal and the name for owners (FR-ORG-003, 007, 008, 009, 012).
@@ -38,6 +38,8 @@ export default function OrganizationPage({ loaderData: organization }: Route.Com
   const [name, setName] = useState(organization.organizationName);
   const [message, setMessage] = useState<string | null>(null);
   const [removing, setRemoving] = useState<Schemas["MemberItem"] | null>(null);
+  const [changingRole, setChangingRole] = useState<Schemas["MemberItem"] | null>(null);
+  const granting = changingRole?.role !== "owner";
   const action = useAction();
   const base = `/organizations/${organization.organizationId}`;
 
@@ -122,7 +124,7 @@ export default function OrganizationPage({ loaderData: organization }: Route.Com
                   {member.displayName}
                   <span className="block text-caption text-ink-secondary">{member.email}</span>
                 </td>
-                <td className="px-4 py-3">{roleLabels[member.role ?? "member"]}</td>
+                <td className="px-4 py-3">{orgRoleLabels[member.role ?? "member"]}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-ink-secondary">{dateFormat.format(new Date(member.joinedAt))}</td>
                 {isOwner && (
                   <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -131,12 +133,9 @@ export default function OrganizationPage({ loaderData: organization }: Route.Com
                       size="sm"
                       className="mr-2"
                       disabled={action.pending}
-                      onClick={() => {
-                        const role = member.role === "owner" ? "member" : "owner";
-                        run(() => apiPut(`${base}/members/${member.userId}/role`, { role }), role === "owner" ? "Đã cấp quyền Owner." : "Đã thu hồi quyền Owner.");
-                      }}
+                      onClick={() => setChangingRole(member)}
                     >
-                      {member.role === "owner" ? "Thu hồi Owner" : "Cấp Owner"}
+                      {member.role === "owner" ? "Thu hồi quyền quản trị" : "Cấp quyền quản trị"}
                     </Button>
                     <Button
                       variant="danger"
@@ -186,6 +185,26 @@ export default function OrganizationPage({ loaderData: organization }: Route.Com
         }}
       >
         Người này mất quyền truy cập mọi dữ liệu của tổ chức. Hợp đồng người này sở hữu sẽ chuyển cho bạn.
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={changingRole !== null}
+        title={`${granting ? "Cấp" : "Thu hồi"} quyền quản trị ${granting ? "cho" : "của"} ${changingRole?.displayName ?? ""}?`}
+        confirmLabel={granting ? "Cấp quyền quản trị" : "Thu hồi quyền quản trị"}
+        danger={!granting}
+        onCancel={() => setChangingRole(null)}
+        onConfirm={() => {
+          const member = changingRole!;
+          setChangingRole(null);
+          run(
+            () => apiPut(`${base}/members/${member.userId}/role`, { role: granting ? "owner" : "member" }),
+            granting ? "Đã cấp quyền quản trị." : "Đã thu hồi quyền quản trị.",
+          );
+        }}
+      >
+        {granting
+          ? "Quản trị viên mời và xóa thành viên, đổi vai trò, và có toàn quyền trên mọi hợp đồng của tổ chức, kể cả hợp đồng không được chia sẻ cho họ."
+          : "Người này trở thành thành viên: chỉ còn thấy hợp đồng mình phụ trách hoặc được chia sẻ."}
       </ConfirmDialog>
     </section>
   );

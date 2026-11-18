@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Phiên bản | 0.5 — Chốt bước 1 (Q1–Q3) và bước 2–8 (§4); SD-04 đổi sang ASP.NET Core Identity |
-| Ngày | 2026-10-27 |
+| Phiên bản | 0.6 — Chốt bước 1 (Q1–Q3) và bước 2–8 (§4); SD-04 đổi sang ASP.NET Core Identity; 2026-11-17 đổi database sang Supabase, model AI tự host trên EC2 (CR-GEN-003), nền tảng worker do nhóm AI chọn (`04` mục C1–C3) |
+| Ngày | 2026-10-27, sửa 2026-11-17 |
 | Đầu vào | [01-product-spec.md](01-product-spec.md) v1.2 |
 | Cách làm | Từng bước. Mỗi bước kết thúc bằng các câu hỏi thảo luận, chốt xong mới sang bước sau. |
 
@@ -85,7 +85,9 @@ Cách làm: ghi rõ mọi giả định thành số, tính ra lưu lượng, tok
 | Thinking (suy luận nội bộ, tính như output) | Lớn | — | ~10k |
 | **Tổng** | | **~100k** | **~30k** |
 
-> **Chọn model: tạm hoãn.** Nhóm đang cân nhắc 3 hướng:
+> **Đổi 2026-11-17 (DEC-GEN-029, CR-GEN-003):** model tự host bằng Docker trên EC2, không dùng Bedrock. Chi phí giờ tính theo **giờ máy GPU bật**, không theo token; bảng giá token dưới đây chỉ còn giá trị so sánh. Số token mỗi lần phân tích vẫn dùng để ước lượng độ trễ và cỡ context cần có.
+>
+> **Chọn model: tạm hoãn.** Trước đây nhóm cân nhắc 3 hướng:
 > - Model open-weight có sẵn trên Bedrock (trả theo token).
 > - Bedrock Custom Model Import (trả theo thời gian model hoạt động, không theo token, nên cần cách ước lượng riêng).
 > - Claude trên cloud.
@@ -130,7 +132,7 @@ Cách làm: ghi rõ mọi giả định thành số, tính ra lưu lượng, tok
 
 | Dữ liệu | Mỗi phiên bản hợp đồng | 1.000 phiên bản |
 |---|---|---|
-| File gốc | ~2 MB (bản scan ~10 MB) | ~3–5 GB |
+| File gốc | ~2 MB | ~3–5 GB |
 | Kết quả trích xuất (JSON) | ~200 KB | ~200 MB |
 | Dòng dữ liệu nghiệp vụ (clause, finding, điểm, chat) | ~50 KB | ~50 MB |
 | Vector embedding | 40 clause × 1.024 chiều × 4 byte ≈ 160 KB | ~160 MB |
@@ -144,7 +146,7 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 | Giai đoạn | Ước lượng | Ghi chú |
 |---|---|---|
 | Upload và kiểm tra file | 1–3 s | |
-| Parse PDF có lớp text (Docling, CPU) | 5–15 s | Bản scan cần OCR, cộng thêm 20–60 s |
+| Parse PDF có lớp text (Docling, CPU) | 5–15 s | Không có OCR: bản scan đã bỏ theo CR-GEN-001 |
 | Phân loại điều khoản (model nhỏ) | 5–10 s | |
 | Đánh giá 7 nhóm (chạy **song song**) | 15–40 s | Phụ thuộc chủ yếu vào số token output. Nếu chạy tuần tự sẽ mất vài phút. |
 | Chấm điểm và lưu kết quả | < 2 s | |
@@ -162,25 +164,25 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 
 | Thành phần | ~USD/tháng | Ghi chú |
 |---|---|---|
-| RDS PostgreSQL `db.t4g.micro` + 20 GB | ~15 | Có thể miễn phí nếu account còn free tier |
+| ~~RDS PostgreSQL `db.t4g.micro` + 20 GB~~ Supabase (đổi 2026-11-17) | ~~15~~ 0 | Gói Free; không trừ vào credit AWS. Pro $25/tháng nếu cần sao lưu hoặc không muốn bị tạm dừng sau 7 ngày (`04` mục C1) |
 | Application Load Balancer | ~18 | Tốn tiền kể cả khi không có request nào |
 | Fargate cho API (0,25 vCPU, 0,5 GB, ARM, chạy 24/7) | ~8 | |
 | Địa chỉ IPv4 public (2–3 cái) | ~8–11 | AWS tính phí IPv4 public từ 2024 |
 | KMS, Secrets Manager, CloudWatch, S3, CloudFront, SQS | ~5 | |
-| **Tổng cố định** | **~55** | **5 tháng ≈ $275** |
-| Worker phân tích (chạy theo job) | ~1 | 2 vCPU/4 GB × ~1 phút/job × vài trăm job |
-| Textract (chỉ bản scan) | ~vài $ | |
+| **Tổng cố định** | **~55** (~40 với Supabase Free) | **5 tháng ≈ $275** (~$200) |
+| Worker phân tích (chạy theo job) | ~1 | 2 vCPU/4 GB × ~1 phút/job × vài trăm job. Nền tảng do nhóm AI chọn (`04` mục C2) |
+| Máy GPU chạy model tự host (tài khoản nhóm AI) | theo giờ bật | Chưa chọn loại máy. Tính tiền cả lúc không có job, nên chỉ bật trong giờ test và demo (`04` mục C3) |
 
 **Đặt cạnh ngân sách:**
 
 - Credit thường gắn với **từng account AWS** và không tự cộng dồn. Một account $200 **không đủ** để chạy hạ tầng 24/7 trong 5 tháng, chưa tính tiền LLM.
-- Ở quy mô này, **chi phí cố định (ALB, RDS, IPv4) lớn hơn chi phí theo lượng dùng**. Đây là bài học quan trọng: khi hệ thống nhỏ, mỗi thành phần "luôn bật" đều đắt.
+- Ở quy mô này, **chi phí cố định (ALB, database, IPv4) lớn hơn chi phí theo lượng dùng**. Đây là bài học quan trọng: khi hệ thống nhỏ, mỗi thành phần "luôn bật" đều đắt.
 
 **Hướng xử lý (đề xuất, chốt ở bước 8):**
 
-1. **3 tháng đầu dev local:** chạy Docker Compose gồm PostgreSQL + pgvector và các giả lập S3/SQS. Chỉ gọi Bedrock thật.
+1. **3 tháng đầu dev local:** chạy Docker Compose gồm PostgreSQL + pgvector và các giả lập S3/SQS. Model AI gọi endpoint của nhóm AI (trước 2026-11-17: Bedrock thật).
 2. **Khoảng 6 tuần cuối mới dựng môi trường AWS staging/demo**, và tắt hoặc thu nhỏ vào ban đêm.
-3. **Chia credit theo vai trò:** account của SE chạy hạ tầng, account của các thành viên AI dùng cho thử nghiệm và eval Bedrock.
+3. **Chia credit theo vai trò:** account của SE chạy hạ tầng, account của các thành viên AI dùng cho máy GPU, thử nghiệm và eval model.
 4. Hỏi mentor FCAJ xem có gom được credit qua AWS Organizations không.
 
 ### 2.8 Kết luận cho các bước sau
@@ -189,7 +191,7 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 |---|---|---|
 | K1 | Hệ thống **ít request nhưng nặng LLM**. Điểm nghẽn là chi phí, độ trễ và quota của LLM, không phải CPU hay database. | Bước 2, 5 |
 | K2 | Phân tích phải chạy **bất đồng bộ** qua hàng đợi, có **giới hạn số lời gọi LLM đồng thời** và retry có backoff. | Bước 5 |
-| K3 | Model và nhà cung cấp cho từng bước phải **cấu hình được** (open-weight trên Bedrock, Custom Model Import, hoặc Claude). Việc chọn model **hoãn lại** và sẽ do eval quyết định. | Bước 4, 5 |
+| K3 | Model cho từng bước phải **cấu hình được**. Việc chọn model **hoãn lại** và sẽ do eval quyết định. Từ 2026-11-17 chỉ chọn trong các model tự host được trên EC2 (DEC-GEN-029). | Bước 4, 5 |
 | K4 | Dung lượng nhỏ, nên ưu tiên **một database đơn giản** (PostgreSQL + pgvector) thay vì nhiều hệ thống chuyên biệt. | Bước 3 |
 | K5 | Chi phí cố định chi phối ngân sách, nên **hạn chế thành phần luôn bật**. Cân nhắc lại ALB, số IP public và cách chạy worker. | Bước 2, 8 |
 | K6 | Đạt 45 giây đòi hỏi chạy song song theo nhóm rủi ro và có worker chạy sẵn. Scale từ 0 xung đột với mục tiêu này. | Bước 5, 8 |
@@ -198,9 +200,9 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 
 | Rủi ro | Vì sao quan trọng | Cách kiểm tra |
 |---|---|---|
-| **Credit FCAJ có dùng được cho model mà nhóm định dùng trên Bedrock không** | Một số loại credit không áp dụng cho model của bên thứ ba. Kết quả kiểm tra này ảnh hưởng trực tiếp tới việc chọn model. | Xem Billing → Credits → "Applicable products", hoặc hỏi mentor |
-| Region có model cần dùng không (open-weight, Custom Model Import, Claude) | Có thể phải dùng cross-region inference hoặc đổi region | Bedrock console → Model access |
-| Quota Bedrock (token/phút, request/phút) | Account mới thường có quota thấp. 30 job đồng thời ≈ 3 triệu token input trong khoảng một phút có thể bị chặn ngay trong buổi demo. | Service Quotas. Xin tăng quota **sớm**, vì có thể mất nhiều ngày. |
+| **Credit FCAJ có đủ cho máy GPU không** (đổi 2026-11-17, trước là credit cho Bedrock) | Máy GPU tính tiền theo giờ bật; $200 mỗi account hết nhanh nếu quên tắt máy | Pricing Calculator cho loại máy nhóm AI chọn; AWS Budgets |
+| Region có loại máy GPU cần dùng không, còn capacity không | Có thể phải đổi loại máy hoặc chạy model nhỏ hơn (RISK-SRS-003) | EC2 console → Instance types ở `ap-southeast-1` |
+| Quota vCPU cho instance GPU (họ G, VT) | Account mới thường bằng 0, không bật được máy (RISK-GEN-002) | Service Quotas. Xin tăng quota **sớm**, vì có thể mất nhiều ngày. |
 | Số token thật cho tiếng Việt | A2 có thể sai 1,5–2 lần, kéo theo sai chi phí | Đếm token trên 3–5 hợp đồng mẫu |
 
 ---
@@ -217,7 +219,7 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 |---|---|---|
 | Q1 | **Không** giữ worker chạy sẵn. Worker scale từ 0. | Job đầu tiên sau khi worker ngủ chờ thêm 1–3 phút. Không vi phạm NFR-PERF-001..003 vì các mục tiêu này đo khi worker đã chạy sẵn. Cách giữ buổi demo nhanh: xem SD-12. |
 | Q2 | Dev local trước, **dựng AWS sau**; thời điểm chưa chốt. | Môi trường local phải chạy được toàn bộ luồng (SD-17). |
-| Q3 | Đã giãn mục tiêu độ trễ: text 20 trang p50 ≤ 2 phút, p95 ≤ 5 phút; bản scan ≤ 50 trang p50 ≤ 5 phút; chatbot chữ đầu tiên p50 ≤ 15 giây (DEC-GEN-022, SRS NFR-PERF-001..004). | Thay mục tiêu 45 giây ở §2.6. |
+| Q3 | Đã giãn mục tiêu độ trễ: text 20 trang p50 ≤ 2 phút, p95 ≤ 5 phút; bản scan ≤ 50 trang p50 ≤ 5 phút (đã bỏ theo CR-GEN-001); chatbot chữ đầu tiên p50 ≤ 15 giây (DEC-GEN-022, SRS NFR-PERF-001..004). | Thay mục tiêu 45 giây ở §2.6. |
 | Rủi ro §2.9 | Region Singapore có model cần dùng (xác nhận của Approver). Credit, quota và đếm token là việc của **nhóm AI**. | Theo dõi ở `04-system-design-decisions.md`, mục "Việc của các nhóm khác". |
 
 ---
@@ -229,22 +231,22 @@ Phân tích, phương án và trade-off của từng mục ở [04-system-design
 | # | Quyết định |
 |---|---|
 | SD-01 | Modular monolith C# (`backend/`) + worker Python (`worker/`) + SQS. Module nội bộ C#: Auth, Workspace, Contract, Analysis, Chat, Export |
-| SD-02 | ECS Fargate ARM: API 1 task luôn bật; worker Fargate Spot 0→N |
+| SD-02 | ECS Fargate ARM: API 1 task luôn bật. Worker: **đổi 2026-11-17**, nhóm AI chọn nền tảng (`04` mục C2) |
 | SD-03 | Một domain: CloudFront phục vụ SPA từ S3 và chuyển `/api/*` về ALB; lỗi 403/404 trả `index.html`. Bổ sung 2026-11-07: CloudFront gọi ALB bằng HTTPS; security group chỉ cho ALB gọi API; API đọc giao thức gốc từ `X-Forwarded-Proto` |
 | SD-04 | **ASP.NET Core Identity** trong service C#: khóa 5 lần / 15 phút theo email, token đặt lại mật khẩu, đăng nhập Google; phiên bằng cookie httpOnly `Secure` `SameSite=Lax`, chống CSRF cho request ghi. Không dùng Cognito. Không có MFA trong MVP (DEC-PRD-022) |
 | SD-05 | Lọc theo không gian bằng global query filter của EF Core + kiểm tra quyền theo tài nguyên; bộ test cách ly trong CI |
-| SD-06 | RDS PostgreSQL 18 + pgvector, `db.t4g.micro`, single-AZ; migration bằng EF Core; chỉ mục HNSW. Đổi từ 16 sang 18 ngày 2026-10-29 vì lúc này chưa có dữ liệu, và bản 18 được hỗ trợ đến 11/2030 |
+| SD-06 | **Đổi 2026-11-17: Supabase** (PostgreSQL + pgvector; 2026-11-18: hai project staging/production ở Tokyo, bảng app ở schema `app`, kho pháp luật của AI ở `public`, `04` mục C4, C5; kết nối qua pooler Supavisor chế độ session, TLS; `04` mục C1). Trước đó: RDS PostgreSQL 18 + pgvector, `db.t4g.micro`, single-AZ; migration bằng EF Core; chỉ mục HNSW. Đổi từ 16 sang 18 ngày 2026-10-29 vì lúc này chưa có dữ liệu, và bản 18 được hỗ trợ đến 11/2030 |
 | SD-07 | Một bucket, prefix `quarantine/`, `clean/{workspace}/{contract}/{version}/`, `results/{job_id}/`; SSE-KMS khóa AWS quản lý + S3 Bucket Key; tắt versioning |
 | SD-08 | Presigned POST giới hạn 20 MB; GuardDuty Malware Protection for S3 quét `quarantine/`; worker kiểm tra loại file thật, số trang, làm sạch tài liệu; local bỏ qua quét bằng cờ cấu hình |
 | SD-09 | REST `/api/v1` + OpenAPI sinh tự động, sinh kiểu TypeScript cho frontend; lỗi theo Problem Details kèm mã ERR-* |
 | SD-10 | Mở rộng `contracts/extraction.schema.json` (tăng `schema_version`): thêm `clauses`, `findings`, `checks`, `metadata`, `injection_warnings`, embedding; sinh lớp C# và Pydantic. Worker sinh finding kèm trích dẫn, tự loại finding sai trích dẫn, rồi tính điểm bằng code Python theo công thức có version (model không tự đưa ra con số); C# kiểm tra trích dẫn và giới hạn của điểm, rồi lưu. Đổi nơi chấm điểm từ C# sang Python ngày 2026-11-06 (`docs/05` §4). Cần AI, IA, SE cùng duyệt |
 | SD-11 | Message SQS chỉ chứa `job_id`, loại sự kiện, đường dẫn S3; tiến trình và kết quả cùng đi qua `analysis-results` |
-| SD-12 | Worker là ECS service 0→3 task, scale theo số message; mỗi task ~4 job song song; lịch tự bật 1 task trong giờ demo và giờ test |
-| SD-13 | SQS `maxReceiveCount = 3` rồi DLQ, visibility 15 phút có gia hạn; retry có backoff cho Bedrock; C# giữ máy trạng thái, idempotent theo `job_id`; job im lặng quá 20 phút thì `failed` |
-| SD-14 | **Tạm theo A** (C# truy xuất pgvector và gọi Bedrock, prompt trong `prompts/` do nhóm AI quản lý). Giữ B (service chat Python) làm phương án dự phòng. Chốt lại trước phase 4 |
+| SD-12 | **Đổi 2026-11-17:** nhóm AI quyết cách chạy và scale worker, miễn đạt NFR-SCAL-001 và bật sẵn trong giờ demo, giờ test (`04` mục C2). Trước đó: ECS service 0→3 task, scale theo số message |
+| SD-13 | SQS `maxReceiveCount = 3` rồi DLQ, visibility 15 phút có gia hạn; retry có backoff khi gọi model (đổi 2026-11-17: endpoint tự host thay Bedrock); C# giữ máy trạng thái, idempotent theo `job_id`; job im lặng quá 20 phút thì `failed` |
+| SD-14 | **Tạm theo A** (C# truy xuất pgvector và gọi model, prompt trong `prompts/` do nhóm AI quản lý). Đổi 2026-11-17: gọi endpoint HTTP của model tự host thay Bedrock (`04` mục C3). Giữ B (service chat Python) làm phương án dự phòng. Chốt lại trước phase 4 |
 | SD-15 | Server-Sent Events cho chat, có tín hiệu giữ kết nối; tiến trình phân tích vẫn gọi `GET /jobs/{id}` định kỳ |
-| SD-16 | Amazon SES; local dùng Mailpit; xác minh sẵn email nhóm hoặc xin ra khỏi sandbox sớm; cần một domain |
-| SD-17 | Local: Docker Compose (PostgreSQL + pgvector, LocalStack, Mailpit), Bedrock gọi thật. AWS: một môi trường staging dùng cho demo, dựng khi luồng demo chạy được ở local. |
+| SD-16 | Amazon SES; local dùng Mailpit. 2026-11-18: người gửi `contractguard.info@gmail.com` (email identity, không domain); sandbox thì xác minh từng người nhận; dự phòng Gmail SMTP nếu không ra được sandbox (`04` mục C5) |
+| SD-17 | Local: Docker Compose (PostgreSQL + pgvector thay cho Supabase, LocalStack, Mailpit); model gọi endpoint của nhóm AI hoặc dùng bản giả (`FakeChatResponder`). Chế độ Cloud ở máy dev (2026-11-17): môi trường `Cloud`, profile `aws`, dùng Supabase, Amazon SES và S3/SQS thật; secret nằm trong `appsettings.Cloud.local.json` không commit. Đổi 2026-11-18 (`04` mục C5): Cloud trỏ vào Supabase staging; có thêm production (Supabase project riêng, Tokyo), API production dựng ở Phase 7. |
 | SD-18 | AWS CDK (C#); GitHub Actions đăng nhập AWS qua OIDC; workflow riêng cho `backend/`, `worker/`, `frontend/` theo đường dẫn |
 | SD-19 | Log JSON có `job_id`, `user_id`, không có nội dung hợp đồng, lên CloudWatch; ghi chi phí mỗi lần gọi model; trace để sau |
-| SD-20 | AWS Budgets cảnh báo 50%, 80%; tắt API và dừng RDS ngoài giờ test; **trước khi triển khai lên AWS phải nhắc mọi thành viên cấu hình billing và cảnh báo trên tài khoản của mình** |
+| SD-20 | AWS Budgets cảnh báo 50%, 80%; tắt API ngoài giờ test; tắt máy GPU của model ngoài giờ test (nhóm AI); bật lại project Supabase nếu bị tạm dừng; **trước khi triển khai lên AWS phải nhắc mọi thành viên cấu hình billing và cảnh báo trên tài khoản của mình** |

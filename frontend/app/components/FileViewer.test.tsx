@@ -8,8 +8,8 @@ vi.mock("./DocxViewer", () => ({ default: ({ url }: { url: string }) => <p>docx:
 
 const link = (url: string) => Response.json({ url });
 
-function setup(fileType: "pdf" | "docx" | "jpg" | "png") {
-  render(<FileViewer contractId="c1" versionId="v1" fileName="hop-dong" fileType={fileType} />);
+function setup(fileType: "pdf" | "docx") {
+  render(<FileViewer contractId="c1" versionId="v1" fileType={fileType} />);
 }
 
 describe("FileViewer", () => {
@@ -26,14 +26,6 @@ describe("FileViewer", () => {
     setup(fileType);
 
     expect(await screen.findByText(expected)).toBeInTheDocument();
-  });
-
-  it("shows an image directly", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(link("http://storage/a")));
-
-    setup("png");
-
-    expect(await screen.findByRole("img", { name: "hop-dong" })).toHaveAttribute("src", "http://storage/a");
   });
 
   it("says so when the file left storage, and offers no download", async () => {

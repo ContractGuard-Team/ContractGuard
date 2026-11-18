@@ -28,7 +28,7 @@ describe("ContractDropzone", () => {
 
     fireEvent.change(setup(), { target: { files: [fileOfSize("virus.exe", 10)] } });
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Chỉ nhận file PDF, DOCX, JPG hoặc PNG.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Chỉ nhận file PDF hoặc DOCX.");
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 

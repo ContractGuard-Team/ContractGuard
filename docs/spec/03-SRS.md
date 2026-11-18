@@ -10,7 +10,7 @@ tier: 2
 output_language: vi
 upstream:
   - "02-PRD.md"
-version: "1.1"
+version: "1.4"
 status: REVIEW
 authors:
   - "Agent"
@@ -20,7 +20,7 @@ reviewers:
 approvers:
   - "SE của nhóm"
 created: 2026-10-24
-last_updated: 2026-10-27
+last_updated: 2026-11-17
 tags:
   - srs
   - requirements
@@ -170,7 +170,7 @@ tags:
 | Upstream Documents | `02-PRD.md` v1.0 (Gate S2 thông qua 2026-10-24 với v0.2; v0.3 áp dụng trả lời OQ 2026-10-26; v0.4 thêm mô hình không gian làm việc 2026-10-27; v1.0 baseline tại Gate S5 2026-10-27). Không có BRS, BRD, StRS (DEC-GEN-005). |
 | Document Name | Software Requirements Specification |
 | Document ID | CG-SRS |
-| Version | `1.1` |
+| Version | `1.4` |
 | Status | `REVIEW` |
 | Author | Agent |
 | Reviewer | Thành viên AI và IA |
@@ -194,6 +194,9 @@ tags:
 | 0.10 | 2026-10-27 | Agent | §1–§9, §11–§16 | Mô hình không gian làm việc kiểu GitHub (DEC-PRD-020, DEC-PRD-021): không gian cá nhân, nhiều tổ chức, chia sẻ hợp đồng cá nhân cho mọi tài khoản; thêm BR-ORG-004, FR-ORG-013, FR-ORG-014, FR-SHARE-009, FR-SHARE-010, UC-ORG-004, ERR-SHARE-002, CDC-DATA-006, VAL-DATA-015; BR-ORG-001, FR-ORG-002, VAL-DATA-006, ERR-ORG-001, EF-ORG-001 chuyển DEPRECATED. §9 dùng tên tiếng Anh cho entity, thuộc tính, bảng, data item, mã enum và ERD (DEC-GEN-025) | REVIEW |
 | 1.0 | 2026-10-27 | Approver | Toàn bộ | Baseline tại Gate S5: Approver thông qua SRS (DEC-GEN-026), MC9 và RS3 là known issues; mọi mục REVIEW chuyển APPROVED | APPROVED |
 | 1.1 | 2026-10-27 | Agent | §1, §2, §3, §5, §6, §8, §9, §10, §12, §14, §16 | Bỏ MFA khỏi MVP (DEC-PRD-022). F-AUTH-003 → Won't; FR-AUTH-012, FR-AUTH-013, SEC-AUTH-004, AF-AUTH-002, ATTR-DATA-005 DEPRECATED; FR-AUTH-006, FR-AUTH-007 sửa và về REVIEW | REVIEW |
+| 1.2 | 2026-11-17 | Agent | §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §15, §16 | CR-GEN-001 (DEC-PRD-023): bỏ đọc bản scan và OCR, chỉ nhận PDF có lớp chữ và DOCX. FR-ANA-007, NFR-PERF-003, EXT-INTG-002, IF-INTG-002 DEPRECATED; BR-CTR-001, FR-UPL-002, FR-UPL-003, FR-ANA-004, FR-ANA-008, FR-ANA-013, VAL-DATA-003 sửa và về REVIEW; EDGE-UPL-001, EDGE-ANA-001 cập nhật | REVIEW |
+| 1.3 | 2026-11-17 | Agent | §1.4, §7, §8, §9, §12.3, §14 | CR-GEN-002: mỗi người có một vai trò hiệu lực trên hợp đồng (mức cao nhất); Owner tổ chức không được chia sẻ như Member hợp đồng; danh sách truy cập liệt kê cả Owner tổ chức; tên hiển thị của vai trò. BR-SHARE-002, FR-SHARE-006 sửa và về REVIEW; thêm VAL-DATA-016, ERR-SHARE-003 | REVIEW |
+| 1.4 | 2026-11-17 | Agent | §1.1, §1.2, §2.1, §2.4, §2.5, §2.6, §3.4, §10, §17 | CR-GEN-003 (DEC-GEN-029): model AI tự host bằng Docker trên Amazon EC2 thay Amazon Bedrock. CON-GEN-001, EXT-INTG-001, IF-INTG-001, RISK-SRS-003 sửa và về REVIEW | REVIEW |
 
 ### 0.3 Review And Approval
 
@@ -217,15 +220,15 @@ SRS chuyển các feature, user story và yêu cầu chất lượng trong `02-P
 
 Tài liệu được dùng để:
 - làm đầu vào cho thiết kế hệ thống (`docs/02-system-design.md`);
-- làm căn cứ cho việc xây dựng phần nền tảng (C#/.NET, React) và phần AI (Python, Amazon Bedrock);
+- làm căn cứ cho việc xây dựng phần nền tảng (C#/.NET, React) và phần AI (Python, model tự host trên Amazon EC2);
 - làm căn cứ kiểm thử, nghiệm thu và kiểm tra release criteria (PRD §12);
 - làm cơ sở kiểm soát thay đổi sau khi được baseline.
 
 ### 1.2 Scope
 
-ContractGuard nhận file hợp đồng do người dùng upload, phân tích bằng AI chạy qua Amazon Bedrock, trình bày kết quả trên giao diện web và cho phép xuất báo cáo. Hệ thống quản lý tài khoản, tổ chức, quyền truy cập theo email, thư viện và phiên bản hợp đồng.
+ContractGuard nhận file hợp đồng do người dùng upload, phân tích bằng model AI tự host trên Amazon EC2, trình bày kết quả trên giao diện web và cho phép xuất báo cáo. Hệ thống quản lý tài khoản, tổ chức, quyền truy cập theo email, thư viện và phiên bản hợp đồng.
 
-Ranh giới hệ thống: ứng dụng web và các dịch vụ phía sau thuộc hệ thống. Dịch vụ model AI (Amazon Bedrock), dịch vụ OCR, dịch vụ gửi email và nhà cung cấp đăng nhập Google là hệ thống bên ngoài.
+Ranh giới hệ thống: ứng dụng web và các dịch vụ phía sau thuộc hệ thống. Dịch vụ model AI (tự host bằng Docker trên Amazon EC2, do nhóm AI vận hành), dịch vụ gửi email và nhà cung cấp đăng nhập Google là hệ thống bên ngoài.
 
 #### 1.2.1 In Scope
 
@@ -283,6 +286,7 @@ Các feature `Won't` của PRD, không cam kết trong lần phát hành này: F
 | Member tổ chức | Term | Vai trò cấp tổ chức: tạo hợp đồng mới và làm việc với các hợp đồng được chia sẻ | PS §6.1 |
 | Owner hợp đồng | Term | Người tạo hợp đồng (hoặc người được chuyển quyền). Có mọi quyền của Member hợp đồng, cộng thêm chia sẻ, thu hồi chia sẻ, chuyển quyền Owner, xóa hợp đồng | PS §6.1 |
 | Member hợp đồng | Term | Người được chia sẻ hợp đồng. Xem kết quả, chat, xuất báo cáo, upload phiên bản mới, chạy lại phân tích, sửa metadata và ngữ cảnh, đổi trạng thái hợp đồng và trạng thái finding | PS §6.1; DEC-PRD-013 |
+| Vai trò hiệu lực | Term | Vai trò duy nhất của một người trên một hợp đồng, lấy mức cao nhất: Owner hợp đồng, rồi Owner tổ chức (chỉ với hợp đồng của tổ chức đó), rồi Member hợp đồng. Tên trên giao diện: Owner tổ chức là "Quản trị viên", Member tổ chức là "Thành viên", Owner hợp đồng là "Người phụ trách", Member hợp đồng là "Được chia sẻ" | CR-GEN-002 |
 | Hợp đồng | Term | Một hồ sơ hợp đồng trong thư viện của tổ chức, gồm một hoặc nhiều phiên bản | PS §6.2 |
 | Phiên bản hợp đồng | Term | Một file hợp đồng cụ thể (V1, V2...) thuộc một hợp đồng, có kết quả phân tích riêng | PS §6.2 CON-06 |
 | Ngữ cảnh hợp đồng | Term | Thông tin người dùng khai báo khi upload: bên mình, đối tác, loại hợp đồng, đối tác cung cấp gì, có xử lý dữ liệu cá nhân hoặc nhạy cảm không, mức độ quan trọng của dịch vụ | PS §6.2 CON-02 |
@@ -385,10 +389,10 @@ Người dùng truy cập hệ thống qua trình duyệt web. Hệ thống dùn
 | Bên trong hệ thống | Bên ngoài hệ thống |
 |---|---|
 | Giao diện web: thư viện, upload, dashboard, document viewer, chatbot, quản lý tổ chức | Trình duyệt của người dùng |
-| Xác thực, tổ chức, phân quyền và chia sẻ | Dịch vụ model AI trên Amazon Bedrock |
-| Lưu trữ hợp đồng, phiên bản, ngữ cảnh, metadata, kết quả phân tích, lịch sử chat, nhật ký | Dịch vụ nhận dạng ký tự (OCR) cho bản scan |
-| Kiểm tra và làm sạch file upload, phát hiện prompt injection | Dịch vụ gửi email |
-| Pipeline phân tích: đọc file, tách và phân loại điều khoản, đánh giá rủi ro, chạy bộ check, chấm điểm | Nhà cung cấp đăng nhập Google (OIDC) |
+| Xác thực, tổ chức, phân quyền và chia sẻ | Dịch vụ model AI tự host trên Amazon EC2 |
+| Lưu trữ hợp đồng, phiên bản, ngữ cảnh, metadata, kết quả phân tích, lịch sử chat, nhật ký | Dịch vụ gửi email |
+| Kiểm tra và làm sạch file upload, phát hiện prompt injection | Nhà cung cấp đăng nhập Google (OIDC) |
+| Pipeline phân tích: đọc file, tách và phân loại điều khoản, đánh giá rủi ro, chạy bộ check, chấm điểm | |
 | Cơ sở tri thức (bộ căn cứ pháp lý và rule rủi ro chọn lọc) | |
 | Tạo báo cáo PDF và DOCX | |
 
@@ -398,10 +402,10 @@ DIA-GEN-001 - Sơ đồ ngữ cảnh:
 
 ```text
                  +-------------------------------+
-  Người dùng --> |          ContractGuard        | --> Amazon Bedrock (model AI)
-  (trình duyệt)  |  Web UI, quản lý, phân tích,  | --> Dịch vụ OCR
-                 |  chatbot, báo cáo, lưu trữ    | --> Dịch vụ gửi email
-                 +-------------------------------+ <-> Đăng nhập Google (OIDC)
+  Người dùng --> |          ContractGuard        | --> Model AI tự host (EC2)
+  (trình duyệt)  |  Web UI, quản lý, phân tích,  | --> Dịch vụ gửi email
+                 |  chatbot, báo cáo, lưu trữ    | <-> Đăng nhập Google (OIDC)
+                 +-------------------------------+
 ```
 
 ### 2.2 Product Functions
@@ -410,7 +414,7 @@ DIA-GEN-001 - Sơ đồ ngữ cảnh:
 |---|---|---|---|
 | PF-GEN-001 | Tài khoản và truy cập | Đăng ký, đăng nhập; không gian cá nhân, tổ chức và thành viên; chia sẻ hợp đồng theo email | F-AUTH-001, F-AUTH-002, F-ORG-001, F-ORG-002, F-SHARE-001 |
 | PF-GEN-002 | Quản lý hợp đồng | Upload và khai báo ngữ cảnh, metadata, thư viện, trạng thái duyệt, phiên bản, xóa, nhật ký hoạt động | F-CTR-001, F-CTR-002, F-CTR-003, F-CTR-004, F-CTR-005, F-CTR-006, F-AUD-001 |
-| PF-GEN-003 | Phân tích hợp đồng | Bảo vệ đầu vào; đọc file kể cả OCR; tách và phân loại điều khoản; điều phối và theo dõi tiến trình phân tích | F-SEC-001, F-ANA-001, F-ANA-002 |
+| PF-GEN-003 | Phân tích hợp đồng | Bảo vệ đầu vào; đọc file PDF có lớp chữ và DOCX; tách và phân loại điều khoản; điều phối và theo dõi tiến trình phân tích | F-SEC-001, F-ANA-001, F-ANA-002 |
 | PF-GEN-004 | Đánh giá và chấm điểm rủi ro | Finding trên 7 nhóm, điều khoản thiếu, căn cứ tham khảo, nhóm N/A, bộ 20 check, điểm rủi ro; chấm theo chính sách nội bộ (Could) | F-RISK-001, F-RISK-002, F-RISK-003, F-POL-001 |
 | PF-GEN-005 | Xem kết quả | Dashboard, danh sách và chi tiết finding, document viewer, xử lý finding; so sánh phiên bản (Could) | F-VIEW-001, F-VIEW-002, F-VIEW-003, F-CMP-001 |
 | PF-GEN-006 | Chatbot theo hợp đồng | Hỏi đáp có trích dẫn, câu hỏi gợi ý, lịch sử chat | F-CHAT-001, F-CHAT-002, F-CHAT-003 |
@@ -437,7 +441,7 @@ Dùng lại các `UCL` của PRD §5.
 | Network Environment | Kết nối Internet; mọi dữ liệu truyền đi được mã hóa (STR-QUAL-006) |
 | Runtime Environment | Service nền tảng viết bằng C#/.NET; phần AI viết bằng Python (CON-PRJ-002). Phiên bản runtime do thiết kế hệ thống quyết định. |
 | Data Platform | Không ràng buộc ở mức yêu cầu; do thiết kế hệ thống quyết định |
-| AI Platform | Amazon Bedrock (CON-GEN-001) |
+| AI Platform | Model tự host trong Docker trên Amazon EC2, `ap-southeast-1` (CON-GEN-001) |
 | Other | Giao diện tiếng Việt và tiếng Anh (STR-QUAL-013) |
 
 ### 2.5 Design And Implementation Constraints
@@ -446,16 +450,16 @@ Các ràng buộc dự án CON-PRJ-001..006 (nhân sự, ngôn ngữ C# và Pyth
 
 | Constraint ID | Constraint | Source | Rationale | Scope | Verification Method | Status |
 |---|---|---|---|---|---|---|
-| CON-GEN-001 | Mọi lời gọi model AI (phân tích và chatbot) phải đi qua Amazon Bedrock | DEC-GEN-016; DEP-GEN-001 | Hướng triển khai AI do Approver chốt | PF-GEN-003, PF-GEN-004, PF-GEN-006 | Inspection | APPROVED |
+| CON-GEN-001 | Mọi lời gọi model AI (phân tích, embedding và chatbot) phải tới model tự host trong container Docker trên Amazon EC2, region `ap-southeast-1` | DEC-GEN-029 (thay DEC-GEN-016); DEP-GEN-001 | Hướng triển khai AI do Approver chốt. [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock bằng model tự host trên EC2 | PF-GEN-003, PF-GEN-004, PF-GEN-006 | Inspection | REVIEW |
 | CON-GEN-002 | Model AI dùng cho từng bước xử lý phải được chọn bằng cấu hình, không gắn cứng trong mã nguồn | DEC-GEN-010; SD §2.4 | Việc chọn model được hoãn và quyết định bằng eval; đổi model không được đòi hỏi sửa mã nguồn | PF-GEN-003, PF-GEN-004, PF-GEN-006 | Inspection | APPROVED |
 | CON-GEN-003 | Trọng số và công thức chấm điểm phải được khai báo trong file cấu hình có version, không gắn cứng trong mã nguồn | PS §7.6 | Công thức sẽ được hiệu chỉnh bằng eval | F-RISK-003 | Inspection | APPROVED |
 | CON-GEN-004 | Nội dung bộ rule rủi ro, bộ check và cơ sở tri thức phải được quản lý tách khỏi mã nguồn và có version | PS §4 (nguyên tắc 4), §7.7; `Idea/Phạm vi công việc.md` (P4: rule do IA viết nội dung, SE định nghĩa định dạng và chạy) | Mỗi kết quả phải truy vết được tới phiên bản rule đã tạo ra nó; thành viên IA cập nhật nội dung rule mà không cần sửa mã nguồn | F-RISK-001, F-RISK-002 | Inspection | APPROVED |
 
 ### 2.6 Assumptions And Dependencies
 
-Không có giả định nào do Agent tự ghi (Assumption Policy `ask`, DEC-GEN-003). Các yêu cầu liên quan tới AI được viết theo hướng AI hoạt động ổn định và chạy qua Amazon Bedrock, theo quyết định của Approver (DEC-GEN-016).
+Không có giả định nào do Agent tự ghi (Assumption Policy `ask`, DEC-GEN-003). Các yêu cầu liên quan tới AI được viết theo hướng AI hoạt động ổn định và chạy trên model tự host trên Amazon EC2, theo quyết định của Approver (DEC-GEN-029, thay DEC-GEN-016 theo CR-GEN-003).
 
-Các phụ thuộc DEP-GEN-001..006 được định nghĩa tại PRD §11: model AI trên Bedrock, OCR, bộ eval 20 hợp đồng, bộ căn cứ pháp lý đã xác minh, dịch vụ gửi email, hợp đồng demo mẫu. Bảng dưới là phụ thuộc bổ sung ở mức SRS.
+Các phụ thuộc DEP-GEN-001..006 được định nghĩa tại PRD §11: model AI tự host trên EC2, OCR (DEP-GEN-002, DEPRECATED theo CR-GEN-001), bộ eval 20 hợp đồng, bộ căn cứ pháp lý đã xác minh, dịch vụ gửi email, hợp đồng demo mẫu. Bảng dưới là phụ thuộc bổ sung ở mức SRS.
 
 | ID | Type | Statement | Source | Impact If False Or Unavailable | Owner | Status |
 |---|---|---|---|---|---|---|
@@ -518,8 +522,8 @@ Ghi chú:
 
 | External System ID | System | Owner | Integration Purpose | Data Sent | Data Received | Interface | Availability Dependency |
 |---|---|---|---|---|---|---|---|
-| EXT-INTG-001 | Amazon Bedrock | AWS | Model AI cho phân tích hợp đồng và chatbot (CON-GEN-001) | Nội dung điều khoản, ngữ cảnh hợp đồng, câu hỏi chat | Kết quả phân loại, đánh giá rủi ro, câu trả lời chat | §10.2 | Không có thì không phân tích và không chat được |
-| EXT-INTG-002 | Dịch vụ OCR | Chọn ở thiết kế hệ thống; gợi ý Amazon Textract (OQ-GEN-013) | Nhận dạng văn bản trên PDF scan và ảnh | Ảnh trang hợp đồng | Văn bản kèm vị trí trên trang | §10.2 | Không có thì không đọc được bản scan và ảnh (DEP-GEN-002) |
+| EXT-INTG-001 | Model AI tự host (Docker trên Amazon EC2) | Nhóm AI của dự án | Model AI cho phân tích hợp đồng, embedding và chatbot (CON-GEN-001). [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock | Nội dung điều khoản, ngữ cảnh hợp đồng, câu hỏi chat | Kết quả phân loại, đánh giá rủi ro, câu trả lời chat | §10.2 | Không có thì không phân tích và không chat được |
+| EXT-INTG-002 | Dịch vụ OCR (DEPRECATED, CR-GEN-001) | Chọn ở thiết kế hệ thống; gợi ý Amazon Textract (OQ-GEN-013) | Nhận dạng văn bản trên PDF scan và ảnh | Ảnh trang hợp đồng | Văn bản kèm vị trí trên trang | §10.2 | [DEPRECATED] Bỏ theo CR-GEN-001 (DEC-PRD-023): hệ thống không đọc bản scan và ảnh. Giữ lại để lưu vết |
 | EXT-INTG-003 | Dịch vụ gửi email | Chọn ở thiết kế hệ thống; gợi ý Amazon SES (OQ-GEN-013) | Gửi email xác thực, đặt lại mật khẩu, lời mời tham gia tổ chức | Địa chỉ email, nội dung email | Kết quả gửi | §10.2 | Không có thì không đăng ký và mời thành viên được (DEP-GEN-005) |
 | EXT-INTG-004 | Google (OIDC) | Google | Đăng nhập bằng tài khoản Google (F-AUTH-002) | Yêu cầu xác thực | Danh tính người dùng (email) | §10.2 | Không có thì chỉ đăng nhập được bằng email và mật khẩu (DEP-GEN-007) |
 
@@ -571,9 +575,9 @@ Nguồn: PS §2.2, PRD §6 (OPS-GEN-001..005). Các business rule được đị
 
 | Step | Actor/System | Action | Input | Business Rule | Output | Resulting State |
 |---:|---|---|---|---|---|---|
-| 1 | Người dùng, trong không gian cá nhân hoặc tổ chức (trở thành Owner hợp đồng) | Kéo thả file hợp đồng vào hệ thống | File PDF, DOCX, JPG hoặc PNG | Giới hạn ≤ 20 MB, ≤ 100 trang; kiểm tra và làm sạch file (§7) | Hợp đồng mới với phiên bản V1 | `Mới` |
+| 1 | Người dùng, trong không gian cá nhân hoặc tổ chức (trở thành Owner hợp đồng) | Kéo thả file hợp đồng vào hệ thống | File PDF có lớp chữ hoặc DOCX | Giới hạn ≤ 20 MB, ≤ 100 trang; kiểm tra và làm sạch file (§7) | Hợp đồng mới với phiên bản V1 | `Mới` |
 | 2 | Owner hợp đồng | Xác nhận hoặc sửa ngữ cảnh đã được điền sẵn | Ngữ cảnh hợp đồng | Đánh giá từ góc nhìn bên mình; xác định nhóm áp dụng (§7) | Ngữ cảnh đã lưu | `Mới` |
-| 3 | Hệ thống | Phân tích tự động: đọc file (kể cả OCR), tách và phân loại điều khoản, đánh giá rủi ro 7 nhóm, chạy 20 check, chấm điểm, trích metadata | Phiên bản và ngữ cảnh | 7 nhóm và 3 quy tắc, severity, chấm điểm, cách diễn đạt kết luận (§7) | Finding, kết quả check, điểm, metadata | `Đang phân tích`, sau đó `Chờ review` (hệ thống tự chuyển, OQ-CTR-002) |
+| 3 | Hệ thống | Phân tích tự động: đọc file, tách và phân loại điều khoản, đánh giá rủi ro 7 nhóm, chạy 20 check, chấm điểm, trích metadata | Phiên bản và ngữ cảnh | 7 nhóm và 3 quy tắc, severity, chấm điểm, cách diễn đạt kết luận (§7) | Finding, kết quả check, điểm, metadata | `Đang phân tích`, sau đó `Chờ review` (hệ thống tự chuyển, OQ-CTR-002) |
 | 4 | Owner hợp đồng, giám đốc | Xem tổng quan, danh sách finding, document viewer, checklist | Kết quả phân tích | - | Hiểu rủi ro của hợp đồng | `Chờ review` |
 | 5 | Owner hoặc Member hợp đồng | Hỏi chatbot về hợp đồng | Câu hỏi | Chatbot chỉ dùng dữ liệu người hỏi có quyền xem (§7) | Câu trả lời có trích dẫn điều khoản | Không đổi |
 | 6 | Owner hợp đồng | Chia sẻ hợp đồng cho người review hoặc giám đốc | Email trong tổ chức | Vai trò Owner/Member cấp hợp đồng (§7) | Người được chia sẻ có quyền Member hợp đồng | Không đổi |
@@ -609,7 +613,7 @@ Mục này dùng lại mã `F-*` của PRD §7, không tạo feature mới. Mô 
 | F-CTR-006 | Xóa vĩnh viễn hợp đồng | Xóa toàn bộ dữ liệu của hợp đồng | ACT-GEN-004 | BG-GEN-004 | STR-SEC-001 | Must | MVP | APPROVED |
 | F-AUD-001 | Nhật ký hoạt động | Ghi và hiển thị các hành động trên mỗi hợp đồng | ACT-GEN-004, ACT-GEN-005 | BG-GEN-004 | STR-CTR-001 | Should | MVP | APPROVED |
 | F-ANA-001 | Phân tích tự động | Tự chạy sau khi xác nhận ngữ cảnh, hiển thị tiến trình, báo lỗi, chạy lại | ACT-GEN-004, ACT-GEN-005 | BG-GEN-001, BG-GEN-002 | STR-RISK-001, STR-RISK-002 | Must | MVP | APPROVED |
-| F-ANA-002 | Đọc và tách điều khoản | Trích văn bản kể cả OCR, giữ cấu trúc và vị trí, tách và phân loại điều khoản | ACT-GEN-004 | BG-GEN-001 | STR-RISK-001, STR-RISK-003 | Must | MVP | APPROVED |
+| F-ANA-002 | Đọc và tách điều khoản | Trích văn bản từ PDF có lớp chữ và DOCX, giữ cấu trúc và vị trí, tách và phân loại điều khoản | ACT-GEN-004 | BG-GEN-001 | STR-RISK-001, STR-RISK-003 | Must | MVP | REVIEW |
 | F-RISK-001 | Đánh giá rủi ro 7 nhóm | Finding theo cấu trúc chuẩn, nhóm chính, điều khoản thiếu, căn cứ tham khảo, nhóm N/A | ACT-GEN-004, ACT-GEN-005 | BG-GEN-001 | STR-RISK-001, STR-RISK-003, STR-RISK-004 | Must | MVP | APPROVED |
 | F-RISK-002 | Checklist Cyber/Privacy/Third-Party | 20 check với trạng thái PASS/PARTIAL/MISSING/N/A | ACT-GEN-004, ACT-GEN-005 | BG-GEN-001 | STR-RISK-005 | Must | MVP | APPROVED |
 | F-RISK-003 | Chấm điểm rủi ro | Điểm 0–100 theo nhóm và cho cả hợp đồng | ACT-GEN-004, ACT-GEN-005 | BG-GEN-001, BG-GEN-002 | STR-RISK-002 | Must | MVP | APPROVED |
@@ -655,7 +659,7 @@ Bảng dưới bổ sung phần SRS thêm vào cho từng feature trong phạm v
 | F-CTR-006 | UC-CTR-005 | - | FR-CTR-018, FR-CTR-019 | Phạm vi và thời hạn xóa dữ liệu được làm rõ ở §9.9 |
 | F-AUD-001 | - | - | FR-AUD-001, FR-AUD-002 | Owner hợp đồng và Owner tổ chức xem được nhật ký (OQ-AUD-001). Thời gian lưu nhật ký ở §9.9 |
 | F-ANA-001 | UC-ANA-001, UC-ANA-002 | BR-DATA-002 | FR-ANA-001, FR-ANA-002, FR-ANA-003, FR-ANA-004, FR-ANA-005, FR-ANA-014, FR-ANA-015, FR-ANA-016, FR-ANA-017 | Mục tiêu thời gian theo SC-GEN-003, SC-GEN-004 (§11.3) |
-| F-ANA-002 | UC-ANA-001 | BR-RISK-006, BR-UPL-001 | FR-ANA-006, FR-ANA-007, FR-ANA-008, FR-ANA-009, FR-ANA-010, FR-ANA-011, FR-ANA-012 | Danh mục 21 loại điều khoản ở §7 |
+| F-ANA-002 | UC-ANA-001 | BR-RISK-006, BR-UPL-001 | FR-ANA-006, FR-ANA-008, FR-ANA-009, FR-ANA-010, FR-ANA-011, FR-ANA-012 | Danh mục 21 loại điều khoản ở §7 |
 | F-RISK-001 | UC-ANA-001, UC-VIEW-001 | BR-DATA-002, BR-RISK-001, BR-RISK-002, BR-RISK-003, BR-RISK-004, BR-RISK-005, BR-RISK-006, BR-RISK-008, BR-RISK-011, BR-RISK-012, BR-RISK-013, BR-RISK-014, BR-UPL-001 | FR-ANA-016, FR-RISK-001, FR-RISK-002, FR-RISK-003, FR-RISK-004, FR-RISK-005, FR-RISK-006, FR-RISK-007, FR-RISK-008, FR-RISK-009, FR-RISK-010, FR-RISK-011, FR-RISK-012, FR-RISK-013, FR-RISK-014, FR-RISK-024, FR-RISK-025 | 7 nhóm, 3 quy tắc, severity, góc nhìn bên mình, cách diễn đạt kết luận ở §7 |
 | F-RISK-002 | UC-ANA-001, UC-VIEW-001 | BR-RISK-007 | FR-RISK-015, FR-RISK-016, FR-RISK-017, FR-RISK-018, FR-VIEW-012 | Danh mục 20 check ở §7 |
 | F-RISK-003 | UC-ANA-001, UC-VIEW-001 | BR-RISK-002, BR-RISK-003, BR-RISK-009, BR-RISK-010 | FR-RISK-019, FR-RISK-020, FR-RISK-021, FR-RISK-022 | Ngưỡng mức rủi ro ở §7; công thức theo CON-GEN-003 |
@@ -1156,7 +1160,7 @@ None.
 ##### Main Flow
 
 1. Người dùng kéo thả hoặc chọn một file.
-2. Hệ thống kiểm tra loại file thật là PDF, DOCX, JPG hoặc PNG, kích thước ≤ 20 MB và số trang ≤ 100 (DEC-PRD-014).
+2. Hệ thống kiểm tra loại file thật là PDF hoặc DOCX, kích thước ≤ 20 MB và số trang ≤ 100 (DEC-PRD-014).
 3. Hệ thống quét mã độc và làm sạch tài liệu (bỏ macro, embedded object, script).
 4. Hệ thống tạo hợp đồng mới với phiên bản V1. Người upload trở thành Owner hợp đồng. Trạng thái duyệt là `Mới`.
 5. Hệ thống trích các thông tin ngữ cảnh lấy được từ file và điền sẵn vào bước khai báo.
@@ -1414,7 +1418,7 @@ None.
 |---|---|
 | Goal | Có kết quả phân tích rủi ro của một phiên bản |
 | Primary Actor | ACT-GEN-004 |
-| Supporting Actors | EXT-INTG-001, EXT-INTG-002 |
+| Supporting Actors | EXT-INTG-001 |
 | Trigger | Ngữ cảnh được xác nhận (UC-CTR-001), phiên bản mới được upload (UC-CTR-004), hoặc người dùng chạy lại phân tích (UC-ANA-002) |
 | Priority | Must |
 | Status | APPROVED |
@@ -1426,7 +1430,7 @@ None.
 ##### Main Flow
 
 1. Hệ thống bắt đầu phân tích và hiển thị tiến trình theo bước: đọc file → tách điều khoản → đánh giá → chấm điểm → hoàn tất.
-2. Hệ thống trích xuất văn bản, dùng OCR cho PDF scan và ảnh, giữ cấu trúc mục, điều, khoản và vị trí trên trang.
+2. Hệ thống trích xuất văn bản từ PDF có lớp chữ hoặc DOCX, giữ cấu trúc mục, điều, khoản và vị trí trên trang.
 3. Hệ thống kiểm tra nội dung có dấu hiệu prompt injection.
 4. Hệ thống tách văn bản thành điều khoản và phân loại mỗi điều khoản vào một trong 21 loại hoặc loại "Khác".
 5. Hệ thống trích metadata: các bên, loại hợp đồng, giá trị, đồng tiền, ngày hiệu lực, ngày hết hạn, luật áp dụng.
@@ -1467,7 +1471,7 @@ None.
 ##### Related Items
 
 - **Business Rules**: BR-CTR-003, BR-DATA-002, BR-RISK-001, BR-RISK-002, BR-RISK-003, BR-RISK-004, BR-RISK-005, BR-RISK-006, BR-RISK-007, BR-RISK-008, BR-RISK-009, BR-RISK-011, BR-RISK-012, BR-RISK-013, BR-RISK-014, BR-UPL-001
-- **Requirements**: FR-ANA-001, FR-ANA-002, FR-ANA-003, FR-ANA-004, FR-ANA-005, FR-ANA-006, FR-ANA-007, FR-ANA-008, FR-ANA-009, FR-ANA-010, FR-ANA-011, FR-ANA-013, FR-ANA-016, FR-ANA-017, FR-RISK-001, FR-RISK-002, FR-RISK-003, FR-RISK-004, FR-RISK-005, FR-RISK-006, FR-RISK-007, FR-RISK-008, FR-RISK-009, FR-RISK-010, FR-RISK-011, FR-RISK-012, FR-RISK-013, FR-RISK-015, FR-RISK-016, FR-RISK-017, FR-RISK-019, FR-RISK-020, FR-RISK-022, FR-UPL-009, FR-UPL-010, FR-UPL-011, FR-UPL-012
+- **Requirements**: FR-ANA-001, FR-ANA-002, FR-ANA-003, FR-ANA-004, FR-ANA-005, FR-ANA-006, FR-ANA-008, FR-ANA-009, FR-ANA-010, FR-ANA-011, FR-ANA-013, FR-ANA-016, FR-ANA-017, FR-RISK-001, FR-RISK-002, FR-RISK-003, FR-RISK-004, FR-RISK-005, FR-RISK-006, FR-RISK-007, FR-RISK-008, FR-RISK-009, FR-RISK-010, FR-RISK-011, FR-RISK-012, FR-RISK-013, FR-RISK-015, FR-RISK-016, FR-RISK-017, FR-RISK-019, FR-RISK-020, FR-RISK-022, FR-UPL-009, FR-UPL-010, FR-UPL-011, FR-UPL-012
 - **Open Questions**: None (đã đóng 2026-10-26: OQ-CTR-002)
 
 #### UC-ANA-002 Chạy lại phân tích
@@ -1718,10 +1722,10 @@ Bộ tài liệu không có BRS hay BRD, nên SRS sở hữu các business rule 
 | BR-ORG-003 | Vai trò cấp tổ chức | Authorization | Owner tổ chức: mời và xóa thành viên, cấp hoặc thu hồi quyền Owner, sửa cài đặt tổ chức, có mọi quyền của Owner hợp đồng trên mọi hợp đồng của tổ chức. Member tổ chức: tạo hợp đồng mới, xem danh sách thành viên, làm việc với hợp đồng được chia sẻ | PS §6.1; DEC-PRD-010, DEC-PRD-013, DEC-PRD-017 | F-ORG-001, F-SHARE-001 | Must | APPROVED |
 | BR-ORG-004 | Không gian làm việc | Eligibility | Mỗi tài khoản có sẵn một không gian cá nhân và thuộc được nhiều tổ chức; mỗi hợp đồng thuộc đúng một không gian (không gian cá nhân của Owner hoặc một tổ chức) và không chuyển sang không gian khác | DEC-PRD-020 | F-ORG-002, F-CTR-001, F-CTR-003 | Must | APPROVED |
 | BR-SHARE-001 | Phạm vi xem mặc định của hợp đồng | Authorization | Hợp đồng mặc định chỉ Owner hợp đồng và các Owner tổ chức xem được | PS §6.1 ACC-06; DEC-PRD-013 | F-SHARE-001, F-CTR-003 | Must | APPROVED |
-| BR-SHARE-002 | Vai trò cấp hợp đồng | Authorization | Owner hợp đồng: mọi quyền của Member hợp đồng, cộng thêm chia sẻ, thu hồi chia sẻ, chuyển quyền Owner, xóa. Member hợp đồng: xem kết quả, chat, xuất báo cáo, upload phiên bản mới, chạy lại phân tích, sửa metadata và ngữ cảnh, đổi trạng thái hợp đồng và trạng thái finding | PS §6.1; DEC-PRD-010, DEC-PRD-013 | F-SHARE-001 | Must | APPROVED |
+| BR-SHARE-002 | Vai trò cấp hợp đồng | Authorization | Owner hợp đồng: mọi quyền của Member hợp đồng, cộng thêm chia sẻ, thu hồi chia sẻ, chuyển quyền Owner, xóa. Member hợp đồng: xem kết quả, chat, xuất báo cáo, upload phiên bản mới, chạy lại phân tích, sửa metadata và ngữ cảnh, đổi trạng thái hợp đồng và trạng thái finding. Mỗi người có một vai trò hiệu lực, lấy mức cao nhất; Owner tổ chức không là Member hợp đồng của hợp đồng tổ chức mình (CR-GEN-002) | PS §6.1; DEC-PRD-010, DEC-PRD-013; CR-GEN-002 | F-SHARE-001 | Must | REVIEW |
 | BR-SHARE-003 | Phạm vi chia sẻ theo không gian | Eligibility | Hợp đồng của tổ chức chỉ được chia sẻ cho thành viên của tổ chức đó; hợp đồng cá nhân được chia sẻ cho email của bất kỳ tài khoản đã đăng ký | PS §6.1 ACC-06, ACC-10; DEC-PRD-021 | F-SHARE-001 | Must | APPROVED |
 | BR-SHARE-004 | Thu hồi có hiệu lực ngay | Timing | Việc thu hồi quyền có hiệu lực ngay lập tức | PS §6.1 ACC-08 | F-SHARE-001 | Must | APPROVED |
-| BR-CTR-001 | Định dạng và giới hạn upload | Validation | File hợp đồng phải là PDF, DOCX, JPG hoặc PNG; ≤ 20 MB; ≤ 100 trang | PS §5; DEC-PRD-014 | F-CTR-001, F-SEC-001 | Must | APPROVED |
+| BR-CTR-001 | Định dạng và giới hạn upload | Validation | File hợp đồng phải là PDF hoặc DOCX; ≤ 20 MB; ≤ 100 trang | PS §5; DEC-PRD-014 | F-CTR-001, F-SEC-001 | Must | REVIEW |
 | BR-CTR-002 | Luồng trạng thái duyệt | State | Trạng thái duyệt đi theo `Mới` → `Đang phân tích` → `Chờ review` → `Đang đàm phán` → `Đã duyệt` hoặc `Từ chối`; hệ thống tự chuyển các trạng thái gắn với phân tích; Owner và Member hợp đồng chuyển các trạng thái còn lại, gồm chuyển thẳng tới `Đã duyệt` hoặc `Từ chối` và mở lại | PS §6.2 CON-05; OQ-CTR-002, OQ-CTR-004 | F-CTR-004 | Must | APPROVED |
 | BR-CTR-003 | Kết quả riêng cho từng phiên bản | Data | Mỗi phiên bản hợp đồng có kết quả phân tích riêng; phân tích một phiên bản không làm thay đổi kết quả của phiên bản khác | PS §6.2 CON-06; PRD OPS-GEN-004 | F-CTR-005 | Must | APPROVED |
 | BR-UPL-001 | Hợp đồng là dữ liệu không tin cậy | Policy | Nội dung hợp đồng chỉ được xử lý như dữ liệu, không được đưa ngược vào phần chỉ dẫn (prompt) của AI | PS §4 (nguyên tắc 5); DEC-PRD-016 | F-SEC-001, F-ANA-002, F-RISK-001, F-CHAT-001 | Must | APPROVED |
@@ -2086,10 +2090,10 @@ Ví dụ ngữ cảnh (PS §7.4): "không có thời hạn thông báo sự cố
 | Rationale | Mô hình phân quyền đơn giản kiểu Google Drive |
 | Source | PS §6.1; DEC-PRD-010, DEC-PRD-013 |
 | Conditions | None |
-| Exceptions | Owner tổ chức có mọi quyền của Owner hợp đồng trên mọi hợp đồng của tổ chức (DEC-PRD-017). Member hợp đồng được sửa metadata và ngữ cảnh (OQ-SHARE-002). Sau khi chuyển quyền, Owner cũ trở thành Member hợp đồng (OQ-SHARE-004) |
+| Exceptions | Owner tổ chức có mọi quyền của Owner hợp đồng trên mọi hợp đồng của tổ chức (DEC-PRD-017). Vì vậy mỗi người có một vai trò hiệu lực, lấy mức cao nhất (Owner hợp đồng, Owner tổ chức, Member hợp đồng); hợp đồng của tổ chức không được chia sẻ cho Owner tổ chức (VAL-DATA-016), và bản ghi chia sẻ có sẵn của người vừa được cấp Owner tổ chức chỉ có hiệu lực lại khi người đó bị thu hồi quyền Owner tổ chức (CR-GEN-002). Member hợp đồng được sửa metadata và ngữ cảnh (OQ-SHARE-002). Sau khi chuyển quyền, Owner cũ trở thành Member hợp đồng (OQ-SHARE-004) |
 | Related Use Cases | UC-SHARE-001, UC-SHARE-002, UC-CTR-003, UC-CTR-004, UC-CTR-005, UC-VIEW-002, UC-CHAT-001, UC-EXP-001 |
-| Related Requirements | FR-ANA-014, FR-CHAT-011, FR-CTR-002, FR-CTR-008, FR-CTR-012, FR-CTR-014, FR-CTR-018, FR-CTR-019, FR-SHARE-003, FR-SHARE-005, FR-SHARE-008, FR-SHARE-009, FR-VIEW-013, SEC-AUTHZ-004 |
-| Status | APPROVED |
+| Related Requirements | FR-ANA-014, FR-CHAT-011, FR-CTR-002, FR-CTR-008, FR-CTR-012, FR-CTR-014, FR-CTR-018, FR-CTR-019, FR-SHARE-003, FR-SHARE-005, FR-SHARE-006, FR-SHARE-008, FR-SHARE-009, FR-VIEW-013, SEC-AUTHZ-004 |
+| Status | REVIEW |
 
 #### BR-SHARE-003 Phạm vi chia sẻ theo không gian
 
@@ -2121,14 +2125,15 @@ Ví dụ ngữ cảnh (PS §7.4): "không có thời hạn thông báo sự cố
 
 | Attribute | Value |
 |---|---|
-| Statement | File hợp đồng hợp lệ khi loại file thật là PDF, DOCX, JPG hoặc PNG, khớp phần mở rộng tên file, kích thước ≤ 20 MB và số trang ≤ 100 |
+| Statement | File hợp đồng hợp lệ khi loại file thật là PDF hoặc DOCX, khớp phần mở rộng tên file, kích thước ≤ 20 MB và số trang ≤ 100 |
 | Rationale | Giới hạn chi phí và thời gian xử lý; chặn file giả dạng |
 | Source | PS §5, §9.1; DEC-PRD-014 |
 | Conditions | Áp dụng cho upload hợp đồng mới và upload phiên bản mới |
 | Exceptions | None |
 | Related Use Cases | UC-CTR-001, UC-CTR-004 |
 | Related Requirements | FR-CTR-001, FR-CTR-014, FR-UPL-002, FR-UPL-003, FR-UPL-004, FR-UPL-005 |
-| Status | APPROVED |
+| Status | REVIEW |
+| Notes | [CHANGE] Changed by CR-GEN-001 (2026-11-17): bỏ JPG, PNG (DEC-PRD-023) |
 
 #### BR-CTR-002 Luồng trạng thái duyệt
 
@@ -2293,8 +2298,8 @@ Các yêu cầu chức năng (`FR`) chuyển từ feature, user story (PRD §7, 
 | FR-CTR-019 | Từ chối xóa của người không phải Owner | Nếu người dùng yêu cầu xóa hợp đồng mà không có vai trò Owner hợp đồng hoặc Owner tổ chức, thì hệ thống phải từ chối yêu cầu. | PS §6.1 bảng vai trò; UC-CTR-005 EF-CTR-001 | Must | Test | APPROVED |
 | FR-CTR-020 | So sánh phiên bản | Khi người dùng chọn so sánh hai phiên bản đã phân tích của một hợp đồng, hệ thống phải hiển thị các điều khoản bị yếu đi và mức thay đổi điểm rủi ro giữa hai phiên bản. | PS §6.7 EXT-01; DEC-GEN-009 | Could | Demonstration | APPROVED |
 | FR-UPL-001 | Nhận diện loại file thật | Hệ thống phải xác định loại file từ nội dung file (magic bytes), không chỉ từ phần mở rộng tên file. | PS §9.1 | Must | Test | APPROVED |
-| FR-UPL-002 | Định dạng cho phép | Nếu loại file thật nằm ngoài danh sách PDF, DOCX, JPG, PNG, thì hệ thống phải từ chối file và hiển thị lý do. | PS §5, §6.2 CON-01 | Must | Test | APPROVED |
-| FR-UPL-003 | Khớp phần mở rộng | Nếu loại file thật khác với phần mở rộng tên file, thì hệ thống phải từ chối file và hiển thị lý do. | PS §9.1; PRD US-SEC-001 | Must | Test | APPROVED |
+| FR-UPL-002 | Định dạng cho phép | Nếu loại file thật nằm ngoài danh sách PDF, DOCX, thì hệ thống phải từ chối file và hiển thị lý do. | PS §5, §6.2 CON-01 | Must | Test | REVIEW |
+| FR-UPL-003 | Khớp phần mở rộng | Nếu loại file thật khác với phần mở rộng tên file, thì hệ thống phải từ chối file và hiển thị lý do. | PS §9.1; PRD US-SEC-001 | Must | Test | REVIEW |
 | FR-UPL-004 | Giới hạn kích thước | Nếu file lớn hơn 20 MB, thì hệ thống phải từ chối file và hiển thị lý do. | DEC-PRD-014; PS §5 | Must | Test | APPROVED |
 | FR-UPL-005 | Giới hạn số trang | Nếu file có nhiều hơn 100 trang, thì hệ thống phải từ chối file và hiển thị lý do. | DEC-PRD-014; PS §5 | Must | Test | APPROVED |
 | FR-UPL-006 | Quét mã độc | Khi nhận một file, hệ thống phải quét mã độc trước khi trích xuất nội dung. | PS §9.1 | Must | Test | APPROVED |
@@ -2307,16 +2312,16 @@ Các yêu cầu chức năng (`FR`) chuyển từ feature, user story (PRD §7, 
 | FR-ANA-001 | Tự động bắt đầu phân tích | Khi ngữ cảnh của một phiên bản được xác nhận, hệ thống phải bắt đầu phân tích phiên bản đó mà không cần thao tác thêm. | PS §6.3 ANA-01 | Must | Test | APPROVED |
 | FR-ANA-002 | Hiển thị tiến trình | Trong khi phân tích đang chạy, hệ thống phải hiển thị bước hiện tại trong chuỗi: đọc file, tách điều khoản, đánh giá, chấm điểm, hoàn tất. | PS §6.3 ANA-02 | Must | Test | APPROVED |
 | FR-ANA-003 | Tự thử lại | Nếu một bước phân tích lỗi, thì hệ thống phải tự thử lại bước đó ít nhất một lần trước khi kết luận phân tích thất bại. | PS §8 (Độ tin cậy) | Must | Test | APPROVED |
-| FR-ANA-004 | Báo phân tích thất bại | Nếu phân tích vẫn lỗi sau khi thử lại, thì hệ thống phải hiển thị thông báo phân tích thất bại kèm lý do. | PS §6.3 ANA-02, §8 | Must | Test | APPROVED |
+| FR-ANA-004 | Báo phân tích thất bại | Nếu phân tích vẫn lỗi sau khi thử lại, thì hệ thống phải hiển thị thông báo phân tích thất bại kèm lý do. | PS §6.3 ANA-02, §8 | Must | Test | REVIEW |
 | FR-ANA-005 | Không lưu kết quả dở dang | Nếu phân tích thất bại, thì hệ thống phải loại bỏ toàn bộ kết quả trung gian của lần phân tích đó. | PS §8 (Độ tin cậy) | Must | Test | APPROVED |
 | FR-ANA-006 | Trích xuất văn bản | Hệ thống phải trích xuất toàn bộ văn bản của file PDF có lớp text và file DOCX. | PS §6.3 ANA-03 | Must | Test | APPROVED |
-| FR-ANA-007 | Nhận dạng bản scan | Hệ thống phải nhận dạng văn bản của file PDF scan và ảnh JPG, PNG bằng OCR. | PS §5, §6.3 ANA-03 | Must | Test | APPROVED |
-| FR-ANA-008 | Giữ cấu trúc và vị trí | Hệ thống phải lưu cho mỗi đoạn văn bản trích xuất thứ tự mục, điều, khoản và vị trí trên trang. | PS §6.3 ANA-03 | Must | Test | APPROVED |
+| FR-ANA-007 | Nhận dạng bản scan | Hệ thống phải nhận dạng văn bản của file PDF scan và ảnh JPG, PNG bằng OCR. | PS §5, §6.3 ANA-03 | Must | Test | DEPRECATED |
+| FR-ANA-008 | Giữ cấu trúc và vị trí | Hệ thống phải lưu cho mỗi đoạn văn bản trích xuất thứ tự mục, điều, khoản và vị trí trên trang. | PS §6.3 ANA-03 | Must | Test | REVIEW |
 | FR-ANA-009 | Ngôn ngữ hợp đồng | Hệ thống phải phân tích hợp đồng tiếng Việt, hợp đồng tiếng Anh và hợp đồng song ngữ, trong đó hợp đồng song ngữ được xử lý như một văn bản. | PS §3.1, §5 | Must | Test | APPROVED |
 | FR-ANA-010 | Tách điều khoản | Hệ thống phải tách văn bản hợp đồng thành các điều khoản. | PS §6.3 ANA-04 | Must | Test | APPROVED |
 | FR-ANA-011 | Phân loại điều khoản | Hệ thống phải phân loại mỗi điều khoản vào đúng một loại của BR-RISK-006. | PS §6.3 ANA-04, §7.2 | Must | Test | APPROVED |
 | FR-ANA-012 | Chất lượng phân loại điều khoản | Trên bộ eval 20 hợp đồng có nhãn, hệ thống phải đạt F1 phân loại điều khoản ≥ 0,85. | PS §8 (Chất lượng AI); PRD STR-QUAL-005 | Should | Analysis | APPROVED |
-| FR-ANA-013 | Trích metadata | Hệ thống phải trích từ hợp đồng các metadata: các bên, loại hợp đồng, giá trị, đồng tiền, ngày hiệu lực, ngày hết hạn, luật áp dụng. | PS §6.2 CON-03 | Must | Test | APPROVED |
+| FR-ANA-013 | Trích metadata | Hệ thống phải trích từ hợp đồng các metadata: các bên, loại hợp đồng, giá trị, đồng tiền, ngày hiệu lực, ngày hết hạn, luật áp dụng. | PS §6.2 CON-03 | Must | Test | REVIEW |
 | FR-ANA-014 | Chạy lại phân tích | Khi Owner hoặc Member hợp đồng chọn chạy lại phân tích cho một phiên bản, hệ thống phải phân tích lại phiên bản đó với ngữ cảnh hiện tại. | PS §6.3 ANA-10 | Must | Test | APPROVED |
 | FR-ANA-015 | Kết quả cũ khi chạy lại | Khi chạy lại phân tích một phiên bản hoàn tất thành công, hệ thống phải thay kết quả cũ của phiên bản đó bằng kết quả mới. | PRD US-ANA-002 (ghi chú: được làm rõ ở SRS) | Must | Test | APPROVED |
 | FR-ANA-016 | Lưu thông tin truy vết | Hệ thống phải lưu kèm mỗi điều khoản, finding, kết quả check và điểm phiên bản rule, prompt, model và schema đã tạo ra nó. | PS §4 (nguyên tắc 4), §8 (Truy vết) | Must | Inspection | APPROVED |
@@ -2885,15 +2890,18 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 
 #### FR-SHARE-006 Danh sách người được chia sẻ
 
-- **Statement**: Hệ thống phải hiển thị cho Owner hợp đồng danh sách người đang được chia sẻ hợp đồng.
+- **Statement**: Hệ thống phải hiển thị cho Owner hợp đồng mọi người đang truy cập được hợp đồng (Owner hợp đồng, các Owner tổ chức với hợp đồng của tổ chức, người được chia sẻ), mỗi người kèm vai trò hiệu lực (BR-SHARE-002); chỉ người có vai trò Member hợp đồng mới có thao tác thu hồi.
 - **Priority**: Must
-- **Status**: APPROVED
-- **Source**: PS §6.1 ACC-08
-- **Rationale**: Owner cần thấy ai đang có quyền để thu hồi.
+- **Status**: REVIEW
+- **Source**: PS §6.1 ACC-08; CR-GEN-002
+- **Rationale**: Owner cần thấy ai đang có quyền để thu hồi, và không bị nhầm Owner tổ chức là người được chia sẻ.
 - **Parent**: F-SHARE-001, UC-SHARE-001
 - **Verification Method**: Test
 - **Acceptance Criteria**:
   1. Given H được chia sẻ cho 2 người, when Owner hợp đồng mở phần chia sẻ, then hệ thống phải hiển thị đủ 2 người.
+  2. Given H thuộc tổ chức có 2 Owner tổ chức, cả hai không phải Owner hợp đồng, when Owner hợp đồng mở phần chia sẻ, then hệ thống phải hiển thị cả 2 người với vai trò Owner tổ chức và không có thao tác thu hồi cho họ.
+  3. Given người X là Member hợp đồng của H rồi được cấp Owner tổ chức, when mở phần chia sẻ, then X chỉ xuất hiện một lần, với vai trò Owner tổ chức.
+  4. Given H được chuyển quyền Owner cho một Owner tổ chức Y, when mở phần chia sẻ, then Y xuất hiện một lần với cả hai vai trò Owner tổ chức và Owner hợp đồng.
 - **Dependencies**: None
 - **Notes**: None
 
@@ -3262,9 +3270,9 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 
 #### FR-UPL-002 Định dạng cho phép
 
-- **Statement**: Nếu loại file thật nằm ngoài danh sách PDF, DOCX, JPG, PNG, thì hệ thống phải từ chối file và hiển thị lý do.
+- **Statement**: Nếu loại file thật nằm ngoài danh sách PDF, DOCX, thì hệ thống phải từ chối file và hiển thị lý do.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: PS §5, §6.2 CON-01
 - **Rationale**: Chỉ xử lý các định dạng được hỗ trợ.
 - **Parent**: F-CTR-001, US-CTR-001, UC-CTR-001
@@ -3272,21 +3280,21 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 - **Acceptance Criteria**:
   1. Given một file XLSX, when upload, then hệ thống phải từ chối và hiển thị lý do định dạng không được hỗ trợ.
 - **Dependencies**: BR-CTR-001, FR-UPL-001
-- **Notes**: None
+- **Notes**: [CHANGE] Changed by CR-GEN-001 (2026-11-17): bỏ JPG, PNG khỏi danh sách cho phép (DEC-PRD-023).
 
 #### FR-UPL-003 Khớp phần mở rộng
 
 - **Statement**: Nếu loại file thật khác với phần mở rộng tên file, thì hệ thống phải từ chối file và hiển thị lý do.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: PS §9.1; PRD US-SEC-001
 - **Rationale**: Chặn file giả dạng.
 - **Parent**: F-SEC-001, US-SEC-001, UC-CTR-001
 - **Verification Method**: Test
 - **Acceptance Criteria**:
-  1. Given file PNG được đổi tên thành contract.pdf, when upload, then hệ thống phải từ chối và hiển thị lý do loại file không khớp phần mở rộng.
+  1. Given file DOCX được đổi tên thành contract.pdf, when upload, then hệ thống phải từ chối và hiển thị lý do loại file không khớp phần mở rộng.
 - **Dependencies**: BR-CTR-001, FR-UPL-001
-- **Notes**: None
+- **Notes**: [CHANGE] Changed by CR-GEN-001 (2026-11-17): ví dụ trong tiêu chí đổi từ PNG sang DOCX vì PNG không còn được nhận.
 
 #### FR-UPL-004 Giới hạn kích thước
 
@@ -3464,15 +3472,15 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 
 - **Statement**: Nếu phân tích vẫn lỗi sau khi thử lại, thì hệ thống phải hiển thị thông báo phân tích thất bại kèm lý do.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: PS §6.3 ANA-02, §8
 - **Rationale**: Người dùng biết vì sao không có kết quả.
 - **Parent**: F-ANA-001, US-ANA-001, UC-ANA-001, STR-QUAL-012
 - **Verification Method**: Test
 - **Acceptance Criteria**:
-  1. Given dịch vụ OCR lỗi liên tục, when phân tích một bản scan, then hệ thống phải hiển thị thông báo phân tích thất bại kèm lý do.
+  1. Given dịch vụ model AI lỗi liên tục, when phân tích một hợp đồng, then hệ thống phải hiển thị thông báo phân tích thất bại kèm lý do.
 - **Dependencies**: FR-ANA-003
-- **Notes**: None
+- **Notes**: [CHANGE] Changed by CR-GEN-001 (2026-11-17): tiêu chí không còn dùng dịch vụ OCR làm ví dụ.
 
 #### FR-ANA-005 Không lưu kết quả dở dang
 
@@ -3506,7 +3514,7 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 
 - **Statement**: Hệ thống phải nhận dạng văn bản của file PDF scan và ảnh JPG, PNG bằng OCR.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: DEPRECATED
 - **Source**: PS §5, §6.3 ANA-03
 - **Rationale**: Đối tác thường gửi bản scan.
 - **Parent**: F-ANA-002, US-ANA-003, UC-ANA-001
@@ -3514,21 +3522,21 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 - **Acceptance Criteria**:
   1. Given bản scan PDF của hợp đồng mẫu, when phân tích, then văn bản nhận dạng được phải chứa các điều khoản của hợp đồng.
 - **Dependencies**: IF-INTG-002
-- **Notes**: Mục tiêu thời gian cho bản scan: NFR-PERF-003.
+- **Notes**: [DEPRECATED] Bỏ theo CR-GEN-001 (DEC-PRD-023, 2026-11-17): hệ thống không đọc bản scan và ảnh, chỉ nhận PDF có lớp chữ và DOCX. Giữ lại để lưu vết. Trước đó: mục tiêu thời gian cho bản scan ở NFR-PERF-003.
 
 #### FR-ANA-008 Giữ cấu trúc và vị trí
 
 - **Statement**: Hệ thống phải lưu cho mỗi đoạn văn bản trích xuất thứ tự mục, điều, khoản và vị trí trên trang.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: PS §6.3 ANA-03
 - **Rationale**: Cần vị trí để trích dẫn và tô màu trên văn bản gốc.
-- **Parent**: F-ANA-002, US-ANA-003, UC-ANA-001
+- **Parent**: F-ANA-002, UC-ANA-001
 - **Verification Method**: Test
 - **Acceptance Criteria**:
   1. Given Điều 17.2 nằm ở trang 9, when phân tích hoàn tất, then đoạn trích xuất của Điều 17.2 phải có số trang 9, tọa độ trên trang và vị trí sau Điều 17.1.
-- **Dependencies**: FR-ANA-006, FR-ANA-007
-- **Notes**: None
+- **Dependencies**: FR-ANA-006
+- **Notes**: [CHANGE] Changed by CR-GEN-001 (2026-11-17): bỏ phụ thuộc FR-ANA-007 và US-ANA-003 (DEPRECATED).
 
 #### FR-ANA-009 Ngôn ngữ hợp đồng
 
@@ -3590,15 +3598,15 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 
 - **Statement**: Hệ thống phải trích từ hợp đồng các metadata: các bên, loại hợp đồng, giá trị, đồng tiền, ngày hiệu lực, ngày hết hạn, luật áp dụng.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: PS §6.2 CON-03
 - **Rationale**: Thông tin chính của hợp đồng không phải nhập tay.
 - **Parent**: F-CTR-002, US-CTR-003, UC-ANA-001
 - **Verification Method**: Test
 - **Acceptance Criteria**:
   1. Given hợp đồng mẫu có đủ 7 thông tin trong văn bản, when phân tích hoàn tất, then hệ thống phải trích đúng 7 giá trị đó.
-- **Dependencies**: FR-ANA-006, FR-ANA-007
-- **Notes**: None
+- **Dependencies**: FR-ANA-006
+- **Notes**: [CHANGE] Changed by CR-GEN-001 (2026-11-17): bỏ phụ thuộc FR-ANA-007 (DEPRECATED).
 
 #### FR-ANA-014 Chạy lại phân tích
 
@@ -4543,7 +4551,7 @@ Mô hình dữ liệu ở đây đặc tả dữ liệu hệ thống phải lưu
 | Included Data Domains | Tài khoản, không gian làm việc (cá nhân và tổ chức), thành viên, lời mời; hợp đồng, phiên bản, ngữ cảnh, metadata; chia sẻ; kết quả phân tích (điều khoản, embedding, nhóm áp dụng, điểm, finding, check, cảnh báo prompt injection); chat; nhật ký hoạt động; cơ sở tri thức; chính sách nội bộ (Could) | PRD §7; §5; DEC-PRD-020 | APPROVED |
 | Excluded Data Domains | Thanh toán và gói cước; dữ liệu ERP/CLM; bộ eval có nhãn (tài sản của nhóm, không lưu trong hệ thống vận hành) | PRD §4; DEP-GEN-003 | APPROVED |
 | Data Consumers | ACT-GEN-002..005; pipeline phân tích; chatbot; tạo báo cáo | §3.2 | APPROVED |
-| Data Producers | ACT-GEN-001..005 (đăng ký, upload, khai báo, chia sẻ, chat, đổi trạng thái); pipeline phân tích; EXT-INTG-001, EXT-INTG-002 | §3.2, §3.4 | APPROVED |
+| Data Producers | ACT-GEN-001..005 (đăng ký, upload, khai báo, chia sẻ, chat, đổi trạng thái); pipeline phân tích; EXT-INTG-001 | §3.2, §3.4 | REVIEW |
 | Modeling Level | Conceptual, Logical, Database-Agnostic Physical (mức bảng) | Context/SRS-Template.md §9 | APPROVED |
 | Sensitive Data Scope | Nội dung hợp đồng và mọi dữ liệu suy ra từ nó (có thể chứa dữ liệu cá nhân và bí mật kinh doanh); email người dùng (dữ liệu cá nhân); thông tin đăng nhập | PS §8; OQ-PRIV-001 (bản demo không xử lý nghĩa vụ pháp lý về dữ liệu cá nhân, DEC-PRD-019) | APPROVED |
 
@@ -4840,7 +4848,7 @@ erDiagram
 | DATA-DATA-003 | Approval status | ENT-DATA-005 | TBL-DATA-005 | `approval_status` | Trạng thái duyệt của hợp đồng; nhãn trong ngoặc là nhãn hiển thị tiếng Việt, dùng ở §13 | {`new` (Mới), `analyzing` (Đang phân tích), `pending_review` (Chờ review), `negotiating` (Đang đàm phán), `approved` (Đã duyệt), `rejected` (Từ chối)} | `pending_review` | PS §6.2 CON-05 | Internal |
 | DATA-DATA-004 | Own party | ENT-DATA-007 | TBL-DATA-007 | `own_party` | Vị trí của người dùng hoặc tổ chức trong hợp đồng | {`buyer` (Bên mua/khách hàng), `seller` (Bên bán/nhà cung cấp)} | `buyer` | PS §6.2 CON-02 | Confidential |
 | DATA-DATA-005 | Contract type | ENT-DATA-007 | TBL-DATA-007 | `contract_type` | Loại hợp đồng | {`service_agreement`, `vendor_agreement`, `purchase_agreement`, `msa`, `sow`, `other` (Khác)} (OQ-CTR-003) | `msa` | PS §5 | Internal |
-| DATA-DATA-006 | File type | ENT-DATA-006 | TBL-DATA-006 | `file_type` | Loại file thật | {`pdf`, `docx`, `jpg`, `png`} | `pdf` | PS §5 | Internal |
+| DATA-DATA-006 | File type | ENT-DATA-006 | TBL-DATA-006 | `file_type` | Loại file thật | {`pdf`, `docx`} | `pdf` | PS §5 | Internal |
 | DATA-DATA-007 | File size and page count | ENT-DATA-006 | TBL-DATA-006 | `file_size_bytes`, `page_count` | Giới hạn file | Kích thước ≤ 20 MB; số trang 1–100 | 2 MB, 20 trang | DEC-PRD-014 | Internal |
 | DATA-DATA-008 | Risk domain | ENT-DATA-013, ENT-DATA-014 | TBL-DATA-013, TBL-DATA-014 | `domain` | Nhóm rủi ro | {`legal`, `financial`, `operational`, `compliance`, `cybersecurity`, `data_privacy`, `third_party`} (Legal, Financial, Operational, Compliance, Cybersecurity, Data & Privacy, Third-Party) | `cybersecurity` | BR-RISK-001 | Internal |
 | DATA-DATA-009 | Clause type | ENT-DATA-011 | TBL-DATA-011 | `clause_type` | Loại điều khoản | {C01..C21, C99} | C17 | BR-RISK-006 | Internal |
@@ -4861,7 +4869,7 @@ erDiagram
 |---|---|---|---|---|---|---|---|
 | VAL-DATA-001 | ATTR-DATA-002 | Uniqueness | Email chưa thuộc tài khoản nào | Từ chối đăng ký, thông báo email đã được đăng ký | ERR-AUTH-001 | FR-AUTH-002 | APPROVED |
 | VAL-DATA-002 | ATTR-DATA-003 | Business Rule | Mật khẩu có ít nhất 8 ký tự, có cả chữ và số (OQ-AUTH-001) | Từ chối, hiển thị yêu cầu chính sách | ERR-AUTH-002 | FR-AUTH-005 | APPROVED |
-| VAL-DATA-003 | DATA-DATA-006 | Format | Loại file thật thuộc {`pdf`, `docx`, `jpg`, `png`} và khớp phần mở rộng | Từ chối file, hiển thị lý do | ERR-UPL-001, ERR-UPL-002 | FR-UPL-002, FR-UPL-003 | APPROVED |
+| VAL-DATA-003 | DATA-DATA-006 | Format | Loại file thật thuộc {`pdf`, `docx`} và khớp phần mở rộng | Từ chối file, hiển thị lý do | ERR-UPL-001, ERR-UPL-002 | FR-UPL-002, FR-UPL-003 | REVIEW |
 | VAL-DATA-004 | DATA-DATA-007 | Range | Kích thước ≤ 20 MB | Từ chối file, hiển thị lý do | ERR-UPL-003 | FR-UPL-004 | APPROVED |
 | VAL-DATA-005 | DATA-DATA-007 | Range | Số trang ≤ 100 | Từ chối file, hiển thị lý do | ERR-UPL-004 | FR-UPL-005 | APPROVED |
 | VAL-DATA-006 | ENT-DATA-003 | Business Rule | [DEPRECATED] Tài khoản chưa thuộc tổ chức nào khi tạo hoặc tham gia tổ chức. Bỏ theo DEC-PRD-020: một tài khoản thuộc được nhiều tổ chức | Không áp dụng | ERR-ORG-001 | FR-ORG-002 | DEPRECATED |
@@ -4874,6 +4882,7 @@ erDiagram
 | VAL-DATA-013 | DATA-DATA-015 | Range | Điểm trong khoảng 0–100 | Không lưu kết quả lần phân tích | ERR-ANA-001 | FR-RISK-019, FR-RISK-020 | APPROVED |
 | VAL-DATA-014 | ENT-DATA-015 | Business Rule | Lần phân tích hoàn tất có đủ 20 kết quả check và 7 kết quả nhóm | Không lưu kết quả lần phân tích | ERR-ANA-001 | FR-RISK-015, FR-RISK-001 | APPROVED |
 | VAL-DATA-015 | ENT-DATA-009 | Business Rule | Với hợp đồng cá nhân: email được chia sẻ thuộc một tài khoản đã đăng ký | Từ chối, hiển thị lý do | ERR-SHARE-002 | FR-SHARE-010 | APPROVED |
+| VAL-DATA-016 | ENT-DATA-009 | Business Rule | Với hợp đồng của tổ chức: email được chia sẻ không thuộc Owner tổ chức đó (Owner tổ chức đã có toàn quyền, BR-SHARE-002) | Từ chối, hiển thị lý do | ERR-SHARE-003 | FR-SHARE-004 | REVIEW |
 
 ### 9.7 Data Ownership And Source Of Truth
 
@@ -4955,8 +4964,8 @@ Không áp dụng. ContractGuard là hệ thống mới, không có dữ liệu 
 
 | Interface ID | External System | Purpose | Data Sent | Data Received | Protocol/Format | Authentication | Timeout | Retry | Error Handling | Version |
 |---|---|---|---|---|---|---|---|---|---|---|
-| IF-INTG-001 | EXT-INTG-001 (Amazon Bedrock) | Model AI cho phân tích và chatbot (CON-GEN-001) | Nội dung điều khoản ở phần dữ liệu (FR-UPL-011), ngữ cảnh, câu hỏi chat | Kết quả phân loại, đánh giá, câu trả lời | API của Amazon Bedrock qua kênh mã hóa (NFR-SEC-002) | Cơ chế xác thực của AWS; chi tiết do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Tự thử lại (FR-ANA-003) | Phân tích thất bại sau khi thử lại (FR-ANA-004); lỗi chatbot theo ERR-CHAT-001 | Model chọn theo cấu hình (CON-GEN-002); chưa chọn model (DEC-GEN-010) |
-| IF-INTG-002 | EXT-INTG-002 (Dịch vụ OCR) | Nhận dạng văn bản bản scan và ảnh (FR-ANA-007) | Ảnh trang hợp đồng đã làm sạch | Văn bản kèm vị trí | Do thiết kế hệ thống quyết định (OQ-GEN-013) | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Tự thử lại (FR-ANA-003) | Phân tích thất bại sau khi thử lại (FR-ANA-004) | Chọn ở thiết kế hệ thống; gợi ý Amazon Textract (OQ-GEN-013) |
+| IF-INTG-001 | EXT-INTG-001 (model AI tự host) | Model AI cho phân tích và chatbot (CON-GEN-001) | Nội dung điều khoản ở phần dữ liệu (FR-UPL-011), ngữ cảnh, câu hỏi chat | Kết quả phân loại, đánh giá, câu trả lời | API HTTP của model tự host qua kênh mã hóa (NFR-SEC-002) | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Tự thử lại (FR-ANA-003) | Phân tích thất bại sau khi thử lại (FR-ANA-004); lỗi chatbot theo ERR-CHAT-001 | Model chọn theo cấu hình (CON-GEN-002); chưa chọn model (DEC-GEN-010). [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock bằng endpoint tự host |
+| IF-INTG-002 | EXT-INTG-002 (Dịch vụ OCR, DEPRECATED theo CR-GEN-001) | Nhận dạng văn bản bản scan và ảnh (FR-ANA-007) | Ảnh trang hợp đồng đã làm sạch | Văn bản kèm vị trí | Do thiết kế hệ thống quyết định (OQ-GEN-013) | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Tự thử lại (FR-ANA-003) | Phân tích thất bại sau khi thử lại (FR-ANA-004) | [DEPRECATED] Bỏ theo CR-GEN-001 (DEC-PRD-023). Giữ lại để lưu vết |
 | IF-INTG-003 | EXT-INTG-003 (Dịch vụ gửi email) | Email xác thực, đặt lại mật khẩu, lời mời (FR-AUTH-003, FR-AUTH-009, FR-ORG-003) | Địa chỉ email, nội dung email, liên kết | Kết quả gửi | Do thiết kế hệ thống quyết định (OQ-GEN-013) | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Báo người vừa thao tác rằng email chưa gửi được và cho gửi lại (ERR-INTG-001) | Chọn ở thiết kế hệ thống; gợi ý Amazon SES (OQ-GEN-013) |
 | IF-INTG-004 | EXT-INTG-004 (Google) | Đăng nhập bằng tài khoản Google (FR-AUTH-011) | Yêu cầu xác thực | Danh tính người dùng (email) | OpenID Connect | OpenID Connect | Do thiết kế hệ thống quyết định | Không tự thử lại; người dùng đăng nhập lại | Đăng nhập thất bại (FR-AUTH-007) | OpenID Connect |
 
@@ -4987,7 +4996,7 @@ Các yêu cầu phi chức năng (`NFR`) tinh chỉnh STR-QUAL-001..015 của PR
 |---|---|---|---|---|---|---|---|---|
 | NFR-PERF-001 | Performance | Performance Efficiency | Hệ thống phải hoàn tất phân tích hợp đồng có lớp text 20 trang trong ≤ 2 phút ở phân vị 50, đo khi worker phân tích đã chạy sẵn. | DEC-GEN-022; PRD SC-GEN-003 | p50 ≤ 120 s | Test | Must | APPROVED |
 | NFR-PERF-002 | Performance | Performance Efficiency | Hệ thống phải hoàn tất phân tích hợp đồng có lớp text 20 trang trong ≤ 5 phút ở phân vị 95, đo khi worker phân tích đã chạy sẵn. | DEC-GEN-022; PRD SC-GEN-004 | p95 ≤ 300 s | Test | Must | APPROVED |
-| NFR-PERF-003 | Performance | Performance Efficiency | Hệ thống phải hoàn tất phân tích hợp đồng scan tối đa 50 trang trong ≤ 5 phút ở phân vị 50, đo khi worker phân tích đã chạy sẵn. | PS §8; PRD STR-QUAL-002; DEC-GEN-022 | p50 ≤ 300 s | Test | Must | APPROVED |
+| NFR-PERF-003 | Performance | Performance Efficiency | Hệ thống phải hoàn tất phân tích hợp đồng scan tối đa 50 trang trong ≤ 5 phút ở phân vị 50, đo khi worker phân tích đã chạy sẵn. | PS §8; PRD STR-QUAL-002; DEC-GEN-022 | p50 ≤ 300 s | Test | Must | DEPRECATED |
 | NFR-PERF-004 | Performance | Performance Efficiency | Hệ thống phải hiển thị chữ đầu tiên của câu trả lời chatbot trong ≤ 15 giây kể từ khi người dùng gửi câu hỏi, ở phân vị 50. | PS §8; PRD STR-QUAL-003; DEC-GEN-022 | p50 chữ đầu tiên ≤ 15 s | Test | Must | APPROVED |
 | NFR-PERF-005 | Performance | Performance Efficiency | Hệ thống phải ghi lại chi phí lời gọi model AI của mỗi lần phân tích. | PS §8 (Chi phí); PRD STR-QUAL-015 | 100% lần phân tích có số đo chi phí; MVP không đặt ngân sách cứng (OQ-GEN-007) | Inspection | Must | APPROVED |
 | NFR-SCAL-001 | Scalability | Performance Efficiency | Hệ thống phải xử lý được 10 phân tích đồng thời mà không có phân tích nào thất bại vì quá tải. | SD §2.3; OQ-SCAL-001 (chốt 10, thấp hơn ước lượng 30 của SD) | 10 phân tích đồng thời, 0 lần thất bại vì quá tải | Test | Must | APPROVED |
@@ -5058,7 +5067,7 @@ Các yêu cầu phi chức năng (`NFR`) tinh chỉnh STR-QUAL-001..015 của PR
 - **Statement**: Hệ thống phải hoàn tất phân tích hợp đồng scan tối đa 50 trang trong ≤ 5 phút ở phân vị 50, đo khi worker phân tích đã chạy sẵn.
 - **Target/Measure**: p50 ≤ 300 s
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: DEPRECATED
 - **Source**: PS §8; PRD STR-QUAL-002; DEC-GEN-022
 - **Rationale**: Bản scan cần OCR nên có mục tiêu riêng.
 - **Parent**: STR-QUAL-002
@@ -5066,7 +5075,7 @@ Các yêu cầu phi chức năng (`NFR`) tinh chỉnh STR-QUAL-001..015 của PR
 - **Acceptance Criteria**:
   1. Given bản scan 50 trang và worker đã chạy sẵn, when phân tích ít nhất 20 lần, then phân vị 50 của thời gian phân tích phải ≤ 5 phút.
 - **Dependencies**: FR-ANA-007
-- **Notes**: [CONFLICT] PS §8 (P3) ghi "≤ 3 phút"; DEC-GEN-022 (P1) chốt ≤ 5 phút ở phân vị 50; giải quyết theo P1.
+- **Notes**: [DEPRECATED] Bỏ theo CR-GEN-001 (DEC-PRD-023, 2026-11-17): không còn bản scan nên không còn mục tiêu thời gian riêng. Giữ lại để lưu vết. [CONFLICT] PS §8 (P3) ghi "≤ 3 phút"; DEC-GEN-022 (P1) chốt ≤ 5 phút ở phân vị 50; giải quyết theo P1.
 
 #### NFR-PERF-004 Thời gian phản hồi chatbot
 
@@ -5610,7 +5619,7 @@ Email cảnh báo khi tài khoản bị nhập sai mật khẩu nhiều lần: W
 
 ### 12.3 Access Control Matrix
 
-"Yes" là được phép; "No" là không được phép. Phạm vi luôn giới hạn trong không gian đang chọn và các hợp đồng được chia sẻ cho người dùng (SEC-AUTHZ-002). Quyền của Owner tổ chức chỉ áp dụng cho hợp đồng của tổ chức đó, không áp dụng cho hợp đồng cá nhân. Một người giữ nhiều vai trò có hợp các quyền của các vai trò đó.
+"Yes" là được phép; "No" là không được phép. Phạm vi luôn giới hạn trong không gian đang chọn và các hợp đồng được chia sẻ cho người dùng (SEC-AUTHZ-002). Quyền của Owner tổ chức chỉ áp dụng cho hợp đồng của tổ chức đó, không áp dụng cho hợp đồng cá nhân. Một người giữ nhiều vai trò có hợp các quyền của các vai trò đó; trên giao diện mỗi người chỉ hiện một vai trò hiệu lực, lấy mức cao nhất (BR-SHARE-002, CR-GEN-002).
 
 | Role Or Actor | Resource | View | Create | Update | Delete | Approve | Configure | Scope |
 |---|---|---:|---:|---:|---:|---:|---:|---|
@@ -5756,6 +5765,7 @@ stateDiagram-v2
 | ERR-ORG-003 | Business Rule | Thao tác làm tổ chức không còn Owner | VAL-DATA-007 | Từ chối thao tác | Lý do | Không đổi | Không | Không | FR-ORG-010 |
 | ERR-SHARE-001 | Business Rule | Hợp đồng của tổ chức được chia sẻ cho email không thuộc tổ chức đó | VAL-DATA-008 | Từ chối chia sẻ | Lý do | Không đổi | Không | Không | FR-SHARE-004 |
 | ERR-SHARE-002 | Business Rule | Hợp đồng cá nhân được chia sẻ cho email chưa có tài khoản | VAL-DATA-015 | Từ chối chia sẻ | Lý do: email chưa có tài khoản | Không đổi | Không | Không | FR-SHARE-010 |
+| ERR-SHARE-003 | Business Rule | Hợp đồng của tổ chức được chia sẻ cho Owner tổ chức đó | VAL-DATA-016 | Từ chối chia sẻ | Lý do: người này đã có toàn quyền | Không đổi | Không | Không | FR-SHARE-004 |
 | ERR-SEC-001 | Authorization | Người dùng không có quyền với tài nguyên (kể cả sau khi bị thu hồi hoặc bị xóa khỏi tổ chức) | SEC-AUTHZ-001 | Từ chối yêu cầu | Thông báo không có quyền | Không đổi | Không | Ghi log sự kiện bảo mật (OQ-DATA-002) | FR-CTR-019, FR-SHARE-007, FR-ORG-009, NFR-SEC-004 |
 | ERR-CTR-001 | Business Rule | Chuyển trạng thái không hợp lệ | VAL-DATA-009 | Từ chối | Lý do | Giữ trạng thái | Không | Không | FR-CTR-013 |
 | ERR-CTR-002 | Validation | Thiếu trường ngữ cảnh bắt buộc | VAL-DATA-010 | Không cho xác nhận ngữ cảnh | Chỉ ra trường còn thiếu | Không đổi | Người dùng bổ sung | Không | FR-CTR-005 |
@@ -5769,11 +5779,11 @@ stateDiagram-v2
 
 | Edge Case ID | Scenario | Expected Behavior | Related Rule | Related Requirement | Verification |
 |---|---|---|---|---|---|
-| EDGE-UPL-001 | Đếm số trang của ảnh và DOCX | Ảnh JPG hoặc PNG tính là 1 trang; DOCX được đếm theo số trang sau khi chuyển sang PDF để hiển thị, cũng là số trang thấy trong document viewer (OQ-UPL-001) | BR-CTR-001 | FR-UPL-005 | Test |
+| EDGE-UPL-001 | Đếm số trang của DOCX | DOCX được đếm theo số trang sau khi chuyển sang PDF để hiển thị, cũng là số trang thấy trong document viewer (OQ-UPL-001) | BR-CTR-001 | FR-UPL-005 | Test |
 | EDGE-UPL-002 | File đúng 20 MB hoặc đúng 100 trang | Được chấp nhận (giới hạn là ≤) | BR-CTR-001 | FR-UPL-004, FR-UPL-005 | Test |
 | EDGE-CTR-001 | Owner tổ chức đồng thời là Owner hợp đồng | Có hợp các quyền của hai vai trò | BR-ORG-003, BR-SHARE-002 | SEC-AUTHZ-003, SEC-AUTHZ-004 | Test |
 | EDGE-CTR-002 | Tìm kiếm có hoặc không có dấu tiếng Việt | Không phân biệt dấu và chữ hoa, chữ thường: "anh duong" tìm thấy "Ánh Dương" (OQ-CTR-003) | None | FR-CTR-009 | Test |
-| EDGE-ANA-001 | Không tách được điều khoản nào (ví dụ bản scan trắng) | Báo phân tích thất bại với lý do "không nhận diện được điều khoản" (OQ-ANA-003) | None | FR-ANA-010 | Test |
+| EDGE-ANA-001 | Không tách được điều khoản nào (ví dụ PDF không có lớp chữ như bản scan, hoặc file trắng; CR-GEN-001) | Báo phân tích thất bại với lý do "không nhận diện được điều khoản" (OQ-ANA-003) | None | FR-ANA-010 | Test |
 | EDGE-ANA-002 | Hợp đồng song ngữ có cùng điều khoản bằng hai ngôn ngữ | Xử lý như một văn bản (FR-ANA-009); MVP không gộp finding trùng (OQ-ANA-003) | None | FR-ANA-009 | Test |
 | EDGE-ANA-003 | Chạy lại phân tích hoặc upload phiên bản mới khi một lần phân tích khác của cùng hợp đồng đang chạy | Từ chối thao tác (ERR-CTR-003); các thao tác khác vẫn được phép (OQ-ANA-003) | BR-CTR-003 | FR-ANA-014, FR-CTR-014 | Test |
 | EDGE-RISK-001 | Hợp đồng mua hàng hóa không có dữ liệu đi qua đối tác | Cybersecurity, Data & Privacy, Third-Party là N/A và hiển thị lý do | BR-RISK-003 | FR-RISK-001, FR-VIEW-003 | Test |
@@ -5885,8 +5895,8 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-CTR-019 | Từ chối xóa của người không phải Owner | PS §6.1 bảng vai trò; UC-CTR-005 EF-CTR-001 | §8.2 | BG-GEN-004, STR-SEC-001, US-CTR-007 | F-CTR-006, US-CTR-007, UC-CTR-005 | F-CTR-006, UC-CTR-005 | Test | APPROVED |
 | FR-CTR-020 | So sánh phiên bản | PS §6.7 EXT-01; DEC-GEN-009 | §8.2 | BG-GEN-002, STR-CTR-001, US-CMP-001 | F-CMP-001, US-CMP-001 | F-CMP-001 | Demonstration | APPROVED |
 | FR-UPL-001 | Nhận diện loại file thật | PS §9.1 | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001, US-SEC-001 | F-SEC-001, US-SEC-001, UC-CTR-001 | F-SEC-001, UC-CTR-001 | Test | APPROVED |
-| FR-UPL-002 | Định dạng cho phép | PS §5, §6.2 CON-01 | §8.2 | BG-GEN-001, BG-GEN-003, STR-RISK-001, US-CTR-001 | F-CTR-001, US-CTR-001, UC-CTR-001 | F-CTR-001, UC-CTR-001 | Test | APPROVED |
-| FR-UPL-003 | Khớp phần mở rộng | PS §9.1; PRD US-SEC-001 | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001, US-SEC-001 | F-SEC-001, US-SEC-001, UC-CTR-001 | F-SEC-001, UC-CTR-001 | Test | APPROVED |
+| FR-UPL-002 | Định dạng cho phép | PS §5, §6.2 CON-01 | §8.2 | BG-GEN-001, BG-GEN-003, STR-RISK-001, US-CTR-001 | F-CTR-001, US-CTR-001, UC-CTR-001 | F-CTR-001, UC-CTR-001 | Test | REVIEW |
+| FR-UPL-003 | Khớp phần mở rộng | PS §9.1; PRD US-SEC-001 | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001, US-SEC-001 | F-SEC-001, US-SEC-001, UC-CTR-001 | F-SEC-001, UC-CTR-001 | Test | REVIEW |
 | FR-UPL-004 | Giới hạn kích thước | DEC-PRD-014; PS §5 | §8.2 | BG-GEN-001, BG-GEN-003, STR-RISK-001, US-CTR-001 | F-CTR-001, US-CTR-001, UC-CTR-001 | F-CTR-001, UC-CTR-001 | Test | APPROVED |
 | FR-UPL-005 | Giới hạn số trang | DEC-PRD-014; PS §5 | §8.2 | BG-GEN-001, BG-GEN-003, STR-RISK-001, US-CTR-001 | F-CTR-001, US-CTR-001, UC-CTR-001 | F-CTR-001, UC-CTR-001 | Test | APPROVED |
 | FR-UPL-006 | Quét mã độc | PS §9.1 | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001, US-SEC-001 | F-SEC-001, US-SEC-001, UC-CTR-001 | F-SEC-001, UC-CTR-001 | Test | APPROVED |
@@ -5899,16 +5909,16 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-ANA-001 | Tự động bắt đầu phân tích | PS §6.3 ANA-01 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001 | F-ANA-001, US-ANA-001, UC-CTR-001, UC-ANA-001 | F-ANA-001, UC-CTR-001, UC-ANA-001 | Test | APPROVED |
 | FR-ANA-002 | Hiển thị tiến trình | PS §6.3 ANA-02 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001 | F-ANA-001, US-ANA-001, UC-ANA-001 | F-ANA-001, UC-ANA-001 | Test | APPROVED |
 | FR-ANA-003 | Tự thử lại | PS §8 (Độ tin cậy) | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, STR-QUAL-012 | F-ANA-001, UC-ANA-001, STR-QUAL-012 | F-ANA-001, UC-ANA-001 | Test | APPROVED |
-| FR-ANA-004 | Báo phân tích thất bại | PS §6.3 ANA-02, §8 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001, STR-QUAL-012 | F-ANA-001, US-ANA-001, UC-ANA-001, STR-QUAL-012 | F-ANA-001, UC-ANA-001 | Test | APPROVED |
+| FR-ANA-004 | Báo phân tích thất bại | PS §6.3 ANA-02, §8 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001, STR-QUAL-012 | F-ANA-001, US-ANA-001, UC-ANA-001, STR-QUAL-012 | F-ANA-001, UC-ANA-001 | Test | REVIEW |
 | FR-ANA-005 | Không lưu kết quả dở dang | PS §8 (Độ tin cậy) | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001, STR-QUAL-012 | F-ANA-001, US-ANA-001, UC-ANA-001, STR-QUAL-012 | F-ANA-001, UC-ANA-001 | Test | APPROVED |
 | FR-ANA-006 | Trích xuất văn bản | PS §6.3 ANA-03 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003 | F-ANA-002, UC-ANA-001 | F-ANA-002, UC-ANA-001 | Test | APPROVED |
-| FR-ANA-007 | Nhận dạng bản scan | PS §5, §6.3 ANA-03 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, US-ANA-003 | F-ANA-002, US-ANA-003, UC-ANA-001 | F-ANA-002, UC-ANA-001 | Test | APPROVED |
-| FR-ANA-008 | Giữ cấu trúc và vị trí | PS §6.3 ANA-03 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, US-ANA-003 | F-ANA-002, US-ANA-003, UC-ANA-001 | F-ANA-002, UC-ANA-001 | Test | APPROVED |
+| FR-ANA-007 | Nhận dạng bản scan | PS §5, §6.3 ANA-03 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, US-ANA-003 | F-ANA-002, US-ANA-003, UC-ANA-001 | F-ANA-002, UC-ANA-001 | Test | DEPRECATED |
+| FR-ANA-008 | Giữ cấu trúc và vị trí | PS §6.3 ANA-03 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003 | F-ANA-002, UC-ANA-001 | F-ANA-002, UC-ANA-001 | Test | REVIEW |
 | FR-ANA-009 | Ngôn ngữ hợp đồng | PS §3.1, §5 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003 | F-ANA-002, UC-ANA-001 | F-ANA-002, UC-ANA-001 | Test | APPROVED |
 | FR-ANA-010 | Tách điều khoản | PS §6.3 ANA-04 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, US-ANA-004 | F-ANA-002, US-ANA-004, UC-ANA-001 | F-ANA-002, UC-ANA-001 | Test | APPROVED |
 | FR-ANA-011 | Phân loại điều khoản | PS §6.3 ANA-04, §7.2 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, US-ANA-004 | F-ANA-002, US-ANA-004, UC-ANA-001 | F-ANA-002, UC-ANA-001 | Test | APPROVED |
 | FR-ANA-012 | Chất lượng phân loại điều khoản | PS §8 (Chất lượng AI); PRD STR-QUAL-005 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, US-ANA-004, STR-QUAL-005 | F-ANA-002, US-ANA-004, STR-QUAL-005 | F-ANA-002 | Analysis | APPROVED |
-| FR-ANA-013 | Trích metadata | PS §6.2 CON-03 | §8.2 | BG-GEN-002, STR-RISK-002, US-CTR-003 | F-CTR-002, US-CTR-003, UC-ANA-001 | F-CTR-002, UC-ANA-001 | Test | APPROVED |
+| FR-ANA-013 | Trích metadata | PS §6.2 CON-03 | §8.2 | BG-GEN-002, STR-RISK-002, US-CTR-003 | F-CTR-002, US-CTR-003, UC-ANA-001 | F-CTR-002, UC-ANA-001 | Test | REVIEW |
 | FR-ANA-014 | Chạy lại phân tích | PS §6.3 ANA-10 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-002 | F-ANA-001, US-ANA-002, UC-ANA-002 | F-ANA-001, UC-ANA-002 | Test | APPROVED |
 | FR-ANA-015 | Kết quả cũ khi chạy lại | PRD US-ANA-002 (ghi chú: được làm rõ ở SRS) | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002 | F-ANA-001, UC-ANA-002 | F-ANA-001, UC-ANA-002 | Test | APPROVED |
 | FR-ANA-016 | Lưu thông tin truy vết | PS §4 (nguyên tắc 4), §8 (Truy vết) | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, STR-RISK-003, STR-RISK-004, STR-QUAL-011 | F-ANA-001, F-RISK-001, UC-ANA-001, STR-QUAL-011 | F-ANA-001, F-RISK-001, UC-ANA-001 | Inspection | APPROVED |
@@ -5976,7 +5986,7 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-AUD-002 | Xem nhật ký hoạt động | PS §6.2 CON-08 | §8.2 | BG-GEN-004, STR-CTR-001, US-AUD-001 | F-AUD-001, US-AUD-001 | F-AUD-001 | Test | APPROVED |
 | NFR-PERF-001 | Thời gian phân tích phân vị 50 | DEC-GEN-022; PRD SC-GEN-003 | §11.2 | STR-QUAL-001, SC-GEN-003 | STR-QUAL-001, SC-GEN-003 | - | Test | APPROVED |
 | NFR-PERF-002 | Thời gian phân tích phân vị 95 | DEC-GEN-022; PRD SC-GEN-004 | §11.2 | STR-QUAL-001, SC-GEN-004 | STR-QUAL-001, SC-GEN-004 | - | Test | APPROVED |
-| NFR-PERF-003 | Thời gian phân tích bản scan | PS §8; PRD STR-QUAL-002; DEC-GEN-022 | §11.2 | STR-QUAL-002 | STR-QUAL-002 | - | Test | APPROVED |
+| NFR-PERF-003 | Thời gian phân tích bản scan | PS §8; PRD STR-QUAL-002; DEC-GEN-022 | §11.2 | STR-QUAL-002 | STR-QUAL-002 | - | Test | DEPRECATED |
 | NFR-PERF-004 | Thời gian phản hồi chatbot | PS §8; PRD STR-QUAL-003; DEC-GEN-022 | §11.2 | STR-QUAL-003 | STR-QUAL-003 | - | Test | APPROVED |
 | NFR-PERF-005 | Đo chi phí AI cho mỗi lần phân tích | PS §8 (Chi phí); PRD STR-QUAL-015 | §11.2 | STR-QUAL-015 | STR-QUAL-015 | - | Inspection | APPROVED |
 | NFR-SCAL-001 | Số phân tích đồng thời | SD §2.3; OQ-SCAL-001 (chốt 10, thấp hơn ước lượng 30 của SD) | §11.2 | SC-GEN-005 | SC-GEN-005 | - | Test | APPROVED |
@@ -6053,13 +6063,11 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-ANA-006 | Depends On | FR-UPL-008 | Nêu ở trường Dependencies của FR-ANA-006 | Thay đổi FR-UPL-008 cần rà soát lại FR-ANA-006 |
 | FR-ANA-007 | Depends On | IF-INTG-002 | Nêu ở trường Dependencies của FR-ANA-007 | Thay đổi IF-INTG-002 cần rà soát lại FR-ANA-007 |
 | FR-ANA-008 | Depends On | FR-ANA-006 | Nêu ở trường Dependencies của FR-ANA-008 | Thay đổi FR-ANA-006 cần rà soát lại FR-ANA-008 |
-| FR-ANA-008 | Depends On | FR-ANA-007 | Nêu ở trường Dependencies của FR-ANA-008 | Thay đổi FR-ANA-007 cần rà soát lại FR-ANA-008 |
 | FR-ANA-010 | Depends On | FR-ANA-008 | Nêu ở trường Dependencies của FR-ANA-010 | Thay đổi FR-ANA-008 cần rà soát lại FR-ANA-010 |
 | FR-ANA-011 | Depends On | FR-ANA-010 | Nêu ở trường Dependencies của FR-ANA-011 | Thay đổi FR-ANA-010 cần rà soát lại FR-ANA-011 |
 | FR-ANA-012 | Depends On | DEP-GEN-003 | Nêu ở trường Dependencies của FR-ANA-012 | Thay đổi DEP-GEN-003 cần rà soát lại FR-ANA-012 |
 | FR-ANA-012 | Depends On | FR-ANA-011 | Nêu ở trường Dependencies của FR-ANA-012 | Thay đổi FR-ANA-011 cần rà soát lại FR-ANA-012 |
 | FR-ANA-013 | Depends On | FR-ANA-006 | Nêu ở trường Dependencies của FR-ANA-013 | Thay đổi FR-ANA-006 cần rà soát lại FR-ANA-013 |
-| FR-ANA-013 | Depends On | FR-ANA-007 | Nêu ở trường Dependencies của FR-ANA-013 | Thay đổi FR-ANA-007 cần rà soát lại FR-ANA-013 |
 | FR-ANA-014 | Depends On | FR-ANA-015 | Nêu ở trường Dependencies của FR-ANA-014 | Thay đổi FR-ANA-015 cần rà soát lại FR-ANA-014 |
 | FR-ANA-016 | Depends On | CON-GEN-004 | Nêu ở trường Dependencies của FR-ANA-016 | Thay đổi CON-GEN-004 cần rà soát lại FR-ANA-016 |
 | FR-RISK-001 | Depends On | FR-CTR-005 | Nêu ở trường Dependencies của FR-RISK-001 | Thay đổi FR-CTR-005 cần rà soát lại FR-RISK-001 |
@@ -6176,7 +6184,7 @@ Priority: `Must` nghĩa là OQ chặn ít nhất một yêu cầu Must.
 ### 17.2 Decisions
 
 SRS không có quyết định riêng. Quyết định cho từng OQ của SRS nằm ở cột Resolution §17.1. Các quyết định áp dụng:
-- Quyết định cấp dự án DEC-GEN-001..023 ở `00-Project-State.md` §6, trong đó có DEC-GEN-010 (hoãn chọn model), DEC-GEN-016 (AI chạy qua Bedrock), DEC-GEN-018 (cắt gọt SRS), DEC-GEN-020 (mã NFR), DEC-GEN-022 (mục tiêu hiệu năng, thay DEC-GEN-008).
+- Quyết định cấp dự án DEC-GEN-001..023 ở `00-Project-State.md` §6, trong đó có DEC-GEN-010 (hoãn chọn model), DEC-GEN-016 (AI chạy qua Bedrock, đã được DEC-GEN-029 thay: model tự host trên EC2), DEC-GEN-018 (cắt gọt SRS), DEC-GEN-020 (mã NFR), DEC-GEN-022 (mục tiêu hiệu năng, thay DEC-GEN-008).
 - Quyết định sản phẩm DEC-PRD-001..019 ở PRD §14.2, trong đó có DEC-PRD-013 và DEC-PRD-017 (quyền của Owner tổ chức), DEC-PRD-014 (giới hạn upload), DEC-PRD-016 (chống prompt injection), DEC-PRD-018 (bỏ chia sẻ cho toàn tổ chức), DEC-PRD-019 (nghĩa vụ dữ liệu cá nhân ngoài phạm vi bản demo).
 
 ### 17.3 Requirement-Related Risks
@@ -6187,7 +6195,7 @@ Các rủi ro sản phẩm RISK-GEN-001..008 ở PRD §14.3 vẫn áp dụng. B�
 |---|---|---|---|---|---|---|---|---|---|
 | RISK-SRS-001 | Nhiều OQ chặn yêu cầu Must về tài khoản, phân quyền và trạng thái | Các chi tiết PRD để "làm rõ ở SRS" chưa có quyết định | Phải sửa lại khi cài đặt; ma trận quyền §12.3 chưa đủ để kiểm thử | Low | High | §12.3, §13.2, domain `AUTH`, `ORG`, `SHARE`, `CTR` | Đã trả lời mọi OQ ngày 2026-10-26 (phiếu `OQ-Answers.md`) | Nhóm dự án | APPROVED |
 | RISK-SRS-002 | Không đạt NFR-PERF-001 khi worker phải khởi động từ trạng thái tắt | Thời gian khởi động worker có thể thêm 30–120 giây (SD §2.6) | Job đầu tiên sau thời gian nghỉ vượt mục tiêu | Medium | Medium | NFR-PERF-001, NFR-PERF-002 | NFR chỉ đo khi worker đã chạy sẵn; giữ worker chạy sẵn trong buổi demo | Nhóm dự án | APPROVED |
-| RISK-SRS-003 | Model cần dùng không có ở region Singapore | Danh sách model của Bedrock khác nhau theo region | Phải dùng cross-region inference hoặc đổi model | Low | Medium | CON-GEN-001, IF-INTG-001 | Kiểm tra danh sách model trước khi chọn (SD §2.9) | Nhóm dự án | APPROVED |
+| RISK-SRS-003 | Loại instance GPU cần dùng không có hoặc hết capacity ở region Singapore | Mỗi region có danh sách và capacity instance GPU khác nhau | Phải đổi loại máy, chạy model nhỏ hơn, hoặc chậm hơn NFR-PERF-001 | Medium | Medium | CON-GEN-001, IF-INTG-001 | Kiểm tra loại máy và xin quota GPU ngay khi chọn model. [CHANGE] Changed by CR-GEN-003 (2026-11-17): rủi ro của Bedrock đổi sang rủi ro của EC2 GPU | Nhóm dự án | REVIEW |
 
 ## 18. Appendices
 

@@ -6,7 +6,7 @@ product
 
 ## Users
 
-Giám đốc, chủ doanh nghiệp và nhân viên sales/mua hàng tại SME Việt Nam, thường không có bộ phận pháp chế. Họ nhận hợp đồng 20–50 trang do đối tác gửi sang (PDF, DOCX, bản scan) và cần quyết định có ký hay không, hoặc cần đàm phán lại điểm nào. Bối cảnh: văn phòng ban ngày, laptop 14–15", đọc kỹ và tập trung, hơi lo vì sợ bỏ sót "bẫy" pháp lý. Ngoài ra có người review chuyên môn (pháp chế, IT/Security) cần đi vào chi tiết, và Owner tổ chức quản lý thành viên.
+Giám đốc, chủ doanh nghiệp và nhân viên sales/mua hàng tại SME Việt Nam, thường không có bộ phận pháp chế. Họ nhận hợp đồng 20–50 trang do đối tác gửi sang (PDF, DOCX; ContractGuard không đọc bản scan, CR-GEN-001) và cần quyết định có ký hay không, hoặc cần đàm phán lại điểm nào. Bối cảnh: văn phòng ban ngày, laptop 14–15", đọc kỹ và tập trung, hơi lo vì sợ bỏ sót "bẫy" pháp lý. Ngoài ra có người review chuyên môn (pháp chế, IT/Security) cần đi vào chi tiết, và Owner tổ chức quản lý thành viên.
 
 ## Product Purpose
 

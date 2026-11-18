@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { AuthPage, linkClass } from "~/components/AuthPage";
 import { Button } from "~/components/Button";
 import { TextField } from "~/components/Field";
+import { GoogleButton } from "~/components/GoogleButton";
 import { Notice } from "~/components/Notice";
 import { ApiError, apiPost } from "~/lib/api";
 import { errorMessage } from "~/lib/errors";
@@ -94,6 +95,7 @@ export default function Register() {
       }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
+        <GoogleButton />
         <TextField
           label="Họ và tên"
           name="name"

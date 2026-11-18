@@ -4,7 +4,5 @@ namespace ContractGuard.Domain.Contracts;
 public enum FileType
 {
     Pdf,
-    Docx,
-    Jpg,
-    Png
+    Docx
 }

@@ -191,7 +191,7 @@ public sealed class WorkspaceIsolationTests(ApiFactory factory)
     {
         await using var scope = factory.Services.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.ExecuteSqlInterpolatedAsync(
-            $"INSERT INTO membership (membership_id, organization_id, user_account_id, org_role, joined_at) VALUES ({Guid.CreateVersion7()}, {organizationId}, {userId}, 'member', now())",
+            $"INSERT INTO app.membership (membership_id, organization_id, user_account_id, org_role, joined_at) VALUES ({Guid.CreateVersion7()}, {organizationId}, {userId}, 'member', now())",
             Ct);
     }
 }

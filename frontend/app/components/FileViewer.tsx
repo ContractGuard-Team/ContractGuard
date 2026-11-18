@@ -7,7 +7,7 @@ import { useAction } from "~/lib/useAction";
 import { Button } from "./Button";
 import { Notice } from "./Notice";
 import type { PdfHighlight } from "./PdfViewer";
-import { ViewerFailed, ViewerSkeleton } from "./ViewerParts";
+import { ViewerSkeleton } from "./ViewerParts";
 
 // Loaded only when a contract is opened: both libraries are large and PDF.js needs a browser.
 const PdfViewer = lazy(() => import("./PdfViewer"));
@@ -24,14 +24,12 @@ function fileError(error: unknown) {
 export function FileViewer({
   contractId,
   versionId,
-  fileName,
   fileType,
   highlights,
   onSelectClause,
 }: {
   contractId: string;
   versionId: string;
-  fileName: string;
   fileType: Schemas["FileType"];
   highlights?: PdfHighlight[];
   onSelectClause?: (clauseKey: string) => void;
@@ -90,18 +88,8 @@ export function FileViewer({
         <Suspense fallback={<ViewerSkeleton />}>
           {fileType === "pdf" && <PdfViewer url={url} highlights={highlights} onSelectClause={onSelectClause} />}
           {fileType === "docx" && <DocxViewer url={url} />}
-          {(fileType === "jpg" || fileType === "png") && <ImageViewer url={url} fileName={fileName} />}
         </Suspense>
       )}
     </section>
-  );
-}
-
-function ImageViewer({ url, fileName }: { url: string; fileName: string }) {
-  const [failed, setFailed] = useState(false);
-  return failed ? (
-    <ViewerFailed />
-  ) : (
-    <img src={url} alt={fileName} onError={() => setFailed(true)} className="mx-auto max-w-full rounded-sheet bg-sheet shadow-sheet" />
   );
 }

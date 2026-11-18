@@ -68,6 +68,7 @@ test("an owner invites a colleague, shares a contract, then revokes it", async (
   await page.goto(`/contracts/${contractId}`);
   await page.getByRole("button", { name: "Chia sẻ" }).click();
   await page.getByRole("dialog", { name: /Chia sẻ/ }).getByRole("button", { name: "Thu hồi" }).click();
+  await page.getByRole("dialog", { name: /^Thu hồi quyền của/ }).getByRole("button", { name: "Thu hồi" }).click();
   await expect(page.getByText("Đã thu hồi quyền.")).toBeVisible();
   await page.getByRole("dialog", { name: /Chia sẻ/ }).getByRole("button", { name: "Đóng" }).click();
   await page.getByRole("tab", { name: "Nhật ký" }).click();

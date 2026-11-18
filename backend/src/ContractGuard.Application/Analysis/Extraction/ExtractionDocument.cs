@@ -25,7 +25,7 @@ public sealed record ExtractionDocument(
     ExtractedEmbeddings? Embeddings);
 
 // "document" of extraction.v2: facts about the file as the worker read it.
-public sealed record ExtractedDocumentInfo(string FileType, int PageCount, string? CleanFileKey, string Language, bool? IsScanned);
+public sealed record ExtractedDocumentInfo(string FileType, int PageCount, string? CleanFileKey, string Language);
 
 // A rectangle on a page, as fractions (0..1) of the page size.
 public sealed record ExtractedRegion(int Page, double X, double Y, double Width, double Height);

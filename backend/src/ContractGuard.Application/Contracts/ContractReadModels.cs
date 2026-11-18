@@ -82,7 +82,9 @@ public sealed record ContractDetail(
 
 public sealed record AuditEntry(Guid AuditEventId, AuditAction Action, string? Detail, string? ActorName, string? ActorEmail, DateTimeOffset OccurredAt);
 
-public sealed record ContractAccessView(PersonItem Owner, bool IsOrganizationContract, List<ShareItem> Shares);
+// CR-GEN-002: one effective role per person. Organization owners other than the contract owner are
+// Administrators and never appear in Shares, even if an old share row exists.
+public sealed record ContractAccessView(PersonItem Owner, bool IsOrganizationContract, List<PersonItem> Administrators, List<ShareItem> Shares);
 
 public sealed record PersonItem(Guid UserId, string DisplayName, string Email);
 

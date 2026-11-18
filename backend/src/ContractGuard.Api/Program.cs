@@ -11,13 +11,17 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Secrets of one environment on a developer machine, e.g. the Supabase connection string of
+// "Cloud". Git-ignored; user-secrets would leak them into every Development run as well.
+builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.local.json", optional: true);
+
 if (builder.Environment.IsProduction() && string.Equals(builder.Configuration["Chat:Responder"], "fake", StringComparison.OrdinalIgnoreCase))
 {
     throw new InvalidOperationException("Chat:Responder=fake is for development and tests only.");
 }
 
 builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
-builder.Services.AddApiAuth(builder.Environment);
+builder.Services.AddApiAuth(builder.Configuration, builder.Environment);
 builder.Services.AddScoped<AccountEmails>();
 builder.Services.AddOpenApi();
 

@@ -27,7 +27,7 @@ public sealed class DatabaseTests(ApiFactory factory)
 
         var tables = new List<string>();
         await using (var command = new NpgsqlCommand(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name", connection))
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'app' ORDER BY table_name", connection))
         await using (var reader = await command.ExecuteReaderAsync(TestContext.Current.CancellationToken))
         {
             while (await reader.ReadAsync(TestContext.Current.CancellationToken))
@@ -37,7 +37,7 @@ public sealed class DatabaseTests(ApiFactory factory)
         }
 
         Assert.Superset(
-            new HashSet<string> { "organization", "user_account", "membership", "contract", "contract_version", "contract_context", "analysis_run", "clause" },
+            new HashSet<string> { "__EFMigrationsHistory", "organization", "user_account", "membership", "contract", "contract_version", "contract_context", "analysis_run", "clause" },
             tables.ToHashSet());
 
         await using var extension = new NpgsqlCommand("SELECT count(*) FROM pg_extension WHERE extname = 'vector'", connection);

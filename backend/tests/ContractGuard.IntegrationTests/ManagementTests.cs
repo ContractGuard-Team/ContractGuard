@@ -145,6 +145,45 @@ public sealed class ManagementTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Organization_owners_show_as_administrators_not_shares()
+    {
+        // CR-GEN-002: A and B own the organization, C is a member who creates the contract.
+        var (a, aId, _) = await Scenario.SignedInUserAsync(factory);
+        var (b, bId, bEmail) = await Scenario.SignedInUserAsync(factory);
+        var (c, cId, cEmail) = await Scenario.SignedInUserAsync(factory);
+        var (d, dId, dEmail) = await Scenario.SignedInUserAsync(factory);
+        using (a)
+        using (b)
+        using (c)
+        using (d)
+        {
+            var organizationId = await OrganizationWithMemberAsync(a, b, bEmail);
+            ApiAssert.Status(await a.PutAsync($"/organizations/{organizationId}/members/{bId}/role", new { role = "owner" }), HttpStatusCode.NoContent);
+            foreach (var (client, email) in new[] { (c, cEmail), (d, dEmail) })
+            {
+                ApiAssert.Status(await a.PostAsync($"/organizations/{organizationId}/invitations", new { email }), HttpStatusCode.NoContent);
+                ApiAssert.Status(await client.PostAsync($"/invitations/{factory.Emails.LastInvitationToken(email)}/accept"), HttpStatusCode.OK);
+            }
+
+            var (contractId, _) = await Scenario.UploadContractAsync(factory, c, organizationId);
+            await ApiAssert.ProblemAsync(await c.PostAsync($"/contracts/{contractId}/shares", new { email = bEmail }, organizationId), HttpStatusCode.BadRequest, "ERR-SHARE-003");
+
+            // Sharing with the whole organization adds only the plain member.
+            ApiAssert.Status(await c.PostAsync($"/contracts/{contractId}/shares", new { wholeOrganization = true }, organizationId), HttpStatusCode.NoContent);
+            var access = await ApiAssert.JsonAsync(await c.GetAsync($"/contracts/{contractId}/shares", organizationId));
+            Assert.Equal(cId, access.GetProperty("owner").GetProperty("userId").GetGuid());
+            Assert.Equal(new[] { aId, bId }.Order(), access.GetProperty("administrators").EnumerateArray().Select(p => p.GetProperty("userId").GetGuid()).Order());
+            Assert.Equal([dId], access.GetProperty("shares").EnumerateArray().Select(p => p.GetProperty("userId").GetGuid()));
+
+            // A member promoted later moves from Shares to Administrators.
+            ApiAssert.Status(await a.PutAsync($"/organizations/{organizationId}/members/{dId}/role", new { role = "owner" }), HttpStatusCode.NoContent);
+            access = await ApiAssert.JsonAsync(await c.GetAsync($"/contracts/{contractId}/shares", organizationId));
+            Assert.Equal(0, access.GetProperty("shares").GetArrayLength());
+            Assert.Equal(3, access.GetProperty("administrators").GetArrayLength());
+        }
+    }
+
+    [Fact]
     public async Task Personal_contracts_are_shared_with_registered_accounts_only()
     {
         var (owner, _, _) = await Scenario.SignedInUserAsync(factory);

@@ -1558,6 +1558,7 @@ export interface components {
         ContractAccessView: {
             owner: components["schemas"]["PersonItem"];
             isOrganizationContract: boolean;
+            administrators: components["schemas"]["PersonItem"][];
             shares: components["schemas"]["ShareItem"][];
         };
         ContractDetail: {
@@ -1664,7 +1665,7 @@ export interface components {
             quote: string;
         };
         /** @enum {unknown} */
-        FileType: "pdf" | "docx" | "jpg" | "png";
+        FileType: "pdf" | "docx";
         FindingHandlingRequest: {
             status: components["schemas"]["HandlingStatus"];
             note?: null | string;

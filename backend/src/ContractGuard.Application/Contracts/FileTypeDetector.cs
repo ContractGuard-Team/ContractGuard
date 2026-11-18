@@ -12,8 +12,6 @@ public static class FileTypeDetector
     private static readonly (FileType Type, byte[] Signature)[] Signatures =
     [
         (FileType.Pdf, "%PDF-"u8.ToArray()),
-        (FileType.Png, [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
-        (FileType.Jpg, [0xFF, 0xD8, 0xFF]),
         (FileType.Docx, [0x50, 0x4B, 0x03, 0x04]),
     ];
 
@@ -22,8 +20,6 @@ public static class FileTypeDetector
         {
             ".pdf" => FileType.Pdf,
             ".docx" => FileType.Docx,
-            ".jpg" or ".jpeg" => FileType.Jpg,
-            ".png" => FileType.Png,
             _ => null
         };
 
@@ -32,8 +28,6 @@ public static class FileTypeDetector
         {
             FileType.Pdf => "application/pdf",
             FileType.Docx => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            FileType.Jpg => "image/jpeg",
-            FileType.Png => "image/png",
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 

@@ -94,7 +94,7 @@ export function ContractDropzone({
         ) : (
           <>
             <span className="text-title">Kéo thả file hợp đồng vào đây, hoặc bấm để chọn file</span>
-            <span className="text-ink-muted">PDF, DOCX, JPG hoặc PNG, tối đa 20 MB và 100 trang</span>
+            <span className="text-ink-muted">PDF hoặc DOCX, tối đa 20 MB và 100 trang</span>
           </>
         )}
       </label>
