@@ -7,4 +7,6 @@ public sealed record AnalysisResultMessage(
     string? Step,
     string? ResultKey,
     string? FailureReason,
-    string? ErrorCode);
+    string? ErrorCode,
+    string? AnswerText = null,
+    IReadOnlyList<string>? CitedClauseIds = null);

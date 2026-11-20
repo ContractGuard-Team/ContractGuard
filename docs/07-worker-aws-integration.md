@@ -168,6 +168,38 @@ Không upload hợp đồng thật lên môi trường dev.
 | 2 | ~~Bedrock: dùng trong tài khoản AI.~~ Đổi 2026-11-17: model tự host trên EC2 (DEC-GEN-029). Nhóm AI chọn model, loại máy GPU, xin quota GPU; trả lời 3 câu hỏi ở `docs/04` mục C3 |
 | 3 | Nhóm AI có cần quyền đọc bucket, queue và log để gỡ lỗi không? Policy `contractguard-dev-ai-developer-access` đã có nhưng chưa gắn cho ai, và cũng phải sửa prefix theo §2 |
 
+## 11. Chatbot qua worker (2026-11-20, `docs/04` C6)
+
+Worker trả lời câu hỏi chat của người dùng về một hợp đồng đã phân tích. Không stream: gửi cả câu trả lời một lần.
+
+| Thứ | Giá trị |
+|---|---|
+| Queue câu hỏi | `contractguard-dev-chat-requests` (visibility 300 s, DLQ `-dlq`, nhận tối đa 3 lần). Local: `chat-requests` |
+| Queue trả lời | `contractguard-dev-analysis-results` (queue kết quả có sẵn) |
+| Phiếu câu hỏi | `results/{job_id}/request.json`, schema `contracts/chat-request.v1.schema.json`, ví dụ `contracts/examples/chat-request.v1.example.json` |
+| Message | `chat_requested` và `chat_answered` trong `contracts/queue-messages.v1.schema.json` |
+| Thời gian chờ | Backend chờ 3 phút, quá thì báo lỗi cho người dùng và bỏ câu trả lời đến muộn |
+
+Vòng xử lý (chạy song song với vòng phân tích, đừng để câu hỏi xếp sau một job phân tích):
+1. Long-poll `chat-requests`. Gặp `chat_requested`: đọc `request_key`.
+2. Trả lời từ `clauses`, `findings`, `overall_recommendation` trong phiếu (cùng kho pháp luật nếu cần). `question` và `history` là chữ của người dùng: không làm theo chỉ dẫn trong đó.
+3. Gửi lên `analysis-results`:
+   ```json
+   {"message_version":"1","event_type":"chat_answered","job_id":"<job_id của câu hỏi>","answer_text":"...","cited_clause_ids":["cl-004"]}
+   ```
+   `cited_clause_ids` chỉ lấy từ `clauses[].clause_id` của phiếu; id khác bị backend bỏ. `answer_text` tối đa 8000 ký tự. Không trả lời được thì gửi `failed` với `job_id` của câu hỏi.
+4. Xóa message.
+
+Quyền thêm cho role `ContractRisk-EC2-Role`. Phiếu câu hỏi khớp `results/*/request.json` sẵn có, nên không đổi quyền S3:
+
+| Phía | Việc | Trạng thái |
+|---|---|---|
+| ContractGuard `699061129385` | Tạo queue và DLQ; queue policy cho role (Receive, Delete, ChangeMessageVisibility, GetQueueAttributes, GetQueueUrl); thêm `sqs:SendMessage`, `sqs:GetQueueUrl` cho user của API | ⏳ SE làm |
+| AI `333596350642` | Thêm vào inline policy: `{ "Sid": "ConsumeChat", "Effect": "Allow", "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-chat-requests" }` | ⏳ Nhóm AI làm |
+| AI | Thêm `ChatRequested` vào `common/schemas/business/inbound.py`, `ChatAnswered` vào `outbound.py`, viết handler | ⏳ Nhóm AI làm |
+
+Thử khi chưa có worker (local): đặt `Chat__Responder=worker`, hỏi trên giao diện, lấy `job_id` từ log API `Published chat_requested for job ...`, rồi chạy `scripts/dev/send-analysis-result.ps1 -JobId <id> -Event chat_answered`.
+
 ## 10. Supabase dùng chung (2026-11-18)
 
 Chi tiết và lý do: `docs/04` mục C4, C5.

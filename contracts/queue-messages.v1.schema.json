@@ -9,7 +9,9 @@
     { "$ref": "#/$defs/progress" },
     { "$ref": "#/$defs/completed" },
     { "$ref": "#/$defs/failed" },
-    { "$ref": "#/$defs/pong" }
+    { "$ref": "#/$defs/pong" },
+    { "$ref": "#/$defs/chatRequested" },
+    { "$ref": "#/$defs/chatAnswered" }
   ],
   "$defs": {
     "jobId": { "type": "string", "format": "uuid" },
@@ -82,6 +84,31 @@
         "message_version": { "const": "1" },
         "event_type": { "const": "pong" },
         "job_id": { "$ref": "#/$defs/jobId" }
+      }
+    },
+    "chatRequested": {
+      "description": "Queue chat-requests, backend -> worker (docs/04 C6). The question is in request_key (chat-request.v1.schema.json). Answer with chat_answered, or failed with the same job_id. The backend waits 3 minutes.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id", "request_key"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "chat_requested" },
+        "job_id": { "$ref": "#/$defs/jobId" },
+        "request_key": { "type": "string", "pattern": "^results/[0-9a-f-]{36}/request\\.json$" }
+      }
+    },
+    "chatAnswered": {
+      "description": "Queue analysis-results, worker -> backend. The whole answer, not streamed. cited_clause_ids must come from the request's clauses; others are dropped.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id", "answer_text", "cited_clause_ids"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "chat_answered" },
+        "job_id": { "$ref": "#/$defs/jobId" },
+        "answer_text": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "cited_clause_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } }
       }
     }
   }

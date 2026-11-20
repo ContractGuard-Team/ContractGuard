@@ -1,5 +1,6 @@
 using ContractGuard.Application.Abstractions;
 using ContractGuard.Application.Analysis.Extraction;
+using ContractGuard.Application.Chat;
 using ContractGuard.Domain.Analysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ public sealed partial class AnalysisResultHandler(
     IApplicationDbContext db,
     IExtractionReader extractionReader,
     AnalysisResultProcessor resultProcessor,
+    ChatAnswerWaiter chatAnswers,
     TimeProvider clock,
     ILogger<AnalysisResultHandler> logger)
 {
@@ -32,10 +34,14 @@ public sealed partial class AnalysisResultHandler(
                 return ResultOutcome.Applied;
             case AnalysisEventTypes.Progress:
                 return await HandleProgressAsync(jobId, message.Step, cancellationToken);
+            case AnalysisEventTypes.Failed when chatAnswers.TryFail(jobId, message.FailureReason ?? "The worker could not answer."):
+                return ResultOutcome.Applied;
             case AnalysisEventTypes.Failed:
                 return await HandleFailedAsync(jobId, message, cancellationToken);
             case AnalysisEventTypes.Completed:
                 return await HandleCompletedAsync(jobId, message.ResultKey, cancellationToken);
+            case AnalysisEventTypes.ChatAnswered:
+                return HandleChatAnswered(jobId, message);
             default:
                 throw new PoisonMessageException($"Unknown event_type '{message.EventType}'.");
         }
@@ -65,6 +71,18 @@ public sealed partial class AnalysisResultHandler(
         LogProgress(jobId, parsedStep);
         return ResultOutcome.Applied;
     }
+
+    // Nobody waiting (timed out, or the question came from another API instance): drop the answer.
+    private ResultOutcome HandleChatAnswered(Guid jobId, AnalysisResultMessage message)
+    {
+        var delivered = message.AnswerText is { Length: > 0 and <= MaxChatAnswerLength } text
+            ? chatAnswers.TryComplete(jobId, new WorkerChatAnswer(text, message.CitedClauseIds ?? []))
+            : chatAnswers.TryFail(jobId, "The worker sent an empty or too long answer.");
+        return delivered ? ResultOutcome.Applied : ResultOutcome.Ignored;
+    }
+
+    // contracts/queue-messages.v1.schema.json, chat_answered.answer_text.
+    private const int MaxChatAnswerLength = 8000;
 
     private async Task<ResultOutcome> HandleFailedAsync(Guid jobId, AnalysisResultMessage message, CancellationToken cancellationToken)
     {

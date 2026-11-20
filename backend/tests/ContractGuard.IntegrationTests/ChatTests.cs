@@ -1,6 +1,11 @@
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using ContractGuard.Application.Analysis;
 using ContractGuard.Application.Chat;
+using ContractGuard.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ContractGuard.IntegrationTests;
@@ -84,6 +89,86 @@ public sealed class ChatTests(ApiFactory factory)
             await ApiAssert.ProblemAsync(await bob.GetAsync($"/contracts/{contractId}/chat"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
             await ApiAssert.ProblemAsync(await bob.PostAsync($"/contracts/{contractId}/chat", new { question = "Hi" }), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
         }
+    }
+
+    [Fact]
+    public async Task Worker_answer_streams_with_only_citations_of_the_run()
+    {
+        await using var app = WorkerChatApp();
+        using var client = new ApiClient(app.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true }));
+        await Scenario.SignedInUserAsync(factory, client);
+        var (contractId, _, _) = await Scenario.AnalyzedContractAsync(factory, client);
+        var before = factory.Queue.Published.Select(m => m.JobId).ToHashSet();
+
+        var post = client.PostAsync($"/contracts/{contractId}/chat", new { question = "Ai chịu trách nhiệm khi có sự cố?" });
+        var question = await PublishedChatQuestionAsync(before);
+
+        // The request file carries only this run's data, in the shape of contracts/chat-request.v1.schema.json.
+        using var request = JsonDocument.Parse(factory.Storage.GetText(question.RequestKey!));
+        Assert.Equal("Ai chịu trách nhiệm khi có sự cố?", request.RootElement.GetProperty("question").GetString());
+        Assert.Contains(request.RootElement.GetProperty("clauses").EnumerateArray(), c => c.GetProperty("clause_id").GetString() == "cl-004");
+        Assert.True(request.RootElement.GetProperty("findings").GetArrayLength() > 0);
+
+        Assert.Equal(ResultOutcome.Applied, await HandleAsync(app, new AnalysisResultMessage(
+            AnalysisEventTypes.ChatAnswered, question.JobId, null, null, null, null, "Điều 4 quy định trách nhiệm.", ["cl-004", "cl-unknown"])));
+
+        var stream = await (await post).Content.ReadAsStringAsync(Ct);
+        Assert.Contains("event: token", stream, StringComparison.Ordinal);
+        Assert.Contains("cl-004", stream, StringComparison.Ordinal);
+        Assert.DoesNotContain("cl-unknown", stream, StringComparison.Ordinal); // not a clause of the run
+        Assert.Contains("event: done", stream, StringComparison.Ordinal);
+        var messages = (await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}/chat"))).GetProperty("messages");
+        Assert.Equal("Điều 4 quy định trách nhiệm.", messages[1].GetProperty("content").GetString()?.Trim());
+
+        // A late duplicate finds nobody waiting and is dropped.
+        Assert.Equal(ResultOutcome.Ignored, await HandleAsync(app, new AnalysisResultMessage(
+            AnalysisEventTypes.ChatAnswered, question.JobId, null, null, null, null, "again", [])));
+    }
+
+    [Fact]
+    public async Task Worker_failure_sends_an_error_event_and_keeps_no_answer()
+    {
+        await using var app = WorkerChatApp();
+        using var client = new ApiClient(app.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true }));
+        await Scenario.SignedInUserAsync(factory, client);
+        var (contractId, _, _) = await Scenario.AnalyzedContractAsync(factory, client);
+        var before = factory.Queue.Published.Select(m => m.JobId).ToHashSet();
+
+        var post = client.PostAsync($"/contracts/{contractId}/chat", new { question = "Hello?" });
+        var question = await PublishedChatQuestionAsync(before);
+        Assert.Equal(ResultOutcome.Applied, await HandleAsync(app, new AnalysisResultMessage(
+            AnalysisEventTypes.Failed, question.JobId, null, null, "model down", null)));
+
+        var stream = await (await post).Content.ReadAsStringAsync(Ct);
+        Assert.Contains("ERR-CHAT-001", stream, StringComparison.Ordinal);
+        var messages = (await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}/chat"))).GetProperty("messages");
+        Assert.Equal(1, messages.GetArrayLength());
+    }
+
+    // Its own host, so the answer goes through that host's ChatAnswerWaiter; queue and storage are shared.
+    private WebApplicationFactory<Program> WorkerChatApp() => factory.WithWebHostBuilder(b => b.UseSetting("Chat:Responder", "worker"));
+
+    private async Task<AnalysisRequestMessage> PublishedChatQuestionAsync(HashSet<Guid> before)
+    {
+        for (var i = 0; i < 100; i++)
+        {
+            var question = factory.Queue.Published.FirstOrDefault(m => m.EventType == AnalysisEventTypes.ChatRequested && !before.Contains(m.JobId));
+            if (question is not null)
+            {
+                return question;
+            }
+
+            await Task.Delay(50, Ct);
+        }
+
+        throw new TimeoutException("No chat_requested was published.");
+    }
+
+    private static async Task<ResultOutcome> HandleAsync(WebApplicationFactory<Program> app, AnalysisResultMessage message)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<CurrentWorkspace>().RunAsSystem();
+        return await scope.ServiceProvider.GetRequiredService<AnalysisResultHandler>().HandleAsync(message, Ct);
     }
 
     private sealed class BrokenResponder : IChatResponder

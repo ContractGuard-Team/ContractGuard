@@ -24,7 +24,7 @@ Tên bucket, queue, quyền IAM trên AWS thật và cách chạy worker trên E
 |---|---|---|---|
 | 1 | Worker đọc `analysis-requests`, ghi `extraction.v2` lên S3, gửi `progress`/`completed`/`failed` lên `analysis-results` | `contracts/queue-messages.v1.schema.json`, `contracts/analysis-request.v1.schema.json`, `contracts/extraction.v2.schema.json` | Gửi job (`AnalysisStarter`), nhận và kiểm tra (`AnalysisResultHandler`, `ExtractionConsistencyValidator`), lưu (`AnalysisResultProcessor`) |
 | 2 | Gửi khối `scoring` (mới, xem §3.1) | `extraction.v2.schema.json` → `scoring` | Kiểm tra luật điểm, lưu, hiển thị thước rủi ro, lọc và sắp xếp thư viện theo điểm, đưa vào báo cáo |
-| 3 | Chatbot theo SD-14 (A: C# gọi model, B: service Python). Từ 2026-11-17 model tự host trên EC2 thay Bedrock (DEC-GEN-029); cần 3 câu trả lời ở `docs/04` mục C3 | Hiện thực `IChatResponder` (`backend/src/ContractGuard.Application/Chat/IChatResponder.cs`), đăng ký ở `Infrastructure/DependencyInjection.cs` thay cho `UnconfiguredChatResponder` | Endpoint SSE, lưu lịch sử chung, lọc trích dẫn sai, UI stream và nhảy tới điều khoản |
+| 3 | Chatbot: worker trả lời qua SQS (`docs/04` C6, đổi SD-14 A) | Đọc `chat-requests`, trả `chat_answered` (`docs/07` §11, `contracts/chat-request.v1.schema.json`) | Endpoint SSE, lưu lịch sử chung, lọc trích dẫn sai, UI stream và nhảy tới điều khoản; `WorkerChatResponder` gửi câu hỏi và chờ câu trả lời |
 | 4 | Embedding điều khoản (nếu chọn SD-14 A) | `extraction.v2` → `embeddings` (đang `dimensions: 1024`) | **Chưa lưu.** Bảng pgvector chờ chốt số chiều và model embedding |
 | 5 | Worker xóa bản trong `quarantine/` sau khi ghi `clean/` | SD-07 | Khi xóa hợp đồng, backend chỉ biết key mà version đang trỏ tới, cùng key `clean/` tính được (`ContractCommands.DeleteAsync`) |
 
@@ -76,6 +76,7 @@ Backend từ chối **cả kết quả** (job `failed`, không lưu gì, theo VA
 
 ### 3.2 Chatbot (`IChatResponder`)
 
+- **Từ 2026-11-20 (`docs/04` C6):** worker AI trả lời qua SQS. `WorkerChatResponder` ghi phiếu `chat-request.v1` (câu hỏi, 10 lượt gần nhất, điều khoản và finding của run) rồi gửi `chat_requested` lên queue `chat-requests`. Worker trả `chat_answered` về `analysis-results`. Bật bằng `Chat:Responder=worker` (môi trường `Cloud`). Việc của worker: `docs/07` §11.
 - **Phạm vi:** request chỉ mang id của một lần phân tích mà người hỏi được xem. Adapter **chỉ được đọc dữ liệu của `AnalysisRunId`** (BR-CHAT-001, FR-CHAT-006).
 - **Trích dẫn:** trả `ChatChunk.Cite(clauseKey)`. Backend bỏ trích dẫn tới điều khoản không thuộc lần phân tích đó, giống cách kiểm tra extraction.
 - **Lỗi giữa chừng:** người dùng nhận event `error` (ERR-CHAT-001). Câu hỏi vẫn được lưu, câu trả lời dở thì không.

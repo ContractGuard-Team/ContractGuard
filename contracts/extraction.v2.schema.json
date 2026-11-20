@@ -36,7 +36,8 @@
         "file_type": { "enum": ["pdf", "docx"], "description": "Real file type detected from content, not from the extension." },
         "page_count": { "type": "integer", "minimum": 1, "maximum": 100 },
         "clean_file_key": { "type": "string", "pattern": "^clean/", "description": "Where the worker stored the sanitized file (SD-07)." },
-        "language": { "enum": ["vi", "en", "mixed"] }
+        "language": { "enum": ["vi", "en", "mixed"] },
+        "is_scanned": { "type": "boolean", "description": "shortcut: accepted only because worker ver5 still sends it; ignored by the backend (OCR removed). Drop when the worker stops sending it." }
       }
     },
     "output_language": { "enum": ["vi", "en"], "description": "Language of titles, explanations and recommendations." },

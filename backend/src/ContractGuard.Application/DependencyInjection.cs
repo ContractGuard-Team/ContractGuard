@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<ContractCommands>();
         services.AddScoped<ReportService>();
         services.AddScoped<ChatService>();
+        services.AddSingleton<ChatAnswerWaiter>(); // shared by HTTP requests and the results consumer
         services.AddScoped<AuditLog>();
         services.AddScoped<ShareService>();
         services.AddScoped<OrganizationService>();

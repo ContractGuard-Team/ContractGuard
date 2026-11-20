@@ -13,6 +13,7 @@ FILES = [
     ROOT / "contracts" / "extraction.v2.schema.json",
     ROOT / "contracts" / "queue-messages.v1.schema.json",
     ROOT / "contracts" / "analysis-request.v1.schema.json",
+    ROOT / "contracts" / "chat-request.v1.schema.json",
     ROOT / "security" / "schemas" / "security-findings.schema.json",
 ]
 

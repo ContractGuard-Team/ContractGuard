@@ -18,10 +18,13 @@
 #>
 param(
     [Parameter(Mandatory = $true)] [string] $JobId,
-    [ValidateSet('progress', 'completed', 'failed', 'invalid', 'poison', 'pong')]
+    [ValidateSet('progress', 'completed', 'failed', 'invalid', 'poison', 'pong', 'chat_answered')]
     [string] $Event = 'completed',
     [ValidateSet('reading_file', 'splitting_clauses', 'evaluating', 'scoring')]
     [string] $Step = 'splitting_clauses',
+    # chat_answered (Chat__Responder=worker): JobId is the question's id from the API log "Published chat_requested for job ...".
+    [string] $Answer = 'Câu trả lời mẫu của worker giả.',
+    [string] $ClauseId = 'cl-004',
     [string] $Bucket = 'contractguard-local',
     [string] $Queue = 'analysis-results'
 )
@@ -74,6 +77,9 @@ switch ($Event) {
     }
     'pong' {
         Send-ResultMessage @{ message_version = '1'; event_type = 'pong'; job_id = $JobId }
+    }
+    'chat_answered' {
+        Send-ResultMessage @{ message_version = '1'; event_type = 'chat_answered'; job_id = $JobId; answer_text = $Answer; cited_clause_ids = @($ClauseId) }
     }
     'poison' {
         # No job_id: the API cannot handle it, leaves it on the queue, and after 3 receives

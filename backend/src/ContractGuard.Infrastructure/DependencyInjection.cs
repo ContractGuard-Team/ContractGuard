@@ -42,9 +42,14 @@ public static class DependencyInjection
         AddAnalysis(services);
         AddEmail(services, configuration);
 
-        // AI-HOOKUP (F-CHAT-001): the real model replaces UnconfiguredChatResponder here (docs/06).
+        // AI-HOOKUP (F-CHAT-001): "worker" sends questions to the AI worker over SQS (docs/04 C6).
         // "fake" is for development and e2e only; Program.cs refuses it in Production.
-        if (string.Equals(configuration["Chat:Responder"], "fake", StringComparison.OrdinalIgnoreCase))
+        var chatResponder = configuration["Chat:Responder"];
+        if (string.Equals(chatResponder, "worker", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<IChatResponder, WorkerChatResponder>();
+        }
+        else if (string.Equals(chatResponder, "fake", StringComparison.OrdinalIgnoreCase))
         {
             services.AddScoped<IChatResponder, FakeChatResponder>();
         }

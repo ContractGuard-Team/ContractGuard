@@ -484,6 +484,29 @@ Quy tắc "chỉ C# ghi DB" đổi thành: C# là nơi duy nhất ghi **dữ li�
 
 **Quyết định:** như bảng trên (Approver chọn 2026-11-18).
 
+### C6 Chatbot do worker AI trả lời qua SQS (đổi SD-14 A, SD-15)
+
+**Bối cảnh:** SD-14 A chốt C# tự truy xuất rồi gọi model. Nhóm AI muốn tự trả lời chat trong worker (đã có agent, prompt, kho pháp luật), theo cùng kiểu "JSON trên S3 + message SQS" như phân tích. Approver chọn hướng này ngày 2026-11-20.
+
+| | SD-14 A (cũ) | **Qua worker (Approver chọn)** |
+|---|---|---|
+| Ai gọi model | C# | Worker Python |
+| Ngữ cảnh | C# truy xuất pgvector | Backend gửi toàn bộ điều khoản và finding của run trong phiếu câu hỏi; worker tự truy xuất thêm nếu cần |
+| Đường đi | HTTP stream tới model | `chat_requested` trên queue riêng `chat-requests` (phiếu ở `results/{job_id}/request.json`, `contracts/chat-request.v1.schema.json`); câu trả lời `chat_answered` về `analysis-results` |
+| Stream (SD-15) | Từng token | Không stream thật: câu trả lời về một lần, backend tách theo từ để giữ hiệu ứng gõ. SSE tới trình duyệt giữ nguyên |
+| Đổi quyền AWS | Endpoint model, khóa dịch vụ | Một queue mới cùng DLQ; role EC2 đọc được queue đó. Không đổi quyền S3, vì key phiếu khớp `results/*/request.json` sẵn có |
+
+- **Queue riêng:** worker đọc mỗi lần 1 message, một job phân tích mất khoảng 13 phút; đi chung `analysis-requests` thì câu hỏi chat chờ quá 3 phút (timeout của backend).
+- **Câu trả lời trong message:** chỉ vài KB, nên không cần thêm file và quyền `PutObject`.
+- **Ghép câu trả lời:** backend giữ câu hỏi đang chờ trong bộ nhớ (`ChatAnswerWaiter`). Chỉ đúng với một instance API; chạy nhiều instance thì phải lưu câu trả lời vào DB rồi poll.
+- **Lỗi:** worker gửi `failed` với `job_id` của câu hỏi, hoặc không trả lời trong 3 phút: người dùng nhận ERR-CHAT-001, câu hỏi vẫn được lưu.
+- **Trust boundary:** như cũ. `ChatService` bỏ trích dẫn tới điều khoản không thuộc run; `answer_text` tối đa 8000 ký tự.
+- **Rủi ro:** trên Fargate, ALB cắt kết nối im lặng quá 60 giây. Backend chưa gửi keepalive SSE (`shortcut:` ở `ChatEndpoints.cs`), nên cần thêm trước khi lên ALB nếu worker trả lời chậm.
+
+Code: `WorkerChatResponder`, `ChatAnswerWaiter`, cấu hình `Chat:Responder=worker` (môi trường `Cloud`) và `Queues:ChatRequests`. Development và e2e vẫn dùng `fake`.
+
+**Quyết định:** qua worker (Approver chọn 2026-11-20).
+
 ## Điểm phát sinh khi code
 
 ### P3-02 Ghi chú lề khi vùng giữa hẹp
