@@ -37,12 +37,16 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.RespectRequiredConstructorParameters = true;
 });
 
-// TLS ends at the load balancer, so the API itself only sees http. Without the original scheme the
-// antiforgery system refuses every request in Production, where its cookie is Secure-only.
-// The lists are cleared because the load balancer has no fixed address; only it can reach the API (SD-03).
+// TLS ends before the API (ALB on AWS, Railway's edge on staging), so the API itself only sees http.
+// Without the original scheme the antiforgery system refuses every request in Production, where its
+// cookie is Secure-only. The client address is two hops back in X-Forwarded-For: the edge appends the
+// viewer, the next proxy (CloudFront → ALB, or Railway's edge → nginx) appends the edge, so anything a
+// client sends itself sits further left. The lists are cleared because neither hop has a fixed address;
+// only that last proxy can reach the API (SD-03, docs/04 C6).
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor;
+    options.ForwardLimit = 2;
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });

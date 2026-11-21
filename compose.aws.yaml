@@ -1,0 +1,19 @@
+# The compose stack against the real dev bucket and queues on AWS, so the AI team's worker on EC2
+# analyses uploads and answers chat questions (docs/07). Database and email stay local.
+#   docker compose -f compose.yaml -f compose.aws.yaml --profile app up -d --build
+# Uses the contractguard-dev profile of ~/.aws (read only). Only one API may read the results queue at a
+# time: stop any other backend running with the aws profile, or it takes this stack's results.
+services:
+  api:
+    environment:
+      Aws__ServiceUrl: ""
+      Aws__PublicServiceUrl: ""
+      AWS_PROFILE: contractguard-dev
+      Storage__BucketName: contractguard-dev-documents-699061129385
+      Queues__AnalysisRequests: contractguard-dev-analysis-requests
+      Queues__AnalysisResults: contractguard-dev-analysis-results
+      Queues__ChatRequests: contractguard-dev-chat-requests
+      Analysis__WorkerEnabled: "true"
+      Chat__Responder: worker
+    volumes:
+      - ${HOME:-${USERPROFILE}}/.aws:/home/app/.aws:ro

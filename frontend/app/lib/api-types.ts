@@ -1744,6 +1744,7 @@ export interface components {
             startedAt: string;
             /** Format: date-time */
             finishedAt: null | string;
+            activity?: null | components["schemas"]["WorkerActivity"];
         };
         LibraryPage: {
             items: components["schemas"]["ContractSummary"][];
@@ -1899,6 +1900,11 @@ export interface components {
             /** Format: int32 */
             overallScore: null | number | string;
             riskLevel: null | components["schemas"]["RiskLevel"];
+        };
+        WorkerActivity: {
+            /** Format: int32 */
+            percent: number | string;
+            stage: string;
         };
         WorkspaceResponse: {
             /** Format: uuid */

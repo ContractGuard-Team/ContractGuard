@@ -1,3 +1,4 @@
+using ContractGuard.Application.Analysis;
 using ContractGuard.Domain.Analysis;
 using ContractGuard.Domain.Contracts;
 
@@ -113,7 +114,8 @@ public sealed record JobStatus(
     AnalysisStep Step,
     string? FailureReason,
     DateTimeOffset StartedAt,
-    DateTimeOffset? FinishedAt);
+    DateTimeOffset? FinishedAt,
+    WorkerActivity? Activity = null);
 
 public sealed record ClauseItem(
     Guid ClauseId,

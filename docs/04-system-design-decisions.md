@@ -365,7 +365,7 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
     - Trước khi triển khai lên AWS, cần phải nhắc lại với các thành viên cấu hình billing, cảnh báo
 ---
 
-## Đổi sau khi chốt (2026-11-17, 2026-11-18)
+## Đổi sau khi chốt (2026-11-17, 2026-11-18, 2026-11-20, 2026-11-21)
 
 Approver đổi ba điểm khi chuẩn bị Phase 7 (C1–C3), thêm C4–C5 ngày 2026-11-18 khi nối Supabase, theo drawio `architecture/contractguard-architecture.drawio`. Phần dưới ghi lại hệ quả và trade-off để cả nhóm biết đã đánh đổi gì. Các mục SD cũ giữ nguyên để lưu vết; dòng Quyết định của chúng trỏ về đây.
 
@@ -483,6 +483,71 @@ Quy tắc "chỉ C# ghi DB" đổi thành: C# là nơi duy nhất ghi **dữ li�
   - **Rủi ro:** gửi với địa chỉ `@gmail.com` qua SES không đạt DMARC alignment (SPF/DKIM là của amazonses.com), nên thư dễ vào spam hoặc bị từ chối, và AWS thường không cho ra khỏi sandbox nếu không có domain riêng. **Dự phòng** khi bị từ chối: gửi qua SMTP của Gmail (`smtp.gmail.com:587`, App Password, khoảng 500 thư/ngày) bằng `SmtpEmailSender` có sẵn, thêm username/password và TLS vào `EmailOptions`.
 
 **Quyết định:** như bảng trên (Approver chọn 2026-11-18).
+
+### C6 Chatbot do worker AI trả lời qua SQS (đổi SD-14 A, SD-15)
+
+**Bối cảnh:** SD-14 A chốt C# tự truy xuất rồi gọi model. Nhóm AI muốn tự trả lời chat trong worker (đã có agent, prompt, kho pháp luật), theo cùng kiểu "JSON trên S3 + message SQS" như phân tích. Approver chọn hướng này ngày 2026-11-20.
+
+| | SD-14 A (cũ) | **Qua worker (Approver chọn)** |
+|---|---|---|
+| Ai gọi model | C# | Worker Python |
+| Ngữ cảnh | C# truy xuất pgvector | Backend gửi toàn bộ điều khoản và finding của run trong phiếu câu hỏi; worker tự truy xuất thêm nếu cần |
+| Đường đi | HTTP stream tới model | `chat_requested` trên queue riêng `chat-requests` (phiếu ở `results/{job_id}/request.json`, `contracts/chat-request.v1.schema.json`); câu trả lời `chat_answered` về `analysis-results` |
+| Stream (SD-15) | Từng token | Không stream thật: câu trả lời về một lần, backend tách theo từ để giữ hiệu ứng gõ. SSE tới trình duyệt giữ nguyên |
+| Đổi quyền AWS | Endpoint model, khóa dịch vụ | Một queue mới cùng DLQ; role EC2 đọc được queue đó. Không đổi quyền S3, vì key phiếu khớp `results/*/request.json` sẵn có |
+
+- **Queue riêng:** worker đọc mỗi lần 1 message, một job phân tích mất khoảng 13 phút; đi chung `analysis-requests` thì câu hỏi chat chờ quá 3 phút (timeout của backend).
+- **Câu trả lời trong message:** chỉ vài KB, nên không cần thêm file và quyền `PutObject`.
+- **Ghép câu trả lời:** backend giữ câu hỏi đang chờ trong bộ nhớ (`ChatAnswerWaiter`). Chỉ đúng với một instance API; chạy nhiều instance thì phải lưu câu trả lời vào DB rồi poll.
+- **Lỗi:** worker gửi `failed` với `job_id` của câu hỏi, hoặc không trả lời trong 3 phút: người dùng nhận ERR-CHAT-001, câu hỏi vẫn được lưu.
+- **Trust boundary:** như cũ. `ChatService` bỏ trích dẫn tới điều khoản không thuộc run; `answer_text` tối đa 8000 ký tự.
+- **Rủi ro:** trên Fargate, ALB cắt kết nối im lặng quá 60 giây. Backend chưa gửi keepalive SSE (`shortcut:` ở `ChatEndpoints.cs`), nên cần thêm trước khi lên ALB nếu worker trả lời chậm.
+
+Code: `WorkerChatResponder`, `ChatAnswerWaiter`, cấu hình `Chat:Responder=worker` (môi trường `Cloud`) và `Queues:ChatRequests`. Development và e2e vẫn dùng `fake`.
+
+**Quyết định:** qua worker (Approver chọn 2026-11-20).
+
+### C7 Staging trên Railway; production trên AWS chỉ bật quanh buổi showcase (đổi SD-02, SD-17, SD-20, C5)
+
+**Bối cảnh:** staging trên AWS theo SD-02/03 (CloudFront + ALB + Fargate) tốn khoảng $40/tháng, phần lớn là phí theo giờ của ALB và Fargate, dù chỉ ~5 thành viên dùng. Approver chọn đưa staging lên Railway và chỉ dựng production trên AWS khoảng 3 ngày quanh buổi showcase.
+
+| Môi trường | Chạy ở đâu | Dùng tài nguyên AWS nào | Chi phí |
+|---|---|---|---|
+| Staging | Railway, project `contractguard`, environment `staging`, region Singapore. Service `web` (nginx + SPA, domain public) chuyển `/api/` sang service `api` qua mạng nội bộ của Railway; `api` không có domain public | Bộ dev: bucket và queue `contractguard-dev-*` (worker AI đã nối vào đây, `docs/07`), SES; access key của user `contractguard-dev-api-local` đặt trong biến Railway. DB là Supabase staging như C5 | Theo RAM/CPU dùng thật, vài $/tháng |
+| Production | AWS `ap-southeast-1`, CDK ở `infra/cdk/` (CloudFront + ALB + Fargate ARM64), có domain và HTTPS tới ALB theo SD-03 | Bucket, queue riêng của stack | ~$40/tháng nếu bật cả tháng, nên chỉ bật ~3 ngày (~$4–5) |
+
+**Đánh đổi:**
+- Staging lệch khỏi CON-PRJ-003 ("hạ tầng trên AWS") như cách hiểu ở C1; production dùng để demo vẫn chạy trên AWS.
+- Staging không thử được hạ tầng AWS (ALB, CloudFront, IAM role của task). Cần dựng production sớm hơn ngày demo vài ngày để còn thời gian sửa lỗi hạ tầng.
+- Access key tĩnh nằm ở Railway (khác T10 "không khóa AWS tĩnh"). Chỉ có quyền của user API dev; xoay khóa nếu lộ. Production dùng IAM role của task.
+- Vẫn giữ một origin cho trình duyệt (SD-03): nginx proxy `/api/`, cookie không cần CORS.
+
+**Đi kèm trong code:**
+- API đọc IP client từ `X-Forwarded-For` lùi 2 bước: Railway edge → nginx, hoặc CloudFront → ALB. Nhờ vậy rate limit đăng nhập tính theo người dùng thật, và giá trị client tự gửi (nằm bên trái) không lừa được.
+- nginx của frontend là template: địa chỉ API (`API_UPSTREAM`) và DNS resolver lấy từ môi trường, chạy được cả Docker Compose lẫn Railway; chuyển tiếp `X-Forwarded-Proto` của Railway để API đặt cookie `Secure`.
+- Image API biên dịch chéo (`--platform=$BUILDPLATFORM`), build được cho x64 (Railway) và ARM64 (Fargate).
+- Production (CDK): bucket mã hóa SSE-S3 thay SSE-KMS (SD-07) vì khóa KMS do AWS quản lý không dùng được từ tài khoản AI; không NAT gateway; ALB internal qua VPC origin. Trước khi deploy production cần thêm domain, chứng chỉ ACM và listener HTTPS.
+
+**Quyết định:** staging trên Railway, production trên AWS bật ~3 ngày quanh showcase, staging dùng lại bộ dev (Approver chọn 2026-11-20, 2026-11-21).
+
+### C8 Tiến độ chi tiết: API đọc thẳng bảng DynamoDB của worker AI (lệch quy tắc "trao đổi qua `contracts/`")
+
+**Bối cảnh:** trang phân tích chỉ có 4 bước, vì worker gửi `progress` khi đổi bước lớn. Bảng `contract-risk-jobs` của worker (tài khoản AI `333596350642`, on-demand) có `progress` 0–100 và `stage` chi tiết theo từng agent và tool (vd `agent_2_risk_scoring.tool.web_search`). Người dùng muốn thanh % và dòng "AI đang làm gì".
+
+| Phương án | Ưu | Nhược |
+|---|---|---|
+| A. Thêm `percent`, `activity` vào message `progress` | Đúng ranh giới `contracts/`; không cần quyền chéo tài khoản | Đổi schema chung, worker phải gửi thêm message |
+| **B. API đọc thẳng DynamoDB (Approver chọn)** | Không sửa worker; có ngay dữ liệu đang được ghi | API phụ thuộc cấu trúc bảng nội bộ của worker; cần quyền chéo tài khoản |
+
+**Cách làm:**
+- `GET /api/v1/jobs/{id}` thêm `activity: { percent, stage }` khi run đang chạy. `DynamoDbWorkerActivityReader` gọi `GetItem` khóa `job_id = "contract:<contract_id>"`, chỉ chiếu `active_job_id, stage, progress`, và chỉ nhận khi `active_job_id` là job đang xem.
+- Lỗi, timeout 2 giây hoặc không có dòng thì `activity = null`; trang vẫn hiện 4 bước. Không cấu hình `WorkerActivity:TableArn` thì không đọc (local, test, e2e).
+- Web: thanh 8px kiểu thước rủi ro, màu `ink-secondary`; mã `stage` đổi sang tiếng Việt ở `workerActivityLabel` (`frontend/app/lib/labels.ts`), mã lạ thì chỉ hiện %.
+- Quyền: resource policy trên bảng (tài khoản AI) cho principal của API, chỉ `dynamodb:GetItem`, giới hạn `dynamodb:Attributes` trong `job_id, active_job_id, stage, progress` và `dynamodb:Select = SPECIFIC_ATTRIBUTES`. Dòng còn chứa `output`, `details` sinh từ hợp đồng, API không đọc được. Phía SE: `dynamodb:GetItem` trên ARN bảng cho user API (staging) hoặc task role (production).
+
+**Ràng buộc với nhóm AI:** đổi tên bảng, khóa hoặc ba trường trên thì báo SE trước (`docs/07` §12). Đổi tên stage thì trang chỉ mất dòng chữ, vẫn còn %.
+
+**Quyết định:** B (Approver chọn 2026-11-21).
 
 ## Điểm phát sinh khi code
 

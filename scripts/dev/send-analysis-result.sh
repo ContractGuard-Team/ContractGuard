@@ -11,7 +11,7 @@
 #   scripts/dev/send-analysis-result.sh "$job" completed
 set -euo pipefail
 
-JOB_ID=${1:?usage: send-analysis-result.sh JOB_ID [progress|completed|failed|invalid|poison|pong] [STEP]}
+JOB_ID=${1:?usage: send-analysis-result.sh JOB_ID [progress|completed|failed|invalid|poison|pong|chat_answered] [STEP or ANSWER] [CLAUSE_ID]}
 EVENT=${2:-completed}
 STEP=${3:-splitting_clauses}
 BUCKET=contractguard-local
@@ -35,6 +35,9 @@ case "$EVENT" in
   progress) send_message "{\"message_version\":\"1\",\"event_type\":\"progress\",\"job_id\":\"$JOB_ID\",\"step\":\"$STEP\"}" ;;
   failed)   send_message "{\"message_version\":\"1\",\"event_type\":\"failed\",\"job_id\":\"$JOB_ID\",\"failure_reason\":\"Simulated failure\",\"error_code\":\"ERR-UPL-004\"}" ;;
   pong)     send_message "{\"message_version\":\"1\",\"event_type\":\"pong\",\"job_id\":\"$JOB_ID\"}" ;;
+  # Chat (Chat__Responder=worker): JOB_ID is the question's id from the API log "Published chat_requested for job ...".
+  # The third and fourth arguments are the answer text (no double quotes) and a cited clause id.
+  chat_answered) send_message "{\"message_version\":\"1\",\"event_type\":\"chat_answered\",\"job_id\":\"$JOB_ID\",\"answer_text\":\"${3:-Câu trả lời mẫu của worker giả.}\",\"cited_clause_ids\":[\"${4:-cl-004}\"]}" ;;
   poison)   send_message "{\"message_version\":\"1\",\"event_type\":\"completed\"}" ;;
   completed|invalid)
     row=$(docker compose exec -T postgres psql -U contractguard -d contractguard -tAc \
@@ -42,7 +45,7 @@ case "$EVENT" in
     [ -n "$row" ] || { echo "Job $JOB_ID not found in analysis_run." >&2; exit 1; }
     contract_id=${row%%|*}
     version=${row##*|}
-    json=$(sed -e "s/{{JOB_ID}}/$JOB_ID/" -e "s/{{TENANT_ID}}/dev/" -e "s/{{CONTRACT_ID}}/$contract_id/" -e "s/{{CONTRACT_VERSION}}/$version/" \
+    json=$(sed -e "s/{{JOB_ID}}/$JOB_ID/" -e "s/{{CONTRACT_ID}}/$contract_id/" -e "s/{{CONTRACT_VERSION}}/$version/" \
       "$SCRIPT_DIR/../../contracts/examples/extraction.v2.example.json")
     if [ "$EVENT" = invalid ]; then
       json=${json/\"clauses\": \[/\"clauses\": \"not-an-array\", \"unused\": [}

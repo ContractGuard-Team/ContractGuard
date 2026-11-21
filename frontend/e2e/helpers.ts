@@ -98,7 +98,6 @@ export async function completeAnalysis(page: Page, contractId: string) {
   const jobId: string = detail.latestJob.jobId;
   const json = readFileSync(`${repoRoot}contracts/examples/extraction.v2.example.json`, "utf8")
     .replace("{{JOB_ID}}", jobId)
-    .replace("{{TENANT_ID}}", "e2e")
     .replace("{{CONTRACT_ID}}", contractId)
     .replace("{{CONTRACT_VERSION}}", String(detail.version.versionNumber));
   const key = `results/${jobId}/extraction.json`;

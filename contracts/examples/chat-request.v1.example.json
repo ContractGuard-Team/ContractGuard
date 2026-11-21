@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "job_id": "0196c1a2-7b3e-7c10-9a55-3f2d8e1b4c01",
+  "analysis_job_id": "0196c1a0-1d2e-7f00-8b44-2e1c7d0a3b02",
+  "contract_id": "0196c19f-5a6b-7e00-9c33-1d0b6c9f2a03",
+  "contract_version_id": "0196c19f-5a6b-7e01-9c33-1d0b6c9f2a04",
+  "output_language": "vi",
+  "question": "Ai chịu trách nhiệm khi xảy ra sự cố bảo mật?",
+  "history": [
+    { "role": "user", "content": "Hợp đồng có quy định mã hóa dữ liệu không?" },
+    { "role": "assistant", "content": "Hợp đồng không đề cập mã hóa dữ liệu; điều 3 chỉ ghi \"appropriate security measures\"." }
+  ],
+  "clauses": [
+    {
+      "clause_id": "cl-003",
+      "number": "3",
+      "heading": "Security",
+      "text": "Provider will implement appropriate security measures to protect Customer Data.",
+      "page_start": 1,
+      "page_end": 1
+    },
+    {
+      "clause_id": "cl-004",
+      "number": "4",
+      "heading": "Limitation of Liability",
+      "text": "Provider shall not be liable for any security incident or data breach.",
+      "page_start": 1,
+      "page_end": 2
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "f-001",
+      "title": "Nhà cung cấp được miễn trách nhiệm khi có sự cố bảo mật",
+      "severity": "critical",
+      "clause_id": "cl-004",
+      "why": "Điều 4 loại trừ toàn bộ trách nhiệm về sự cố bảo mật (CY-12).",
+      "impact": "Bên mua tự chịu thiệt hại khi dữ liệu bị lộ."
+    }
+  ],
+  "overall_recommendation": "Đàm phán lại điều 4 trước khi ký."
+}

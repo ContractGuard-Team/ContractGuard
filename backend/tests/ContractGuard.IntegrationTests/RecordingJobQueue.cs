@@ -10,6 +10,8 @@ public sealed class RecordingJobQueue : IAnalysisJobQueue
 
     public AnalysisRequestMessage? Find(Guid jobId) => _published.GetValueOrDefault(jobId);
 
+    public IReadOnlyList<AnalysisRequestMessage> Published => [.. _published.Values];
+
     // Only for QueueFailureTests. Test classes of one collection never run at the same time.
     public bool FailEverything { get; set; }
 

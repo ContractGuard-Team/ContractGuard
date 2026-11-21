@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ContractGuard.Infrastructure;
@@ -42,15 +43,35 @@ public static class DependencyInjection
         AddAnalysis(services);
         AddEmail(services, configuration);
 
-        // AI-HOOKUP (F-CHAT-001): the real model replaces UnconfiguredChatResponder here (docs/06).
+        // AI-HOOKUP (F-CHAT-001): "worker" sends questions to the AI worker over SQS (docs/04 C6).
         // "fake" is for development and e2e only; Program.cs refuses it in Production.
-        if (string.Equals(configuration["Chat:Responder"], "fake", StringComparison.OrdinalIgnoreCase))
+        var chatResponder = configuration["Chat:Responder"];
+        if (string.Equals(chatResponder, "worker", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<IChatResponder, WorkerChatResponder>();
+        }
+        else if (string.Equals(chatResponder, "fake", StringComparison.OrdinalIgnoreCase))
         {
             services.AddScoped<IChatResponder, FakeChatResponder>();
         }
         else
         {
             services.AddSingleton<IChatResponder, UnconfiguredChatResponder>();
+        }
+
+        // docs/04 C8: finer progress from the AI worker's job table, only when its ARN is set. The DynamoDB client
+        // is built only then, so local runs and CI need no AWS credentials for it.
+        var workerActivityTable = configuration["WorkerActivity:TableArn"];
+        if (!string.IsNullOrWhiteSpace(workerActivityTable))
+        {
+            services.AddSingleton<IWorkerActivityReader>(sp => new DynamoDbWorkerActivityReader(
+                AwsClientFactory.CreateDynamoDb(sp.GetRequiredService<IOptions<AwsOptions>>().Value),
+                workerActivityTable,
+                sp.GetRequiredService<ILogger<DynamoDbWorkerActivityReader>>()));
+        }
+        else
+        {
+            services.AddSingleton<IWorkerActivityReader, NoWorkerActivityReader>();
         }
 
         return services;

@@ -1,7 +1,6 @@
 {
   "schema_version": "2.0.0",
   "job_id": "{{JOB_ID}}",
-  "tenant_id": "{{TENANT_ID}}",
   "contract_id": "{{CONTRACT_ID}}",
   "contract_version": "{{CONTRACT_VERSION}}",
   "document_complete": true,
@@ -10,7 +9,6 @@
     "page_count": 3,
     "language": "en"
   },
-  "output_language": "vi",
   "clauses": [
     {
       "clause_id": "cl-001",

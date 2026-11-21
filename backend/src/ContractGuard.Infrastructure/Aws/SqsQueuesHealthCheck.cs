@@ -13,7 +13,7 @@ internal sealed class SqsQueuesHealthCheck(IAmazonSQS sqs, QueueUrlProvider queu
     {
         try
         {
-            foreach (var queueName in new[] { queues.Value.AnalysisRequests, queues.Value.AnalysisResults })
+            foreach (var queueName in new[] { queues.Value.AnalysisRequests, queues.Value.AnalysisResults, queues.Value.ChatRequests })
             {
                 var url = await queueUrls.GetAsync(queueName, cancellationToken);
                 await sqs.GetQueueAttributesAsync(url, ["QueueArn"], cancellationToken);

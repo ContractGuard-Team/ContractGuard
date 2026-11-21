@@ -125,14 +125,6 @@ public static partial class ExtractionConsistencyValidator
 
         CheckScoring(document, errors);
 
-        foreach (var item in document.Embeddings?.Items ?? [])
-        {
-            if (!clauses.ContainsKey(item.ClauseId))
-            {
-                errors.Add($"Embedding refers to unknown clause '{item.ClauseId}'.");
-            }
-        }
-
         return errors;
     }
 

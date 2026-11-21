@@ -21,3 +21,8 @@ real-contracts
 test-reports
 *.log
 **/appsettings.*.local.json
+
+# Not needed by any image built from the root (frontend builds from its own folder).
+.claude
+frontend
+infra

@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
 
 import { apiFetch, type Schemas } from "~/lib/api";
-import { analysisSteps } from "~/lib/labels";
+import { analysisSteps, workerActivityLabel } from "~/lib/labels";
 
 const pollMs = 3000;
 
 // F-ANA-001, FR-ANA-002: the current step of a running analysis, asked for every 3 seconds (SD-15).
 // When the job has ended, or can no longer be read, the parent loads the page data again.
+// docs/04 C8: when the API can read the AI worker's own progress, a bar and a line say what it is doing now.
 export function AnalysisProgress({ job, onFinished }: { job: Schemas["JobStatus"]; onFinished: () => void }) {
   const [step, setStep] = useState(job.step);
+  const [activity, setActivity] = useState(job.activity ?? null);
 
   useEffect(() => {
     const timer = setInterval(() => {
       apiFetch<Schemas["JobStatus"]>(`/jobs/${job.jobId}`)
         .then((latest) => {
           setStep(latest.step);
+          setActivity(latest.activity ?? null);
           if (latest.status !== "running") {
             onFinished();
           }
@@ -37,6 +40,7 @@ export function AnalysisProgress({ job, onFinished }: { job: Schemas["JobStatus"
       <p role="status" className="sr-only">
         Bước hiện tại: {currentLabel}
       </p>
+      {activity && <WorkerActivityBar percent={Number(activity.percent)} stage={activity.stage} />}
       <ol className="mt-4 flex flex-col gap-1">
         {analysisSteps.map(({ step: item, label }, index) => {
           const state = index < current ? "done" : index === current ? "current" : "todo";
@@ -49,6 +53,33 @@ export function AnalysisProgress({ job, onFinished }: { job: Schemas["JobStatus"
         })}
       </ol>
     </section>
+  );
+}
+
+// 8px bar like the risk ruler (DESIGN §5). Neutral ink, not review-ink: progress is not an action (Action-Only Rule).
+// The line under it is not announced on every poll: the step list above already has role="status".
+function WorkerActivityBar({ percent, stage }: { percent: number; stage: string }) {
+  const label = workerActivityLabel(stage);
+  return (
+    <div className="mt-4">
+      <div
+        role="progressbar"
+        aria-label="Tiến độ phân tích"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="h-2 overflow-hidden rounded-full bg-rule"
+      >
+        <div
+          className="h-full rounded-full bg-ink-secondary transition-[width] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <p className="mt-2 flex justify-between gap-4 text-sm text-ink-secondary">
+        <span>{label ?? "AI đang làm việc"}</span>
+        <span className="tabular-nums">{percent}%</span>
+      </p>
+    </div>
   );
 }
 

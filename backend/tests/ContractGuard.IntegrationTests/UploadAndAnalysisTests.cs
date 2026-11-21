@@ -225,6 +225,32 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Only_a_running_job_shows_what_the_worker_is_doing()
+    {
+        // docs/04 C8: the worker's own progress, here from a stand-in for its DynamoDB table.
+        var activity = new WorkerActivity(42, "agent_2_risk_scoring.tool.web_search");
+        var (client, _, _) = await Scenario.SignedInUserAsync(factory,
+            factory.CreateApiClientWithServices(services => services.AddSingleton<IWorkerActivityReader>(new FixedActivity(activity))));
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            var running = await ApiAssert.JsonAsync(await client.GetAsync($"/jobs/{await Scenario.StartAnalysisAsync(client, contractId, versionId)}"));
+            Assert.Equal(42, running.GetProperty("activity").GetProperty("percent").GetInt32());
+            Assert.Equal(activity.Stage, running.GetProperty("activity").GetProperty("stage").GetString());
+
+            var (_, _, doneJob) = await Scenario.AnalyzedContractAsync(factory, client);
+            var done = await ApiAssert.JsonAsync(await client.GetAsync($"/jobs/{doneJob}"));
+            Assert.Equal(JsonValueKind.Null, done.GetProperty("activity").ValueKind);
+        }
+    }
+
+    private sealed class FixedActivity(WorkerActivity activity) : IWorkerActivityReader
+    {
+        public Task<WorkerActivity?> ReadAsync(Guid contractId, Guid jobId, CancellationToken cancellationToken) =>
+            Task.FromResult<WorkerActivity?>(activity);
+    }
+
+    [Fact]
     public async Task Without_a_worker_the_context_is_saved_and_nothing_is_started()
     {
         var (client, _, _) = await Scenario.SignedInUserAsync(factory, factory.CreateApiClientWithSetting("Analysis:WorkerEnabled", "false"));

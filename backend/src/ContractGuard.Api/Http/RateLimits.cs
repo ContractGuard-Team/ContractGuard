@@ -8,8 +8,7 @@ namespace ContractGuard.Api.Http;
 // SEC-AUTH-007: per IP, 30 login and 10 password reset requests a minute; the rest get ERR-AUTH-006.
 // The numbers come from configuration (RateLimits:LoginPerMinute, RateLimits:PasswordResetPerMinute)
 // so integration tests, which all come from one address, can raise them.
-// Phase 7 (SD-03): behind the ALB the client address is in X-Forwarded-For; until
-// ForwardedHeaders also trusts that header, every request shares the ALB's address.
+// Behind CloudFront and the ALB the client address comes from X-Forwarded-For (Program.cs).
 internal static class RateLimits
 {
     public const string Login = "login";

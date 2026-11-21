@@ -7,9 +7,13 @@ public static class AnalysisEventTypes
     public const string AnalysisRequested = "analysis_requested";
     public const string Ping = "ping";
 
-    // worker -> C# (analysis-results)
+    // C# -> worker (chat-requests)
+    public const string ChatRequested = "chat_requested";
+
+    // worker -> C# (analysis-results). "failed" also ends a chat question when job_id is its id.
     public const string Progress = "progress";
     public const string Completed = "completed";
     public const string Failed = "failed";
     public const string Pong = "pong";
+    public const string ChatAnswered = "chat_answered";
 }

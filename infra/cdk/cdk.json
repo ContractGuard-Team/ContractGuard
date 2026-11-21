@@ -1,0 +1,7 @@
+{
+  "app": "dotnet run --project ContractGuard.Infra.csproj",
+  "context": {
+    "@aws-cdk/aws-ec2:restrictDefaultSecurityGroup": true,
+    "@aws-cdk/core:target-partitions": ["aws"]
+  }
+}
