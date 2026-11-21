@@ -47,6 +47,42 @@ export const analysisSteps: { step: Schemas["AnalysisStep"]; label: string }[] =
   { step: "completed", label: "Hoàn tất" },
 ];
 
+// docs/04 C8: stage codes of the AI worker's own job table, in words. They are the worker's internal names
+// (e.g. "agent_2_risk_scoring.tool.web_search"), so an unknown one gives null and the page shows the percent only.
+const workerStages: Record<string, string> = {
+  received: "Đang chờ đến lượt",
+  downloading: "Đang đọc file",
+  dispatching: "Đang đọc file",
+  processing: "Đang đọc file",
+  saving_result: "Đang lưu kết quả",
+};
+const workerAgents: [prefix: string, label: string][] = [
+  ["agent_1", "Đang tách và phân loại điều khoản"],
+  ["agent_2", "Đang đánh giá rủi ro"],
+  ["agent_3", "Đang soạn đề xuất"],
+];
+const workerTools: [prefix: string, label: string][] = [
+  ["web_search", "tra cứu web"],
+  ["legal_search", "tìm văn bản pháp luật liên quan"],
+  ["qdrant", "tìm văn bản pháp luật liên quan"],
+  ["supabase", "tra cứu văn bản pháp luật"],
+  ["partner_document", "đọc lại hợp đồng"],
+  ["s3_list_objects", "tìm tài liệu"],
+];
+
+export function workerActivityLabel(stage: string): string | null {
+  if (Object.hasOwn(workerStages, stage)) {
+    return workerStages[stage] ?? null;
+  }
+  const agent = workerAgents.find(([prefix]) => stage.startsWith(prefix))?.[1];
+  const toolName = stage.split("tool.")[1];
+  const tool = toolName === undefined ? undefined : workerTools.find(([prefix]) => toolName.startsWith(prefix))?.[1];
+  if (agent && tool) {
+    return `${agent}: ${tool}`;
+  }
+  return agent ?? (tool ? `Đang ${tool}` : null);
+}
+
 export const ownPartyLabels: Record<Schemas["OwnParty"], string> = {
   buyer: "Bên mua / khách hàng",
   seller: "Bên bán / nhà cung cấp",

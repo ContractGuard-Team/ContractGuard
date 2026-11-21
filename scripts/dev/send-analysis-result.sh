@@ -45,7 +45,7 @@ case "$EVENT" in
     [ -n "$row" ] || { echo "Job $JOB_ID not found in analysis_run." >&2; exit 1; }
     contract_id=${row%%|*}
     version=${row##*|}
-    json=$(sed -e "s/{{JOB_ID}}/$JOB_ID/" -e "s/{{TENANT_ID}}/dev/" -e "s/{{CONTRACT_ID}}/$contract_id/" -e "s/{{CONTRACT_VERSION}}/$version/" \
+    json=$(sed -e "s/{{JOB_ID}}/$JOB_ID/" -e "s/{{CONTRACT_ID}}/$contract_id/" -e "s/{{CONTRACT_VERSION}}/$version/" \
       "$SCRIPT_DIR/../../contracts/examples/extraction.v2.example.json")
     if [ "$EVENT" = invalid ]; then
       json=${json/\"clauses\": \[/\"clauses\": \"not-an-array\", \"unused\": [}

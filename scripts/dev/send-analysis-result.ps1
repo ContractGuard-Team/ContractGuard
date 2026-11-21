@@ -95,7 +95,7 @@ switch ($Event) {
 
         $examplePath = Join-Path $PSScriptRoot '..\..\contracts\examples\extraction.v2.example.json'
         $json = [System.IO.File]::ReadAllText((Resolve-Path $examplePath), [System.Text.Encoding]::UTF8)
-        $json = $json.Replace('{{JOB_ID}}', $JobId).Replace('{{TENANT_ID}}', 'dev').Replace('{{CONTRACT_ID}}', $contractId).Replace('{{CONTRACT_VERSION}}', $versionNumber)
+        $json = $json.Replace('{{JOB_ID}}', $JobId).Replace('{{CONTRACT_ID}}', $contractId).Replace('{{CONTRACT_VERSION}}', $versionNumber)
         if ($Event -eq 'invalid') {
             # Break the schema on purpose: "clauses" must be an array.
             $json = $json.Replace('"clauses": [', '"clauses": "not-an-array", "unused": [')

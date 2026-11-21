@@ -64,7 +64,6 @@ internal static class Seed
     {
         return File.ReadAllText(RepoFile("contracts/examples/extraction.v2.example.json"))
             .Replace("{{JOB_ID}}", jobId.ToString(), StringComparison.Ordinal)
-            .Replace("{{TENANT_ID}}", "test", StringComparison.Ordinal)
             .Replace("{{CONTRACT_ID}}", contractId.ToString(), StringComparison.Ordinal)
             .Replace("{{CONTRACT_VERSION}}", version.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
     }

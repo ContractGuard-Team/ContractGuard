@@ -89,3 +89,6 @@ docs/architecture
 
 # Secrets of one environment on a developer machine (backend Program.cs), e.g. Supabase for "Cloud"
 appsettings.*.local.json
+
+# Local clone of the AI team's repo (contract-risk-management); it has its own git.
+AI/

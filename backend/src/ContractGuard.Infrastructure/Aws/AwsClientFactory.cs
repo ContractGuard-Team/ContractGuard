@@ -1,4 +1,5 @@
 using Amazon;
+using Amazon.DynamoDBv2;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SimpleEmailV2;
@@ -33,6 +34,13 @@ internal static class AwsClientFactory
     // Always the real regional endpoint: local runs send email through Mailpit, not LocalStack.
     public static IAmazonSimpleEmailServiceV2 CreateSes(AwsOptions options) =>
         new AmazonSimpleEmailServiceV2Client(new AmazonSimpleEmailServiceV2Config
+        {
+            RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region)
+        });
+
+    // Always the real regional endpoint: it reads the AI team's table in their account (docs/04 C8).
+    public static IAmazonDynamoDB CreateDynamoDb(AwsOptions options) =>
+        new AmazonDynamoDBClient(new AmazonDynamoDBConfig
         {
             RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region)
         });

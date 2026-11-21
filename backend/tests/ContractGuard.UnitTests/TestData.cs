@@ -26,7 +26,6 @@ internal static class TestData
     public static string ExampleExtractionJson(Guid jobId, Guid contractId, int version = 1) =>
         File.ReadAllText(RepoFile("contracts", "examples", "extraction.v2.example.json"))
             .Replace("{{JOB_ID}}", jobId.ToString(), StringComparison.Ordinal)
-            .Replace("{{TENANT_ID}}", "test", StringComparison.Ordinal)
             .Replace("{{CONTRACT_ID}}", contractId.ToString(), StringComparison.Ordinal)
             .Replace("{{CONTRACT_VERSION}}", version.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
 

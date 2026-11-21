@@ -7,12 +7,10 @@ namespace ContractGuard.Application.Analysis.Extraction;
 public sealed record ExtractionDocument(
     string SchemaVersion,
     string JobId,
-    string? TenantId,
     string ContractId,
     string ContractVersion,
     bool DocumentComplete,
     ExtractedDocumentInfo Document,
-    string? OutputLanguage,
     IReadOnlyList<ExtractedClause> Clauses,
     ExtractedMetadata? Metadata,
     IReadOnlyList<ExtractedFinding> Findings,
@@ -21,8 +19,7 @@ public sealed record ExtractionDocument(
     IReadOnlyList<ExtractedInjectionWarning>? InjectionWarnings,
     string? OverallRecommendation,
     ExtractedScoring? Scoring,
-    ExtractedTrace Trace,
-    ExtractedEmbeddings? Embeddings);
+    ExtractedTrace Trace);
 
 // "document" of extraction.v2: facts about the file as the worker read it.
 public sealed record ExtractedDocumentInfo(string FileType, int PageCount, string? CleanFileKey, string Language);
@@ -100,9 +97,3 @@ public sealed record ExtractedScoring(string RuleVersion, int OverallScore, stri
 
 // "trace" of extraction.v2: which model and prompts produced the result.
 public sealed record ExtractedTrace(string ModelVersion, string PromptVersion, string? PipelineVersion);
-
-// The embedding vector of one clause.
-public sealed record ExtractedEmbeddingItem(string ClauseId, IReadOnlyList<float> Vector);
-
-// "embeddings" of extraction.v2 (optional): clause vectors for the chatbot (Phase 4).
-public sealed record ExtractedEmbeddings(string Model, int Dimensions, IReadOnlyList<ExtractedEmbeddingItem> Items);

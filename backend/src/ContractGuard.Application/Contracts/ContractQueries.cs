@@ -10,7 +10,12 @@ namespace ContractGuard.Application.Contracts;
 
 // Reads for the UI. No workspace condition here: the query filters of the DbContext apply it to
 // every query (SD-05), so a contract of another workspace simply looks like it does not exist.
-public sealed class ContractQueries(IApplicationDbContext db, IObjectStorage storage, ICurrentWorkspace workspace, IOptions<AnalysisOptions> analysis)
+public sealed class ContractQueries(
+    IApplicationDbContext db,
+    IObjectStorage storage,
+    ICurrentWorkspace workspace,
+    IOptions<AnalysisOptions> analysis,
+    IWorkerActivityReader workerActivity)
 {
     public const int MaxPageSize = 50;
 
@@ -178,12 +183,19 @@ public sealed class ContractQueries(IApplicationDbContext db, IObjectStorage sto
         return new ContractFileLink(url);
     }
 
-    public async Task<JobStatus> GetJobAsync(Guid jobId, CancellationToken cancellationToken) =>
-        await db.AnalysisRuns
+    // The page polls this every 3 seconds while a run is going; the worker's finer progress is added then (docs/04 C8).
+    public async Task<JobStatus> GetJobAsync(Guid jobId, CancellationToken cancellationToken)
+    {
+        var job = await db.AnalysisRuns
             .Where(r => r.AnalysisRunId == jobId)
             .Select(r => ToJobStatus(r))
             .SingleOrDefaultAsync(cancellationToken)
-        ?? throw NotFound("Job");
+            ?? throw NotFound("Job");
+
+        return job.Status == RunStatus.Running
+            ? job with { Activity = await workerActivity.ReadAsync(job.ContractId, job.JobId, cancellationToken) }
+            : job;
+    }
 
     public async Task<List<ClauseItem>> GetClausesAsync(Guid jobId, CancellationToken cancellationToken)
     {

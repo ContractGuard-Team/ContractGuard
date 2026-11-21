@@ -83,6 +83,7 @@ internal sealed partial class AnalysisResultsConsumer(
     private async Task ProcessAsync(string queueUrl, Message message, CancellationToken stoppingToken)
     {
         var receiveCount = message.Attributes?.GetValueOrDefault("ApproximateReceiveCount") ?? "?";
+        LogReceived(message.MessageId, receiveCount, message.Body.Length > MaxLoggedBody ? message.Body[..MaxLoggedBody] + "…" : message.Body);
         try
         {
             // Tolerate a UTF-8 byte order mark: some tools (Windows PowerShell 5.1) add one.
@@ -111,6 +112,12 @@ internal sealed partial class AnalysisResultsConsumer(
             LogHandlingFailed(ex, message.MessageId, receiveCount);
         }
     }
+
+    // Debug only (enabled in appsettings.Development.json): chat_answered carries text drawn from the contract.
+    private const int MaxLoggedBody = 4000;
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Received SQS message {MessageId} (receive #{ReceiveCount}): {Body}")]
+    private partial void LogReceived(string messageId, string receiveCount, string body);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Consuming {QueueName}")]
     private partial void LogStarted(string queueName);

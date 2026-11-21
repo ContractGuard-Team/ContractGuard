@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ContractGuard.Infrastructure;
@@ -56,6 +57,21 @@ public static class DependencyInjection
         else
         {
             services.AddSingleton<IChatResponder, UnconfiguredChatResponder>();
+        }
+
+        // docs/04 C8: finer progress from the AI worker's job table, only when its ARN is set. The DynamoDB client
+        // is built only then, so local runs and CI need no AWS credentials for it.
+        var workerActivityTable = configuration["WorkerActivity:TableArn"];
+        if (!string.IsNullOrWhiteSpace(workerActivityTable))
+        {
+            services.AddSingleton<IWorkerActivityReader>(sp => new DynamoDbWorkerActivityReader(
+                AwsClientFactory.CreateDynamoDb(sp.GetRequiredService<IOptions<AwsOptions>>().Value),
+                workerActivityTable,
+                sp.GetRequiredService<ILogger<DynamoDbWorkerActivityReader>>()));
+        }
+        else
+        {
+            services.AddSingleton<IWorkerActivityReader, NoWorkerActivityReader>();
         }
 
         return services;

@@ -5,7 +5,10 @@
 # or through compose: docker compose --profile app up --build
 
 # ---- build: restore, test-free publish, EF migrations bundle ---------------------------
-FROM mcr.microsoft.com/dotnet/sdk:10.0.403 AS build
+# The SDK runs on the build machine's own architecture and cross-compiles for the target (ECS runs
+# ARM64, SD-02): running the SDK under QEMU emulation is slow and unreliable.
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.403 AS build
+ARG TARGETARCH
 WORKDIR /src
 
 # Restore first, with only the project files copied: this layer is cached until a .csproj
@@ -16,12 +19,12 @@ COPY backend/src/ContractGuard.Application/ContractGuard.Application.csproj back
 COPY backend/src/ContractGuard.Infrastructure/ContractGuard.Infrastructure.csproj backend/src/ContractGuard.Infrastructure/
 COPY backend/src/ContractGuard.Api/ContractGuard.Api.csproj backend/src/ContractGuard.Api/
 WORKDIR /src/backend
-RUN dotnet restore src/ContractGuard.Api/ContractGuard.Api.csproj && dotnet tool restore
+RUN dotnet restore src/ContractGuard.Api/ContractGuard.Api.csproj -a $TARGETARCH && dotnet tool restore
 
 # Then the sources.
 COPY contracts/ /src/contracts/
 COPY backend/src/ src/
-RUN dotnet publish src/ContractGuard.Api/ContractGuard.Api.csproj -c Release --no-restore -o /out/api
+RUN dotnet publish src/ContractGuard.Api/ContractGuard.Api.csproj -c Release -a $TARGETARCH --self-contained false --no-restore -o /out/api
 
 # A migrations bundle is a single executable that applies pending migrations, so the
 # runtime image needs neither the SDK nor dotnet-ef.

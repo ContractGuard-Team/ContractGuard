@@ -297,6 +297,8 @@ BaseAgent.run → HermesBedrockProvider → HermesModelAdapter
   → agent.bedrock_adapter → BedrockClient → boto3 converse
 ```
 
+**Cập nhật 2026-11-21 (từ tài khoản AI và nhánh `feat/chatbotAI`):** worker chạy 9 container Docker trên một EC2 `m7i-flex.large` (không GPU), model gọi qua OpenAI (`MODEL_PROVIDER=openai`). Worker giữ trạng thái job riêng trong DynamoDB: `contract-risk-jobs` (một dòng mỗi hợp đồng, khóa `contract:<contract_id>`, `status`/`stage`/`progress`, khóa chống chạy trùng `lease_until`) và `contract-risk-job-events` (nhật ký chỉ ghi thêm, từng bước và tool của agent). API ContractGuard đọc bảng đầu để hiện tiến độ (`docs/04` C8, `docs/07` §12). Phần dưới là ảnh chụp cũ ngày 2026-11-03.
+
 **Đã có:**
 
 - Cache SQLite theo job, chạy lại thì bỏ qua các bước đã lưu.

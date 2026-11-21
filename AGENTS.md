@@ -12,6 +12,8 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 - Phase 1 và phần SE không cần AI của Phase 2–6 đã merge (PR #9); phần cần AI dừng ở gửi/nhận, xem `docs/06-ai-integration-points.md`. Landing mới ở `/`, thư viện ở `/contracts`.
 - 2026-11-17: dọn tồn đọng xong; Google login (F-AUTH-002) đã code, chờ review, phiếu P6-01 trong `docs/04`. Tiếp theo: Phase 7 trên AWS, database dùng Supabase (cần phiếu đổi SD trong `docs/04` trước).
 - 2026-11-18: Supabase staging đã migrate, bảng app ở schema `app`, dùng chung DB với kho pháp luật của AI (`docs/04` C4). Staging/production và email SES gửi từ Gmail: `docs/04` C5.
+- 2026-11-21: staging chạy trên Railway (`https://contractguardweb.up.railway.app`), dùng S3/SQS dev; production trên AWS (`infra/cdk/`) chỉ bật ~3 ngày quanh showcase, cần domain trước (`docs/04` C7).
+- 2026-11-21: chatbot qua worker (`docs/04` C6): handler phía AI viết trên nhánh `feat/chatbotAI` của repo AI, chờ nhóm AI review. Tiến độ chi tiết đọc từ DynamoDB của worker (C8). `extraction.v2` bỏ 4 trường thừa (`docs/07` §13).
 
 ## Đọc gì, theo thứ tự
 

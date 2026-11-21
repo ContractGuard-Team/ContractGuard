@@ -194,9 +194,11 @@ Quyền thêm cho role `ContractRisk-EC2-Role`. Phiếu câu hỏi khớp `resul
 
 | Phía | Việc | Trạng thái |
 |---|---|---|
-| ContractGuard `699061129385` | Tạo queue và DLQ; queue policy cho role (Receive, Delete, ChangeMessageVisibility, GetQueueAttributes, GetQueueUrl); thêm `sqs:SendMessage`, `sqs:GetQueueUrl` cho user của API | ⏳ SE làm |
+| ContractGuard `699061129385` | Tạo queue và DLQ; queue policy cho role (Receive, Delete, ChangeMessageVisibility, GetQueueAttributes, GetQueueUrl); thêm `sqs:SendMessage`, `sqs:GetQueueUrl` cho user của API | ✅ Đã có, đã kiểm (2026-11-21) |
 | AI `333596350642` | Thêm vào inline policy: `{ "Sid": "ConsumeChat", "Effect": "Allow", "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-chat-requests" }` | ⏳ Nhóm AI làm |
-| AI | Thêm `ChatRequested` vào `common/schemas/business/inbound.py`, `ChatAnswered` vào `outbound.py`, viết handler | ⏳ Nhóm AI làm |
+| AI | Thêm `ChatRequested` vào `common/schemas/business/inbound.py`, `ChatAnswered` vào `outbound.py`, viết handler | ✅ SE viết hộ ngày 2026-11-21 trên nhánh `feat/chatbotAI` của repo AI, chờ nhóm AI review |
+
+Cách SE viết (nhánh `feat/chatbotAI`): process thứ 3 `chat-worker` trong `workers/main.py` chạy `workers/chat.py` khi có `WORKER_CHAT_QUEUE_URL`. Worker không giữ khóa model, nên chuyển câu hỏi tới agent-3 (`POST /v1/chat`, `agents/chat.py`, xác thực bằng `INTERNAL_API_TOKEN`). Agent-3 gọi model một lần với điều khoản, finding và lịch sử của phiếu. Lỗi nào cũng trả `failed` ngay và xóa message, vì backend chỉ chờ 3 phút. Trên EC2 cần thêm vào `.env`: `WORKER_CHAT_QUEUE_URL=https://sqs.ap-southeast-1.amazonaws.com/699061129385/contractguard-dev-chat-requests` (`WORKER_CHAT_URL` đã đặt sẵn trong `docker-compose.yml`).
 
 Thử khi chưa có worker (local): đặt `Chat__Responder=worker`, hỏi trên giao diện, lấy `job_id` từ log API `Published chat_requested for job ...`, rồi chạy `scripts/dev/send-analysis-result.ps1 -JobId <id> -Event chat_answered`.
 
@@ -219,3 +221,32 @@ Nhờ nhóm AI:
 - Không dùng mật khẩu `postgres`. Cần SQL Editor thì dùng tài khoản dashboard của mình.
 - Staging để thử; production chỉ nạp dữ liệu đã kiểm tra (chạy `001`/`002_*.sql` rồi pipeline).
 - Dữ liệu theo từng job vẫn đi qua S3/SQS theo `contracts/`, không qua DB.
+
+## 12. API đọc tiến độ từ DynamoDB của worker (2026-11-21, `docs/04` C8)
+
+API ContractGuard đọc bảng `contract-risk-jobs` (tài khoản AI) để hiện thanh % và việc AI đang làm khi một phân tích đang chạy.
+
+| Thứ | Giá trị |
+|---|---|
+| Bảng | `arn:aws:dynamodb:ap-southeast-1:333596350642:table/contract-risk-jobs` |
+| Khóa | `job_id = "contract:<contract_id>"` (một dòng mỗi hợp đồng, `workers/runtime/contract_job_store.py`) |
+| Trường API đọc | `active_job_id` (phải bằng job đang xem), `stage`, `progress` (0–100). Không đọc `output`, `details` |
+| Cách đọc | `GetItem` với `ProjectionExpression`, mỗi 3 giây khi trang đang mở, timeout 2 giây |
+
+Quyền (cả hai phía):
+
+| Phía | Việc | Trạng thái |
+|---|---|---|
+| AI `333596350642` | Resource policy trên bảng: principal `arn:aws:iam::699061129385:user/contractguard-dev-api-local`, chỉ `dynamodb:GetItem`, điều kiện `dynamodb:Attributes` thuộc `job_id, active_job_id, stage, progress` và `dynamodb:Select = SPECIFIC_ATTRIBUTES` | ✅ Đã đặt (RevisionId `1795248675212`) |
+| ContractGuard `699061129385` | `dynamodb:GetItem` trên ARN bảng cho user API | ✅ Inline policy `contractguard-dev-worker-activity` (2026-11-21); đã thử: có projection thì đọc được, thiếu projection hoặc đọc `output` thì bị chặn |
+
+**Đề nghị nhóm AI:** đổi tên bảng, khóa, hoặc ba trường `active_job_id`, `stage`, `progress` thì báo SE trước. Đổi tên stage chỉ làm trang mất dòng chữ mô tả (`workerActivityLabel` trong `frontend/app/lib/labels.ts`), vẫn còn %.
+
+**Lưu ý cho IA:** hai bảng `contract-risk-jobs` và `contract-risk-job-events` không có TTL và không bị xóa khi người dùng xóa vĩnh viễn hợp đồng (F-CTR-006), trong khi có `contract_id` và `output` sinh từ hợp đồng.
+
+## 13. Rút gọn extraction.v2 (2026-11-21)
+
+Bỏ 4 trường tùy chọn mà backend không lưu, không dùng: `document.is_scanned`, `tenant_id`, `output_language`, `embeddings`. Backend đã gửi tenant và ngôn ngữ trong `request.json`; chatbot đi qua worker nên không cần vector. Giữ `facts` (rule engine IA), `document_complete`, `document.language`, `trace.pipeline_version`.
+
+**Thứ tự deploy:** worker ngừng gửi trước (nhánh `feat/chatbotAI`: `orchestration/extraction.py`, `common/schemas/business/outbound.py`), rồi mới deploy backend. Backend mới từ chối kết quả còn các trường này (`additionalProperties: false`).
+
