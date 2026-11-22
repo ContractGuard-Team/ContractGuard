@@ -44,4 +44,4 @@ railway up --ci -p <project> -e staging -s api                       # ở gốc
 railway up frontend --path-as-root --ci -p <project> -e staging -s web
 ```
 
-Còn thiếu ở staging: đăng nhập Google (biến `Authentication__Google__*` + redirect URI trên Google Cloud Console); SES sandbox chỉ gửi tới người nhận đã xác minh; Data Protection key không lưu bền nên mỗi lần deploy API mọi người phải đăng nhập lại.
+Đăng nhập Google ở staging đã bật (2026-11-21, OAuth client chế độ Testing, chỉ test user đăng nhập được). Còn thiếu ở staging: SES sandbox chỉ gửi tới người nhận đã xác minh; Data Protection key không lưu bền nên mỗi lần deploy API mọi người phải đăng nhập lại.

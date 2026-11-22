@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 
 import { apiFetch, type Schemas } from "~/lib/api";
-import { analysisSteps, workerActivityLabel } from "~/lib/labels";
+import { analysisSteps, workerActivityLabel, workerActivityStep } from "~/lib/labels";
 
 const pollMs = 3000;
 
 // F-ANA-001, FR-ANA-002: the current step of a running analysis, asked for every 3 seconds (SD-15).
 // When the job has ended, or can no longer be read, the parent loads the page data again.
-// docs/04 C8: when the API can read the AI worker's own progress, a bar and a line say what it is doing now.
+// docs/04 C8: when the API can read the AI worker's own progress, a percent bar, and a line under the current step
+// says what it is doing now. Without it the page shows the steps only.
 export function AnalysisProgress({ job, onFinished }: { job: Schemas["JobStatus"]; onFinished: () => void }) {
   const [step, setStep] = useState(job.step);
   const [activity, setActivity] = useState(job.activity ?? null);
@@ -27,59 +28,57 @@ export function AnalysisProgress({ job, onFinished }: { job: Schemas["JobStatus"
     return () => clearInterval(timer);
   }, [job.jobId, onFinished]);
 
-  const current = analysisSteps.findIndex((s) => s.step === step);
+  const apiStep = analysisSteps.findIndex((s) => s.step === step);
+  const workerStep = activity ? analysisSteps.findIndex((s) => s.step === workerActivityStep(activity.stage)) : -1;
+  const current = Math.max(apiStep, workerStep);
   const currentLabel = analysisSteps[current]?.label ?? "";
+  const percent = activity ? Math.min(100, Math.max(0, Math.round(Number(activity.percent)))) : null;
+  const detail = activity ? workerActivityLabel(activity.stage) : null;
 
   return (
     <section aria-labelledby="progress-title" className="max-w-xl rounded-md border border-rule bg-sheet p-6">
-      <h2 id="progress-title" className="text-title">
-        Đang phân tích hợp đồng
-      </h2>
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 id="progress-title" className="text-title">
+          Đang phân tích hợp đồng
+        </h2>
+        {percent !== null && <span className="text-title tabular-nums text-ink-secondary">{percent}%</span>}
+      </div>
       <p className="mt-1 text-ink-secondary">Bạn có thể rời trang này. Phân tích vẫn tiếp tục và kết quả sẽ có ở đây khi xong.</p>
+
+      {/* Neutral ink, not review-ink: progress is not an action (Action-Only Rule). */}
+      {percent !== null && (
+        <div role="progressbar" aria-label="Tiến độ phân tích" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} className="mt-4 h-1.5 overflow-hidden rounded-full bg-rule">
+          <div
+            className="h-full rounded-full bg-ink-secondary transition-[width] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      )}
 
       <p role="status" className="sr-only">
         Bước hiện tại: {currentLabel}
       </p>
-      {activity && <WorkerActivityBar percent={Number(activity.percent)} stage={activity.stage} />}
-      <ol className="mt-4 flex flex-col gap-1">
+      <ol className="mt-5">
         {analysisSteps.map(({ step: item, label }, index) => {
           const state = index < current ? "done" : index === current ? "current" : "todo";
+          const last = index === analysisSteps.length - 1;
           return (
-            <li key={item} className="flex h-8 items-center gap-2.5" aria-current={state === "current" ? "step" : undefined}>
-              <StepIcon state={state} />
-              <span className={state === "todo" ? "text-ink-muted" : state === "current" ? "font-semibold text-ink" : "text-ink-secondary"}>{label}</span>
+            <li key={item} className="flex gap-3" aria-current={state === "current" ? "step" : undefined}>
+              <div className="flex flex-col items-center" aria-hidden="true">
+                <span className="flex h-6 items-center">
+                  <StepIcon state={state} />
+                </span>
+                {!last && <span className={`w-px flex-1 ${state === "done" ? "bg-ink-secondary" : "bg-rule"}`} />}
+              </div>
+              <div className={last ? "" : "pb-3"}>
+                <p className={`flex h-6 items-center ${state === "todo" ? "text-ink-muted" : state === "current" ? "font-semibold text-ink" : "text-ink-secondary"}`}>{label}</p>
+                {state === "current" && detail && <p className="text-caption text-ink-secondary">{detail}</p>}
+              </div>
             </li>
           );
         })}
       </ol>
     </section>
-  );
-}
-
-// 8px bar like the risk ruler (DESIGN §5). Neutral ink, not review-ink: progress is not an action (Action-Only Rule).
-// The line under it is not announced on every poll: the step list above already has role="status".
-function WorkerActivityBar({ percent, stage }: { percent: number; stage: string }) {
-  const label = workerActivityLabel(stage);
-  return (
-    <div className="mt-4">
-      <div
-        role="progressbar"
-        aria-label="Tiến độ phân tích"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={percent}
-        className="h-2 overflow-hidden rounded-full bg-rule"
-      >
-        <div
-          className="h-full rounded-full bg-ink-secondary transition-[width] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none"
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-      <p className="mt-2 flex justify-between gap-4 text-sm text-ink-secondary">
-        <span>{label ?? "AI đang làm việc"}</span>
-        <span className="tabular-nums">{percent}%</span>
-      </p>
-    </div>
   );
 }
 

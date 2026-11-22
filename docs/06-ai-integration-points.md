@@ -2,12 +2,12 @@
 
 | Mục | Giá trị |
 |---|---|
-| Ngày | 2026-11-10 |
+| Ngày | 2026-11-10, sửa 2026-11-22 |
 | Người viết | SE (code bởi Claude, chờ review) |
-| Trạng thái | SE đã làm xong phần không cần AI của Phase 2–6. Các điểm dưới đây **chờ nhóm AI nối vào và chờ AI + IA + SE thống nhất** |
+| Trạng thái | SE đã làm xong phần không cần AI của Phase 2–6. Worker AI đã chạy trên EC2 và nối vào bộ dev (`docs/04` C7, `docs/05` §9); handler chat nằm trên nhánh `feat/chatbotAI` của repo AI, chờ nhóm AI review. Các điểm ở §3 **chờ AI + IA + SE thống nhất** |
 | Tìm trong code | `grep -rn "AI-HOOKUP" backend/` cho ra đúng các chỗ ở §2 |
 
-Nhóm AI chưa có worker và model. Vì vậy SE dừng ở phần **gửi và nhận**: backend gửi việc, nhận kết quả, kiểm tra, lưu và hiển thị. Chỗ nào cần model thì có port hoặc schema chờ sẵn. Mọi chức năng không cần AI đều đã chạy thật, có test và e2e.
+SE dừng ở phần **gửi và nhận**: backend gửi việc, nhận kết quả, kiểm tra, lưu và hiển thị. Phần cần model do worker AI làm. Mọi chức năng không cần AI đều đã chạy thật, có test và e2e.
 
 Hiện có hai thứ giả lập để test, cả hai đều **không phải AI** và đã được ghi rõ:
 
@@ -24,9 +24,10 @@ Tên bucket, queue, quyền IAM trên AWS thật và cách chạy worker trên E
 |---|---|---|---|
 | 1 | Worker đọc `analysis-requests`, ghi `extraction.v2` lên S3, gửi `progress`/`completed`/`failed` lên `analysis-results` | `contracts/queue-messages.v1.schema.json`, `contracts/analysis-request.v1.schema.json`, `contracts/extraction.v2.schema.json` | Gửi job (`AnalysisStarter`), nhận và kiểm tra (`AnalysisResultHandler`, `ExtractionConsistencyValidator`), lưu (`AnalysisResultProcessor`) |
 | 2 | Gửi khối `scoring` (mới, xem §3.1) | `extraction.v2.schema.json` → `scoring` | Kiểm tra luật điểm, lưu, hiển thị thước rủi ro, lọc và sắp xếp thư viện theo điểm, đưa vào báo cáo |
-| 3 | Chatbot: worker trả lời qua SQS (`docs/04` C6, đổi SD-14 A) | Đọc `chat-requests`, trả `chat_answered` (`docs/07` §11, `contracts/chat-request.v1.schema.json`) | Endpoint SSE, lưu lịch sử chung, lọc trích dẫn sai, UI stream và nhảy tới điều khoản; `WorkerChatResponder` gửi câu hỏi và chờ câu trả lời |
-| 4 | Embedding điều khoản (nếu chọn SD-14 A) | `extraction.v2` → `embeddings` (đang `dimensions: 1024`) | **Chưa lưu.** Bảng pgvector chờ chốt số chiều và model embedding |
-| 5 | Worker xóa bản trong `quarantine/` sau khi ghi `clean/` | SD-07 | Khi xóa hợp đồng, backend chỉ biết key mà version đang trỏ tới, cùng key `clean/` tính được (`ContractCommands.DeleteAsync`) |
+| 3 | Chatbot: worker trả lời qua SQS (`docs/04` C6, đổi SD-14 A) | Đọc `chat-requests`, trả `chat_answered` (`docs/07` §10, `contracts/chat-request.v1.schema.json`) | Endpoint SSE, lưu lịch sử chung, lọc trích dẫn sai, UI stream và nhảy tới điều khoản; `WorkerChatResponder` gửi câu hỏi và chờ câu trả lời |
+| 4 | Worker xóa bản trong `quarantine/` sau khi ghi `clean/` | SD-07 | Khi xóa hợp đồng, backend chỉ biết key mà version đang trỏ tới, cùng key `clean/` tính được (`ContractCommands.DeleteAsync`) |
+
+Không còn việc embedding: từ 2026-11-21 `extraction.v2` bỏ trường `embeddings` vì chat đi qua worker (`docs/07` §13). Worker gửi trường này thì backend từ chối cả kết quả.
 
 ## 2. Các chỗ `AI-HOOKUP` trong code
 
@@ -34,8 +35,9 @@ Tên bucket, queue, quyền IAM trên AWS thật và cách chạy worker trên E
 |---|---|
 | `backend/src/ContractGuard.Application/Analysis/Extraction/ExtractionDocument.cs` | `ExtractedScoring`: khối điểm do SE đề xuất, đang để tùy chọn |
 | `backend/src/ContractGuard.Application/Chat/IChatResponder.cs` | Port của chatbot: request mang `AnalysisRunId`, câu hỏi, 10 lượt gần nhất, ngôn ngữ; trả về stream gồm chữ và trích dẫn |
-| `backend/src/ContractGuard.Infrastructure/DependencyInjection.cs` | Chỗ đăng ký responder thật |
-| `backend/src/ContractGuard.Application/Contracts/ContractCommands.cs` | Xóa file `quarantine/` (việc #5) |
+| `backend/src/ContractGuard.Application/Chat/WorkerChatResponder.cs` | Responder thật: gửi phiếu câu hỏi cho worker qua SQS và chờ `chat_answered` |
+| `backend/src/ContractGuard.Infrastructure/DependencyInjection.cs` | Chỗ đăng ký responder (`Chat:Responder` = `worker` hoặc `fake`) |
+| `backend/src/ContractGuard.Application/Contracts/ContractCommands.cs` | Xóa file `quarantine/` (việc #4) |
 
 ## 3. Cần thống nhất (AI + IA + SE)
 
@@ -76,7 +78,7 @@ Backend từ chối **cả kết quả** (job `failed`, không lưu gì, theo VA
 
 ### 3.2 Chatbot (`IChatResponder`)
 
-- **Từ 2026-11-20 (`docs/04` C6):** worker AI trả lời qua SQS. `WorkerChatResponder` ghi phiếu `chat-request.v1` (câu hỏi, 10 lượt gần nhất, điều khoản và finding của run) rồi gửi `chat_requested` lên queue `chat-requests`. Worker trả `chat_answered` về `analysis-results`. Bật bằng `Chat:Responder=worker` (môi trường `Cloud`). Việc của worker: `docs/07` §11.
+- **Từ 2026-11-20 (`docs/04` C6):** worker AI trả lời qua SQS. `WorkerChatResponder` ghi phiếu `chat-request.v1` (câu hỏi, 10 lượt gần nhất, điều khoản và finding của run) rồi gửi `chat_requested` lên queue `chat-requests`. Worker trả `chat_answered` về `analysis-results`. Bật bằng `Chat:Responder=worker` (môi trường `Cloud`). Việc của worker: `docs/07` §10.
 - **Phạm vi:** request chỉ mang id của một lần phân tích mà người hỏi được xem. Adapter **chỉ được đọc dữ liệu của `AnalysisRunId`** (BR-CHAT-001, FR-CHAT-006).
 - **Trích dẫn:** trả `ChatChunk.Cite(clauseKey)`. Backend bỏ trích dẫn tới điều khoản không thuộc lần phân tích đó, giống cách kiểm tra extraction.
 - **Lỗi giữa chừng:** người dùng nhận event `error` (ERR-CHAT-001). Câu hỏi vẫn được lưu, câu trả lời dở thì không.

@@ -2,10 +2,10 @@
 
 | Mục | Giá trị |
 |---|---|
-| Ngày | 2026-11-13 |
+| Ngày | 2026-11-13, sửa 2026-11-22 |
 | Người viết | SE (soạn cùng Claude) |
 | Dành cho | Nhóm AI (worker Python, chạy Docker trên EC2) |
-| Trạng thái | Backend **đã chạy thật** với S3/SQS trên AWS: đã thử trọn luồng upload → job → kết quả → lưu 8 điều khoản. Phía ContractGuard đã mở bucket và queue cho `ContractRisk-EC2-Role` (§5). **Worker chưa đọc queue này**: ngày 2026-11-14 và 2026-11-17 (sau khi nhóm AI báo đã nối SQS) ping đều không có `pong`; message ping vẫn nằm nguyên trong `contractguard-dev-analysis-requests`, chưa ai nhận |
+| Trạng thái | Backend **đã chạy thật** với S3/SQS trên AWS. Phía ContractGuard đã mở bucket và queue cho `ContractRisk-EC2-Role` (§5). Từ 2026-11-21 worker đã nối vào bộ dev này (9 container trên một EC2, `docs/05` §9); staging trên Railway dùng chính bộ dev (`docs/04` C7). Còn chờ: quyền `ConsumeChat` và review handler chat (§10) |
 | Đọc kèm | `docs/06-ai-integration-points.md` (điểm nối, khối `scoring`), `contracts/` (schema) |
 
 ## 1. Tài nguyên dùng chung
@@ -80,8 +80,8 @@ Truy cập chéo tài khoản chỉ thông khi **cả hai phía** cùng cho phé
 | Phía | Việc | Trạng thái |
 |---|---|---|
 | ContractGuard `699061129385` | Bucket policy và 2 queue policy cho role `ContractRisk-EC2-Role` đúng các quyền ở §2 | ✅ SE đã làm, đã kiểm (2026-11-14) |
-| AI `333596350642` | Inline policy trên `ContractRisk-EC2-Role` (bên dưới) | ⏳ Nhóm AI làm |
-| AI `333596350642` | Gắn role vào EC2; IMDS hop limit 2 | ⏳ Nhóm AI làm |
+| AI `333596350642` | Inline policy trên `ContractRisk-EC2-Role` (bên dưới) | ✅ Worker đã đọc và ghi bộ dev (2026-11-21) |
+| AI `333596350642` | Gắn role vào EC2; IMDS hop limit 2 | ✅ Như trên |
 
 Inline policy cho `ContractRisk-EC2-Role` (IAM → Roles → `ContractRisk-EC2-Role` → Add permissions → Create inline policy → JSON):
 ```json
@@ -168,7 +168,7 @@ Không upload hợp đồng thật lên môi trường dev.
 | 2 | ~~Bedrock: dùng trong tài khoản AI.~~ Đổi 2026-11-17: model tự host trên EC2 (DEC-GEN-029). Nhóm AI chọn model, loại máy GPU, xin quota GPU; trả lời 3 câu hỏi ở `docs/04` mục C3 |
 | 3 | Nhóm AI có cần quyền đọc bucket, queue và log để gỡ lỗi không? Policy `contractguard-dev-ai-developer-access` đã có nhưng chưa gắn cho ai, và cũng phải sửa prefix theo §2 |
 
-## 11. Chatbot qua worker (2026-11-20, `docs/04` C6)
+## 10. Chatbot qua worker (2026-11-20, `docs/04` C6)
 
 Worker trả lời câu hỏi chat của người dùng về một hợp đồng đã phân tích. Không stream: gửi cả câu trả lời một lần.
 
@@ -202,7 +202,7 @@ Cách SE viết (nhánh `feat/chatbotAI`): process thứ 3 `chat-worker` trong `
 
 Thử khi chưa có worker (local): đặt `Chat__Responder=worker`, hỏi trên giao diện, lấy `job_id` từ log API `Published chat_requested for job ...`, rồi chạy `scripts/dev/send-analysis-result.ps1 -JobId <id> -Event chat_answered`.
 
-## 10. Supabase dùng chung (2026-11-18)
+## 11. Supabase dùng chung (2026-11-18)
 
 Chi tiết và lý do: `docs/04` mục C4, C5.
 

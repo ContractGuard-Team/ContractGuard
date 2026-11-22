@@ -83,6 +83,16 @@ export function workerActivityLabel(stage: string): string | null {
   return agent ?? (tool ? `Đang ${tool}` : null);
 }
 
+// The step of the list a worker stage belongs to, so the list and the line under it never disagree.
+// Any other code counts as the first step; the page takes the later of this and the API's own step.
+export function workerActivityStep(stage: string): Schemas["AnalysisStep"] {
+  const agent = /^agent_([123])/.exec(stage)?.[1];
+  if (agent) {
+    return (["splitting_clauses", "evaluating", "scoring"] as const)[Number(agent) - 1] ?? "reading_file";
+  }
+  return stage === "saving_result" ? "scoring" : "reading_file";
+}
+
 export const ownPartyLabels: Record<Schemas["OwnParty"], string> = {
   buyer: "Bên mua / khách hàng",
   seller: "Bên bán / nhà cung cấp",
