@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Phiên bản | 0.6 — Chốt bước 1 (Q1–Q3) và bước 2–8 (§4); SD-04 đổi sang ASP.NET Core Identity; 2026-11-17 đổi database sang Supabase, model AI tự host trên EC2 (CR-GEN-003), nền tảng worker do nhóm AI chọn (`04` mục C1–C3) |
-| Ngày | 2026-10-27, sửa 2026-11-17 |
+| Phiên bản | 0.7 — Chốt bước 1 (Q1–Q3) và bước 2–8 (§4); SD-04 đổi sang ASP.NET Core Identity; 2026-11-17 đổi database sang Supabase, model AI tự host trên EC2 (CR-GEN-003), nền tảng worker do nhóm AI chọn (`04` mục C1–C3); 2026-11-20/21 chat qua worker, staging trên Railway, tiến độ từ DynamoDB của worker (`04` mục C6–C8) |
+| Ngày | 2026-10-27, sửa 2026-11-22 |
 | Đầu vào | [01-product-spec.md](01-product-spec.md) v1.2 |
 | Cách làm | Từng bước. Mỗi bước kết thúc bằng các câu hỏi thảo luận, chốt xong mới sang bước sau. |
 
@@ -181,7 +181,7 @@ Spec đặt mục tiêu ≤ 45 giây (p50) cho hợp đồng 20 trang.
 **Hướng xử lý (đề xuất, chốt ở bước 8):**
 
 1. **3 tháng đầu dev local:** chạy Docker Compose gồm PostgreSQL + pgvector và các giả lập S3/SQS. Model AI gọi endpoint của nhóm AI (trước 2026-11-17: Bedrock thật).
-2. **Khoảng 6 tuần cuối mới dựng môi trường AWS staging/demo**, và tắt hoặc thu nhỏ vào ban đêm.
+2. **Khoảng 6 tuần cuối mới dựng môi trường AWS staging/demo**, và tắt hoặc thu nhỏ vào ban đêm. (Đổi 2026-11-21, `04` mục C7: staging chạy trên Railway, AWS chỉ dựng production quanh showcase.)
 3. **Chia credit theo vai trò:** account của SE chạy hạ tầng, account của các thành viên AI dùng cho máy GPU, thử nghiệm và eval model.
 4. Hỏi mentor FCAJ xem có gom được credit qua AWS Organizations không.
 
@@ -231,22 +231,22 @@ Phân tích, phương án và trade-off của từng mục ở [04-system-design
 | # | Quyết định |
 |---|---|
 | SD-01 | Modular monolith C# (`backend/`) + worker Python (`worker/`) + SQS. Module nội bộ C#: Auth, Workspace, Contract, Analysis, Chat, Export |
-| SD-02 | ECS Fargate ARM: API 1 task luôn bật. Worker: **đổi 2026-11-17**, nhóm AI chọn nền tảng (`04` mục C2) |
+| SD-02 | ECS Fargate ARM: API 1 task luôn bật. Worker: **đổi 2026-11-17**, nhóm AI chọn nền tảng (`04` mục C2); nhóm AI chạy Docker Compose trên một EC2. **Đổi 2026-11-21 (`04` mục C7):** Fargate chỉ dùng cho production, bật ~3 ngày quanh showcase; staging chạy trên Railway |
 | SD-03 | Một domain: CloudFront phục vụ SPA từ S3 và chuyển `/api/*` về ALB; lỗi 403/404 trả `index.html`. Bổ sung 2026-11-07: CloudFront gọi ALB bằng HTTPS; security group chỉ cho ALB gọi API; API đọc giao thức gốc từ `X-Forwarded-Proto` |
 | SD-04 | **ASP.NET Core Identity** trong service C#: khóa 5 lần / 15 phút theo email, token đặt lại mật khẩu, đăng nhập Google; phiên bằng cookie httpOnly `Secure` `SameSite=Lax`, chống CSRF cho request ghi. Không dùng Cognito. Không có MFA trong MVP (DEC-PRD-022) |
 | SD-05 | Lọc theo không gian bằng global query filter của EF Core + kiểm tra quyền theo tài nguyên; bộ test cách ly trong CI |
 | SD-06 | **Đổi 2026-11-17: Supabase** (PostgreSQL + pgvector; 2026-11-18: hai project staging/production ở Tokyo, bảng app ở schema `app`, kho pháp luật của AI ở `public`, `04` mục C4, C5; kết nối qua pooler Supavisor chế độ session, TLS; `04` mục C1). Trước đó: RDS PostgreSQL 18 + pgvector, `db.t4g.micro`, single-AZ; migration bằng EF Core; chỉ mục HNSW. Đổi từ 16 sang 18 ngày 2026-10-29 vì lúc này chưa có dữ liệu, và bản 18 được hỗ trợ đến 11/2030 |
-| SD-07 | Một bucket, prefix `quarantine/`, `clean/{workspace}/{contract}/{version}/`, `results/{job_id}/`; SSE-KMS khóa AWS quản lý + S3 Bucket Key; tắt versioning |
+| SD-07 | Một bucket, prefix `quarantine/`, `clean/{workspace}/{contract}/{version}/`, `results/{job_id}/`; tắt versioning. **Đổi (`04` mục C7):** SSE-S3 thay SSE-KMS, vì khóa KMS do AWS quản lý không dùng được từ tài khoản AI |
 | SD-08 | Presigned POST giới hạn 20 MB; GuardDuty Malware Protection for S3 quét `quarantine/`; worker kiểm tra loại file thật, số trang, làm sạch tài liệu; local bỏ qua quét bằng cờ cấu hình |
 | SD-09 | REST `/api/v1` + OpenAPI sinh tự động, sinh kiểu TypeScript cho frontend; lỗi theo Problem Details kèm mã ERR-* |
-| SD-10 | Mở rộng `contracts/extraction.schema.json` (tăng `schema_version`): thêm `clauses`, `findings`, `checks`, `metadata`, `injection_warnings`, embedding; sinh lớp C# và Pydantic. Worker sinh finding kèm trích dẫn, tự loại finding sai trích dẫn, rồi tính điểm bằng code Python theo công thức có version (model không tự đưa ra con số); C# kiểm tra trích dẫn và giới hạn của điểm, rồi lưu. Đổi nơi chấm điểm từ C# sang Python ngày 2026-11-06 (`docs/05` §4). Cần AI, IA, SE cùng duyệt |
-| SD-11 | Message SQS chỉ chứa `job_id`, loại sự kiện, đường dẫn S3; tiến trình và kết quả cùng đi qua `analysis-results` |
+| SD-10 | Mở rộng `contracts/extraction.schema.json` (tăng `schema_version`): thêm `clauses`, `findings`, `checks`, `metadata`, `injection_warnings`, embedding; sinh lớp C# và Pydantic. Worker sinh finding kèm trích dẫn, tự loại finding sai trích dẫn, rồi tính điểm bằng code Python theo công thức có version (model không tự đưa ra con số); C# kiểm tra trích dẫn và giới hạn của điểm, rồi lưu. Đổi nơi chấm điểm từ C# sang Python ngày 2026-11-06 (`docs/05` §4). Cần AI, IA, SE cùng duyệt. Bản đang dùng là `extraction.v2`; 2026-11-21 bỏ `embeddings` và 3 trường thừa (`docs/07` §13). Lớp C# và model Pydantic hiện viết tay, kiểm bằng JSON Schema |
+| SD-11 | Message SQS chỉ chứa `job_id`, loại sự kiện, đường dẫn S3; tiến trình và kết quả cùng đi qua `analysis-results`. Thêm queue `chat-requests` cho câu hỏi chat; câu trả lời `chat_answered` mang luôn chữ (`04` mục C6). Ngoại lệ: API đọc % tiến độ thẳng từ bảng DynamoDB `contract-risk-jobs` của worker (`04` mục C8) |
 | SD-12 | **Đổi 2026-11-17:** nhóm AI quyết cách chạy và scale worker, miễn đạt NFR-SCAL-001 và bật sẵn trong giờ demo, giờ test (`04` mục C2). Trước đó: ECS service 0→3 task, scale theo số message |
 | SD-13 | SQS `maxReceiveCount = 3` rồi DLQ, visibility 15 phút có gia hạn; retry có backoff khi gọi model (đổi 2026-11-17: endpoint tự host thay Bedrock); C# giữ máy trạng thái, idempotent theo `job_id`; job im lặng quá 20 phút thì `failed` |
-| SD-14 | **Tạm theo A** (C# truy xuất pgvector và gọi model, prompt trong `prompts/` do nhóm AI quản lý). Đổi 2026-11-17: gọi endpoint HTTP của model tự host thay Bedrock (`04` mục C3). Giữ B (service chat Python) làm phương án dự phòng. Chốt lại trước phase 4 |
-| SD-15 | Server-Sent Events cho chat, có tín hiệu giữ kết nối; tiến trình phân tích vẫn gọi `GET /jobs/{id}` định kỳ |
+| SD-14 | **Đổi 2026-11-20 (`04` mục C6): worker AI trả lời chat.** C# ghi phiếu `chat-request.v1` (câu hỏi, 10 lượt gần nhất, điều khoản và finding của run) lên S3, gửi `chat_requested` lên queue `chat-requests`; worker trả `chat_answered` về `analysis-results`; C# chờ tối đa 3 phút, lọc trích dẫn sai rồi lưu. Trước đó: tạm theo A (C# truy xuất pgvector và gọi model) |
+| SD-15 | Server-Sent Events cho chat; tiến trình phân tích vẫn gọi `GET /jobs/{id}` định kỳ. Từ C6 câu trả lời về một lần, backend tách theo từ để giữ hiệu ứng gõ. Chưa có tín hiệu giữ kết nối (`shortcut:` ở `ChatEndpoints.cs`), cần thêm trước khi lên ALB |
 | SD-16 | Amazon SES; local dùng Mailpit. 2026-11-18: người gửi `contractguard.info@gmail.com` (email identity, không domain); sandbox thì xác minh từng người nhận; dự phòng Gmail SMTP nếu không ra được sandbox (`04` mục C5) |
-| SD-17 | Local: Docker Compose (PostgreSQL + pgvector thay cho Supabase, LocalStack, Mailpit); model gọi endpoint của nhóm AI hoặc dùng bản giả (`FakeChatResponder`). Chế độ Cloud ở máy dev (2026-11-17): môi trường `Cloud`, profile `aws`, dùng Supabase, Amazon SES và S3/SQS thật; secret nằm trong `appsettings.Cloud.local.json` không commit. Đổi 2026-11-18 (`04` mục C5): Cloud trỏ vào Supabase staging; có thêm production (Supabase project riêng, Tokyo), API production dựng ở Phase 7. |
+| SD-17 | Local: Docker Compose (PostgreSQL + pgvector thay cho Supabase, LocalStack, Mailpit); model gọi endpoint của nhóm AI hoặc dùng bản giả (`FakeChatResponder`). Chế độ Cloud ở máy dev (2026-11-17): môi trường `Cloud`, profile `aws`, dùng Supabase, Amazon SES và S3/SQS thật; secret nằm trong `appsettings.Cloud.local.json` không commit. Đổi 2026-11-18 (`04` mục C5): Cloud trỏ vào Supabase staging; có thêm production (Supabase project riêng, Tokyo), API production dựng ở Phase 7. Đổi 2026-11-21 (`04` mục C7): staging chạy trên Railway (`web` nginx + SPA, `api` nội bộ), dùng bucket và queue `contractguard-dev-*` cùng Supabase staging; production trên AWS (`infra/cdk/`) chỉ bật quanh showcase. |
 | SD-18 | AWS CDK (C#); GitHub Actions đăng nhập AWS qua OIDC; workflow riêng cho `backend/`, `worker/`, `frontend/` theo đường dẫn |
 | SD-19 | Log JSON có `job_id`, `user_id`, không có nội dung hợp đồng, lên CloudWatch; ghi chi phí mỗi lần gọi model; trace để sau |
-| SD-20 | AWS Budgets cảnh báo 50%, 80%; tắt API ngoài giờ test; tắt máy GPU của model ngoài giờ test (nhóm AI); bật lại project Supabase nếu bị tạm dừng; **trước khi triển khai lên AWS phải nhắc mọi thành viên cấu hình billing và cảnh báo trên tài khoản của mình** |
+| SD-20 | AWS Budgets cảnh báo 50%, 80%; **đổi 2026-11-21 (`04` mục C7):** staging trên Railway (vài $/tháng), stack AWS production chỉ bật ~3 ngày quanh showcase (~$4–5) thay vì tắt API ngoài giờ test; tắt máy GPU của model ngoài giờ test (nhóm AI); bật lại project Supabase nếu bị tạm dừng; **trước khi triển khai lên AWS phải nhắc mọi thành viên cấu hình billing và cảnh báo trên tài khoản của mình** |

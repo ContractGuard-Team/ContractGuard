@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { workerActivityLabel } from "./labels";
+import { workerActivityLabel, workerActivityStep } from "./labels";
+
+describe("workerActivityStep", () => {
+  it("puts each agent on its step and anything else on the first", () => {
+    expect(workerActivityStep("agent_1_classification.chunk")).toBe("splitting_clauses");
+    expect(workerActivityStep("agent_2_risk_scoring.tool.web_search")).toBe("evaluating");
+    expect(workerActivityStep("agent_3")).toBe("scoring");
+    expect(workerActivityStep("saving_result")).toBe("scoring");
+    expect(workerActivityStep("downloading")).toBe("reading_file");
+    expect(workerActivityStep("tool.partner_document")).toBe("reading_file");
+  });
+});
 
 // docs/04 C8: stage codes as the AI worker writes them in its job table.
 describe("workerActivityLabel", () => {
