@@ -10,6 +10,7 @@ export default [
   route("forgot-password", "routes/forgot-password.tsx"),
   route("reset-password", "routes/reset-password.tsx"),
   route("invitations/:token", "routes/invitation.tsx"),
+  route("privacy", "routes/privacy.tsx"),
   layout("routes/app-layout.tsx", [
     route("contracts", "routes/contracts.tsx"),
     route("contracts/new", "routes/contracts-new.tsx"),

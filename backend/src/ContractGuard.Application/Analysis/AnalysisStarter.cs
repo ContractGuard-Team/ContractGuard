@@ -53,8 +53,11 @@ public sealed partial class AnalysisStarter(
 
         // Order matters. The file comes first: a leftover file is harmless. The database comes before
         // the queue: the worker must never receive a job the database does not know.
+        var workspace = AnalysisStorageKeys.WorkspaceSegment(contract.OrganizationId, contract.OwnerUserAccountId);
+        var cleanKey = AnalysisStorageKeys.CleanKey(workspace, contract.ContractId, version.VersionNumber, Path.GetExtension(version.OriginalFileName).ToLowerInvariant());
+        await RestoreSourceAsync(version, cleanKey, cancellationToken);
         var requestKey = AnalysisStorageKeys.RequestKey(run.AnalysisRunId);
-        await storage.PutJsonAsync(requestKey, BuildRequest(contract, version, run, outputLanguage), cancellationToken);
+        await storage.PutJsonAsync(requestKey, BuildRequest(contract, version, run, cleanKey, outputLanguage), cancellationToken);
         await SaveOrThrowBusyAsync(contract.ContractId, cancellationToken);
 
         try
@@ -96,10 +99,27 @@ public sealed partial class AnalysisStarter(
         }
     }
 
-    private static AnalysisRequestDocument BuildRequest(Contract contract, ContractVersion version, AnalysisRun run, UiLanguage outputLanguage)
+    // The worker deletes the quarantine file once it has sent `completed`, before this service has accepted the
+    // result. A rejected result therefore leaves the version pointing at a file that is gone, while the worker's
+    // checked copy is in clean/. The worker may read only quarantine/ (docs/07 §2), so put the file back there.
+    private async Task RestoreSourceAsync(ContractVersion version, string cleanKey, CancellationToken cancellationToken)
     {
-        var workspace = AnalysisStorageKeys.WorkspaceSegment(contract.OrganizationId, contract.OwnerUserAccountId);
-        var extension = Path.GetExtension(version.OriginalFileName).ToLowerInvariant();
+        if (!version.SourceFileKey.StartsWith("quarantine/", StringComparison.Ordinal)
+            || await storage.GetSizeAsync(version.SourceFileKey, cancellationToken) is not null
+            || await storage.GetSizeAsync(cleanKey, cancellationToken) is null)
+        {
+            return;
+        }
+
+        await using var clean = await storage.OpenReadAsync(cleanKey, cancellationToken);
+        using var copy = new MemoryStream();
+        await clean.CopyToAsync(copy, cancellationToken);
+        await storage.PutBytesAsync(version.SourceFileKey, copy.ToArray(), Contracts.FileTypeDetector.ContentTypeOf(version.FileType), cancellationToken);
+        LogSourceRestored(version.ContractVersionId);
+    }
+
+    private static AnalysisRequestDocument BuildRequest(Contract contract, ContractVersion version, AnalysisRun run, string cleanKey, UiLanguage outputLanguage)
+    {
         return new AnalysisRequestDocument(
             SchemaVersion: "1.0.0",
             run.AnalysisRunId,
@@ -107,7 +127,7 @@ public sealed partial class AnalysisStarter(
             contract.ContractId,
             ContractVersion: version.VersionNumber.ToString(CultureInfo.InvariantCulture),
             version.SourceFileKey,
-            CleanFileKey: AnalysisStorageKeys.CleanKey(workspace, contract.ContractId, version.VersionNumber, extension),
+            CleanFileKey: cleanKey,
             ResultKey: AnalysisStorageKeys.ExtractionKey(run.AnalysisRunId),
             version.FileType,
             outputLanguage,
@@ -117,6 +137,9 @@ public sealed partial class AnalysisStarter(
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Analysis started as job {JobId}")]
     private partial void LogStarted(Guid jobId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Version {VersionId}: quarantine file restored from its clean copy")]
+    private partial void LogSourceRestored(Guid versionId);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Job {JobId} could not be put on the queue")]
     private partial void LogPublishFailed(Exception ex, Guid jobId);

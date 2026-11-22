@@ -17,6 +17,11 @@ public sealed class EmailOptions : IValidatableObject
     [Range(1, 65535)]
     public int SmtpPort { get; init; } = 25;
 
+    // Gmail SMTP (docs/04 C5 fallback): set both, and the sender switches on STARTTLS. Empty for Mailpit.
+    public string? SmtpUsername { get; init; }
+
+    public string? SmtpPassword { get; init; }
+
     // With SES this address (or its domain) must be a verified identity.
     [Required, EmailAddress]
     public string FromAddress { get; init; } = string.Empty;

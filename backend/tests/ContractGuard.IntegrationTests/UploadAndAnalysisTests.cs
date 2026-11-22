@@ -446,6 +446,36 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
         }
     }
 
+    [Fact]
+    public async Task Rerun_after_a_rejected_result_puts_the_deleted_quarantine_file_back()
+    {
+        // Staging 2026-11-22: the worker deleted the quarantine file after `completed`, the result was rejected,
+        // and every rerun failed with NoSuchKey although the worker's clean copy was still there.
+        var (client, _, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            var firstJob = await Scenario.StartAnalysisAsync(client, contractId, versionId);
+            using var request = JsonDocument.Parse(factory.Storage.GetText($"results/{firstJob}/request.json"));
+            var sourceKey = request.RootElement.GetProperty("source_file_key").GetString()!;
+            var cleanKey = request.RootElement.GetProperty("clean_file_key").GetString()!;
+            byte[] checkedCopy = [.. "%PDF-1.7 checked copy"u8];
+            factory.Storage.PutBytes(cleanKey, checkedCopy);
+            await factory.Storage.DeleteAsync(sourceKey, Ct);
+            await using (var scope = factory.CreateSystemScope())
+            {
+                await scope.ServiceProvider.GetRequiredService<AnalysisResultHandler>().HandleAsync(
+                    new AnalysisResultMessage(AnalysisEventTypes.Failed, firstJob, null, null, "The analysis result was invalid.", null),
+                    Ct);
+            }
+
+            await Scenario.StartAnalysisAsync(client, contractId, versionId);
+
+            Assert.True(factory.Storage.Exists(sourceKey));
+            Assert.Equal("%PDF-1.7 checked copy", factory.Storage.GetText(sourceKey));
+        }
+    }
+
     private async Task AssertUploadRefusedAsync(string fileName, byte[] bytes, string code)
     {
         var (client, _, _) = await Scenario.SignedInUserAsync(factory);
