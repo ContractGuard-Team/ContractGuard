@@ -86,10 +86,15 @@ public static class DependencyInjection
             .ValidateOnStart();
     }
 
-    // Mailpit over SMTP locally and in tests; Amazon SES in the Cloud environment and on AWS.
+    // Mailpit over SMTP locally and in tests; Amazon SES in the Cloud environment and on AWS; the Gmail API on Railway.
     private static void AddEmail(IServiceCollection services, IConfiguration configuration)
     {
-        if (string.Equals(configuration[$"{EmailOptions.SectionName}:Provider"], EmailOptions.SesProvider, StringComparison.Ordinal))
+        var provider = configuration[$"{EmailOptions.SectionName}:Provider"];
+        if (string.Equals(provider, EmailOptions.GmailProvider, StringComparison.Ordinal))
+        {
+            services.AddHttpClient<IEmailSender, GmailEmailSender>();
+        }
+        else if (string.Equals(provider, EmailOptions.SesProvider, StringComparison.Ordinal))
         {
             services.AddSingleton(sp => AwsClientFactory.CreateSes(sp.GetRequiredService<IOptions<AwsOptions>>().Value));
             services.AddSingleton<IEmailSender, SesEmailSender>();
