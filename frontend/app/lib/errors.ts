@@ -28,6 +28,7 @@ const messages: Record<string, string> = {
   "ERR-INTG-001": "Email chưa gửi được. Vui lòng gửi lại.",
   "ERR-GEN-VALIDATION": "Thông tin gửi lên chưa hợp lệ.",
   "ERR-GEN-NOT-FOUND": "Không tìm thấy dữ liệu này.",
+  "ERR-GEN-FILE-MISSING": "Không còn file của phiên bản này. Hãy tải file lên lại dưới dạng phiên bản mới.",
   "ERR-GEN-UNAUTHENTICATED": "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.",
   "ERR-GEN-EMAIL-UNCONFIRMED": "Email chưa được xác thực. Hãy mở liên kết trong email xác thực đã gửi cho bạn.",
 };

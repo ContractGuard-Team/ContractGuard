@@ -1,22 +1,20 @@
 using ContractGuard.Application.Abstractions;
-using ContractGuard.Application.Analysis;
 using ContractGuard.Domain.Analysis;
 using ContractGuard.Domain.Common;
 using ContractGuard.Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace ContractGuard.Application.Contracts;
 
 // User edits on a contract the user can see. Owner and Member of a contract may do the first three
-// (SRS §12.3), and the query filters already hide contracts the user has no role on. Delete is Owner only.
-public sealed partial class ContractCommands(
+// (SRS §12.3), and the query filters already hide contracts the user has no role on. Rename, delete,
+// restore are Owner only.
+public sealed class ContractCommands(
     IApplicationDbContext db,
     ICurrentWorkspace workspace,
-    IObjectStorage storage,
+    ContractPurger purger,
     AuditLog audit,
-    TimeProvider clock,
-    ILogger<ContractCommands> logger)
+    TimeProvider clock)
 {
     // FR-CTR-007
     public async Task EditMetadataAsync(Guid contractId, Guid contractVersionId, ContractMetadata metadata, CancellationToken cancellationToken)
@@ -56,42 +54,55 @@ public sealed partial class ContractCommands(
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    // F-CTR-006 (FR-CTR-018, FR-CTR-019): files first, then every row. Storage goes first so that a
-    // failure leaves at worst a row pointing at a missing file (the viewer says so), never a contract
-    // file nobody can find to delete. Rows cascade: versions, contexts, runs, clauses, findings, chat,
-    // shares, log. Not while an analysis runs: the worker would write results for a deleted job.
-    public async Task DeleteAsync(Guid contractId, CancellationToken cancellationToken)
+    // CR-CTR-001: Owner only, allowed while an analysis runs (the name is not sent to the worker).
+    public async Task RenameAsync(Guid contractId, string name, CancellationToken cancellationToken)
     {
-        var contract = await db.Contracts.Include(c => c.Versions).SingleOrDefaultAsync(c => c.ContractId == contractId, cancellationToken)
+        var contract = await db.Contracts.SingleOrDefaultAsync(c => c.ContractId == contractId, cancellationToken)
             ?? throw new DomainException(ErrorCodes.NotFound, "Contract not found.");
         ContractAccess.EnsureOwner(contract, workspace);
-        if (contract.ApprovalStatus == ApprovalStatus.Analyzing)
+        var from = contract.ContractName;
+        contract.Rename(name, clock.GetUtcNow());
+        if (contract.ContractName != from)
         {
-            throw new DomainException(ErrorCodes.ContractBusy, "The contract is being analyzed.");
+            audit.Record(contractId, AuditAction.Renamed, $"{from} -> {contract.ContractName}");
+            await db.SaveChangesAsync(cancellationToken);
         }
-
-        var runIds = await db.AnalysisRuns.Where(r => r.ContractId == contractId).Select(r => r.AnalysisRunId).ToListAsync(cancellationToken);
-
-        // AI-HOOKUP: the worker moves a file from quarantine/ to clean/ (SD-07); only the key the version
-        // points at is known here, so the worker must delete the quarantine copy itself (docs/06).
-        // The clean key is predictable, so a clean copy of a failed run (never recorded on the version) goes too.
-        var workspaceSegment = AnalysisStorageKeys.WorkspaceSegment(contract.OrganizationId, contract.OwnerUserAccountId);
-        string[] keys =
-        [
-            .. contract.Versions.Select(v => v.SourceFileKey),
-            .. contract.Versions.Select(v => AnalysisStorageKeys.CleanKey(workspaceSegment, contractId, v.VersionNumber, Path.GetExtension(v.OriginalFileName).ToLowerInvariant())),
-            .. runIds.SelectMany(id => new[] { AnalysisStorageKeys.RequestKey(id), AnalysisStorageKeys.ExtractionKey(id) })
-        ];
-        foreach (var key in keys)
-        {
-            await storage.DeleteAsync(key, cancellationToken);
-        }
-
-        db.Contracts.Remove(contract);
-        await db.SaveChangesAsync(cancellationToken);
-        LogDeleted(contractId, keys.Length);
     }
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Contract {ContractId} deleted with {FileCount} stored files")]
-    private partial void LogDeleted(Guid contractId, int fileCount);
+    // F-CTR-006 with CR-CTR-001: deleting moves the contract to the trash. It disappears from every view
+    // at once (query filter) and is purged after Contract.TrashRetention, or earlier from the trash.
+    public async Task MoveToTrashAsync(Guid contractId, CancellationToken cancellationToken)
+    {
+        var contract = await db.Contracts.SingleOrDefaultAsync(c => c.ContractId == contractId, cancellationToken)
+            ?? throw new DomainException(ErrorCodes.NotFound, "Contract not found.");
+        ContractAccess.EnsureOwner(contract, workspace); // FR-CTR-019
+        contract.MoveToTrash(workspace.UserId, clock.GetUtcNow()); // ERR-CTR-003 while analyzing
+        audit.Record(contractId, AuditAction.Trashed);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RestoreAsync(Guid contractId, CancellationToken cancellationToken)
+    {
+        var contract = await FindInTrashAsync(contractId, cancellationToken);
+        contract.RestoreFromTrash();
+        audit.Record(contractId, AuditAction.Restored);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    // FR-CTR-018: only from the trash, so one click in the library can never destroy a contract.
+    public async Task DeletePermanentlyAsync(Guid contractId, CancellationToken cancellationToken)
+    {
+        var contract = await FindInTrashAsync(contractId, cancellationToken);
+        await purger.PurgeAsync(contract, cancellationToken);
+    }
+
+    // The workspace filter still applies: a contract of another workspace looks like it does not exist.
+    private async Task<Contract> FindInTrashAsync(Guid contractId, CancellationToken cancellationToken)
+    {
+        var contract = await db.Contracts.IgnoreQueryFilters([QueryFilters.NotDeleted])
+            .SingleOrDefaultAsync(c => c.ContractId == contractId && c.DeletedAt != null, cancellationToken)
+            ?? throw new DomainException(ErrorCodes.NotFound, "Contract not found in the trash.");
+        ContractAccess.EnsureOwner(contract, workspace);
+        return contract;
+    }
 }

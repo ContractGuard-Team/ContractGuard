@@ -39,6 +39,9 @@ public sealed record LibraryQuery(
 
 public sealed record LibraryPage(List<ContractSummary> Items, int Total, int Page, int PageSize);
 
+// CR-CTR-001: one contract in the trash; PurgeAt is when it will be deleted for good.
+public sealed record TrashItem(Guid ContractId, string ContractName, string OriginalFileName, DateTimeOffset DeletedAt, DateTimeOffset PurgeAt);
+
 // BR-SHARE-002 role of the current user on one contract.
 public enum ContractRole
 {

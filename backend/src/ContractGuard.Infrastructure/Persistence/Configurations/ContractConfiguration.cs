@@ -14,6 +14,7 @@ public sealed class ContractConfiguration : IEntityTypeConfiguration<Contract>
         builder.Property(c => c.ContractId).ValueGeneratedNever();
         builder.Property(c => c.ContractName).HasMaxLength(Contract.NameMaxLength);
         builder.Ignore(c => c.LatestVersion);
+        builder.HasIndex(c => c.DeletedAt); // the purge job looks for expired trash
 
         // Organizations cannot be deleted in the MVP (OQ-ORG-002), so RESTRICT is a safety net.
         builder.HasOne<Organization>()

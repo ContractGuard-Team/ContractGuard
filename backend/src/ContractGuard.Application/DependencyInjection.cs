@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<ContractUploadService>();
         services.AddScoped<ContractQueries>();
         services.AddScoped<ContractCommands>();
+        services.AddScoped<ContractPurger>();
         services.AddScoped<ReportService>();
         services.AddScoped<ChatService>();
         services.AddSingleton<ChatAnswerWaiter>(); // shared by HTTP requests and the results consumer

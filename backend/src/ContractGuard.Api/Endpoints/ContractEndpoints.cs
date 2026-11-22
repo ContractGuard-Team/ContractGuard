@@ -21,6 +21,7 @@ internal static class ContractEndpoints
 
         var contracts = secured.MapGroup("/contracts").WithTags("Contracts");
         contracts.MapGet("/", ListContracts);
+        contracts.MapGet("/trash", ListTrash);
         contracts.MapPost("/", CreateContract);
         contracts.MapGet("/{contractId:guid}", GetContract);
         contracts.MapPut("/{contractId:guid}/versions/{versionId:guid}/context", ConfirmContext);
@@ -28,7 +29,10 @@ internal static class ContractEndpoints
         contracts.MapPut("/{contractId:guid}/versions/{versionId:guid}/metadata", EditMetadata);
         contracts.MapPut("/{contractId:guid}/approval-status", ChangeApprovalStatus);
         contracts.MapPost("/{contractId:guid}/versions", AddVersion);
-        contracts.MapDelete("/{contractId:guid}", DeleteContract);
+        contracts.MapPut("/{contractId:guid}/name", RenameContract);
+        contracts.MapDelete("/{contractId:guid}", MoveToTrash);
+        contracts.MapPost("/{contractId:guid}/restore", RestoreContract);
+        contracts.MapDelete("/{contractId:guid}/permanent", DeletePermanently);
         contracts.MapGet("/{contractId:guid}/audit", GetAudit);
         contracts.MapGet("/{contractId:guid}/shares", GetShares);
         contracts.MapPost("/{contractId:guid}/shares", Share);
@@ -86,11 +90,33 @@ internal static class ContractEndpoints
     private static async Task<Ok<CreatedContract>> AddVersion(Guid contractId, CreateContractRequest request, ContractUploadService uploads, CancellationToken cancellationToken) =>
         TypedResults.Ok(await uploads.AddVersionAsync(contractId, request.UploadId, request.FileName, cancellationToken));
 
-    private static async Task<NoContent> DeleteContract(Guid contractId, ContractCommands commands, CancellationToken cancellationToken)
+    private static async Task<NoContent> RenameContract(Guid contractId, RenameRequest request, ContractCommands commands, CancellationToken cancellationToken)
     {
-        await commands.DeleteAsync(contractId, cancellationToken);
+        await commands.RenameAsync(contractId, request.Name, cancellationToken);
         return TypedResults.NoContent();
     }
+
+    // CR-CTR-001: DELETE moves to the trash; /permanent removes from the trash for good.
+    private static async Task<NoContent> MoveToTrash(Guid contractId, ContractCommands commands, CancellationToken cancellationToken)
+    {
+        await commands.MoveToTrashAsync(contractId, cancellationToken);
+        return TypedResults.NoContent();
+    }
+
+    private static async Task<NoContent> RestoreContract(Guid contractId, ContractCommands commands, CancellationToken cancellationToken)
+    {
+        await commands.RestoreAsync(contractId, cancellationToken);
+        return TypedResults.NoContent();
+    }
+
+    private static async Task<NoContent> DeletePermanently(Guid contractId, ContractCommands commands, CancellationToken cancellationToken)
+    {
+        await commands.DeletePermanentlyAsync(contractId, cancellationToken);
+        return TypedResults.NoContent();
+    }
+
+    private static async Task<Ok<List<TrashItem>>> ListTrash(ContractQueries queries, CancellationToken cancellationToken) =>
+        TypedResults.Ok(await queries.ListTrashAsync(cancellationToken));
 
     private static async Task<Ok<List<AuditEntry>>> GetAudit(Guid contractId, AuditLog audit, CancellationToken cancellationToken) =>
         TypedResults.Ok(await audit.ListAsync(contractId, cancellationToken));

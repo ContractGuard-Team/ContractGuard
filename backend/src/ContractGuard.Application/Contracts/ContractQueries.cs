@@ -159,23 +159,58 @@ public sealed class ContractQueries(
             analysis.Value.WorkerEnabled);
     }
 
+    // CR-CTR-001: the trash of the current workspace. Like delete and restore it is Owner only (ContractAccess.IsOwner):
+    // a member a contract was shared with loses it from view and does not see it here.
+    public async Task<List<TrashItem>> ListTrashAsync(CancellationToken cancellationToken)
+    {
+        var me = workspace.UserId;
+        var organizationOwner = workspace.OrganizationId is not null && workspace.IsOrganizationOwner;
+        var rows = await db.Contracts.IgnoreQueryFilters([QueryFilters.NotDeleted])
+            .Where(c => c.DeletedAt != null && (c.OwnerUserAccountId == me || (organizationOwner && c.OrganizationId == workspace.OrganizationId)))
+            .OrderByDescending(c => c.DeletedAt)
+            .Select(c => new
+            {
+                c.ContractId,
+                c.ContractName,
+                OriginalFileName = c.Versions.OrderByDescending(v => v.VersionNumber).Select(v => v.OriginalFileName).First(),
+                DeletedAt = c.DeletedAt!.Value
+            })
+            .ToListAsync(cancellationToken);
+        return rows.Select(r => new TrashItem(r.ContractId, r.ContractName, r.OriginalFileName, r.DeletedAt, r.DeletedAt + Contract.TrashRetention)).ToList();
+    }
+
     public async Task<ContractFileLink> GetFileLinkAsync(Guid contractId, Guid contractVersionId, CancellationToken cancellationToken)
     {
         var file = await db.ContractVersions
             .Where(v => v.ContractId == contractId && v.ContractVersionId == contractVersionId)
-            .Select(v => new { v.SourceFileKey, v.OriginalFileName, v.FileType })
+            .Join(db.Contracts, v => v.ContractId, c => c.ContractId, (v, c) => new
+            {
+                v.SourceFileKey, v.OriginalFileName, v.FileType, v.VersionNumber, c.OrganizationId, c.OwnerUserAccountId
+            })
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw NotFound("Contract version");
 
-        // Checked here because the browser would otherwise open the storage's own XML error page.
-        if (await storage.GetSizeAsync(file.SourceFileKey, cancellationToken) is null)
+        // The worker deletes the quarantine file once it reports `completed`; if the result was then rejected
+        // the version still points there, while the worker's checked copy is in clean/.
+        var key = file.SourceFileKey;
+        if (await storage.GetSizeAsync(key, cancellationToken) is null)
         {
-            throw NotFound("Contract file");
+            key = AnalysisStorageKeys.CleanKey(
+                AnalysisStorageKeys.WorkspaceSegment(file.OrganizationId, file.OwnerUserAccountId),
+                contractId,
+                file.VersionNumber,
+                Path.GetExtension(file.OriginalFileName).ToLowerInvariant());
+
+            // Checked here because the browser would otherwise open the storage's own XML error page.
+            if (await storage.GetSizeAsync(key, cancellationToken) is null)
+            {
+                throw NotFound("Contract file");
+            }
         }
 
         // The type comes from the checked upload, not from the object, so a file can only be served as what it passed as.
         var url = await storage.CreateDownloadUrlAsync(
-            file.SourceFileKey,
+            key,
             file.OriginalFileName,
             FileTypeDetector.ContentTypeOf(file.FileType),
             FileLinkLifetime,

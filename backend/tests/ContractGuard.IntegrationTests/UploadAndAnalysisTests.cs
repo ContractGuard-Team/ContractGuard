@@ -469,10 +469,92 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
                     Ct);
             }
 
-            await Scenario.StartAnalysisAsync(client, contractId, versionId);
+            var secondJob = await Scenario.StartAnalysisAsync(client, contractId, versionId);
 
             Assert.True(factory.Storage.Exists(sourceKey));
             Assert.Equal("%PDF-1.7 checked copy", factory.Storage.GetText(sourceKey));
+            using var second = JsonDocument.Parse(factory.Storage.GetText($"results/{secondJob}/request.json"));
+            Assert.Equal(sourceKey, second.RootElement.GetProperty("source_file_key").GetString());
+        }
+    }
+
+    [Fact]
+    public async Task Rerun_after_a_completed_analysis_hands_the_worker_a_quarantine_copy()
+    {
+        // After an accepted result the version points at clean/, which the worker may not read (docs/07 §2).
+        var (client, userId, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            var firstJob = await Scenario.StartAnalysisAsync(client, contractId, versionId);
+            using var request = JsonDocument.Parse(factory.Storage.GetText($"results/{firstJob}/request.json"));
+            var quarantineKey = request.RootElement.GetProperty("source_file_key").GetString()!;
+            var cleanKey = request.RootElement.GetProperty("clean_file_key").GetString()!;
+            factory.Storage.PutBytes(cleanKey, [.. "%PDF-1.7 checked copy"u8]);
+            await factory.Storage.DeleteAsync(quarantineKey, Ct); // what the worker does after `completed`
+            await using (var scope = factory.CreateSystemScope())
+            {
+                var version = await scope.ServiceProvider.GetRequiredService<AppDbContext>().ContractVersions.SingleAsync(v => v.ContractVersionId == versionId, Ct);
+                version.RecordDocumentInfo(1, cleanKey);
+                await scope.ServiceProvider.GetRequiredService<AppDbContext>().SaveChangesAsync(Ct);
+            }
+
+            await Scenario.CompleteJobAsync(factory, firstJob, contractId);
+            var secondJob = await Scenario.StartAnalysisAsync(client, contractId, versionId);
+
+            using var second = JsonDocument.Parse(factory.Storage.GetText($"results/{secondJob}/request.json"));
+            var input = second.RootElement.GetProperty("source_file_key").GetString()!;
+            Assert.Equal($"quarantine/{userId}/{versionId}.pdf", input);
+            Assert.Equal("%PDF-1.7 checked copy", factory.Storage.GetText(input));
+            Assert.True(factory.Storage.Exists(cleanKey));
+        }
+    }
+
+    [Fact]
+    public async Task Rerun_without_any_stored_file_is_refused_without_starting_a_job()
+    {
+        var (client, _, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            var firstJob = await Scenario.StartAnalysisAsync(client, contractId, versionId);
+            using var request = JsonDocument.Parse(factory.Storage.GetText($"results/{firstJob}/request.json"));
+            await factory.Storage.DeleteAsync(request.RootElement.GetProperty("source_file_key").GetString()!, Ct);
+            await using (var scope = factory.CreateSystemScope())
+            {
+                await scope.ServiceProvider.GetRequiredService<AnalysisResultHandler>().HandleAsync(
+                    new AnalysisResultMessage(AnalysisEventTypes.Failed, firstJob, null, null, "NoSuchKey", "ERR-AI-002"),
+                    Ct);
+            }
+
+            var published = factory.Queue.Published.Count;
+            await ApiAssert.ProblemAsync(
+                await client.PutAsync($"/contracts/{contractId}/versions/{versionId}/context", Scenario.Context),
+                HttpStatusCode.Conflict,
+                "ERR-GEN-FILE-MISSING");
+            Assert.Equal(published, factory.Queue.Published.Count);
+            var detail = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
+            Assert.Equal(firstJob, detail.GetProperty("latestJob").GetProperty("jobId").GetGuid());
+            Assert.NotEqual("analyzing", detail.GetProperty("approvalStatus").GetString());
+        }
+    }
+
+    [Fact]
+    public async Task Link_to_a_file_falls_back_to_the_checked_copy()
+    {
+        var (client, userId, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            await using (var scope = factory.CreateSystemScope())
+            {
+                var version = await scope.ServiceProvider.GetRequiredService<AppDbContext>().ContractVersions.SingleAsync(v => v.ContractVersionId == versionId, Ct);
+                await factory.Storage.DeleteAsync(version.SourceFileKey, Ct);
+            }
+
+            factory.Storage.PutBytes($"clean/personal-{userId}/{contractId}/v1/source.pdf", Scenario.PdfBytes);
+            var link = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}/versions/{versionId}/file"));
+            Assert.StartsWith($"http://storage.test/clean/personal-{userId}/{contractId}/v1/source.pdf", link.GetProperty("url").GetString(), StringComparison.Ordinal);
         }
     }
 

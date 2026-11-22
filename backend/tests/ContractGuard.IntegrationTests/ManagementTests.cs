@@ -1,4 +1,5 @@
 using System.Net;
+using ContractGuard.Application.Contracts;
 using ContractGuard.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -269,7 +270,114 @@ public sealed class ManagementTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Deleting_a_contract_removes_its_files_and_every_row()
+    public async Task Deleting_moves_to_the_trash_and_restore_brings_everything_back()
+    {
+        var (owner, _, _) = await Scenario.SignedInUserAsync(factory);
+        var (member, _, memberEmail) = await Scenario.SignedInUserAsync(factory);
+        using (owner)
+        using (member)
+        {
+            var (contractId, _, jobId) = await Scenario.AnalyzedContractAsync(factory, owner);
+            ApiAssert.Status(await owner.PostAsync($"/contracts/{contractId}/shares", new { email = memberEmail }), HttpStatusCode.NoContent);
+
+            ApiAssert.Status(await owner.DeleteAsync($"/contracts/{contractId}"), HttpStatusCode.NoContent);
+
+            // Gone from every view at once, for the owner and for whoever it was shared with; files are kept.
+            await ApiAssert.ProblemAsync(await owner.GetAsync($"/contracts/{contractId}"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
+            await ApiAssert.ProblemAsync(await member.GetAsync($"/contracts/{contractId}"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
+            await ApiAssert.ProblemAsync(await owner.GetAsync($"/jobs/{jobId}/result"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
+            Assert.Equal(0, (await ApiAssert.JsonAsync(await owner.GetAsync("/contracts"))).GetProperty("total").GetInt32());
+            Assert.True(factory.Storage.Exists($"results/{jobId}/extraction.json"));
+
+            // Only the owner sees it in the trash, with the date it will be purged.
+            var trash = await ApiAssert.JsonAsync(await owner.GetAsync("/contracts/trash"));
+            Assert.Equal(contractId, trash[0].GetProperty("contractId").GetGuid());
+            Assert.Equal("hop-dong.pdf", trash[0].GetProperty("originalFileName").GetString());
+            var deletedAt = trash[0].GetProperty("deletedAt").GetDateTimeOffset();
+            Assert.Equal(deletedAt.AddDays(30), trash[0].GetProperty("purgeAt").GetDateTimeOffset());
+            Assert.Equal(0, (await ApiAssert.JsonAsync(await member.GetAsync("/contracts/trash"))).GetArrayLength());
+            await ApiAssert.ProblemAsync(await member.PostAsync($"/contracts/{contractId}/restore"), HttpStatusCode.Forbidden, "ERR-SEC-001");
+            await ApiAssert.ProblemAsync(await member.DeleteAsync($"/contracts/{contractId}/permanent"), HttpStatusCode.Forbidden, "ERR-SEC-001");
+
+            // A contract that is not in the trash cannot be restored or purged.
+            var (otherId, _) = await Scenario.UploadContractAsync(factory, owner);
+            await ApiAssert.ProblemAsync(await owner.PostAsync($"/contracts/{otherId}/restore"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
+            await ApiAssert.ProblemAsync(await owner.DeleteAsync($"/contracts/{otherId}/permanent"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
+
+            ApiAssert.Status(await owner.PostAsync($"/contracts/{contractId}/restore"), HttpStatusCode.NoContent);
+            var back = await ApiAssert.JsonAsync(await owner.GetAsync($"/contracts/{contractId}"));
+            Assert.Equal(jobId, back.GetProperty("completedJobId").GetGuid());
+            ApiAssert.Status(await member.GetAsync($"/contracts/{contractId}"), HttpStatusCode.OK);
+            Assert.Equal(0, (await ApiAssert.JsonAsync(await owner.GetAsync("/contracts/trash"))).GetArrayLength());
+            var log = await ApiAssert.JsonAsync(await owner.GetAsync($"/contracts/{contractId}/audit"));
+            var actions = log.EnumerateArray().Select(e => e.GetProperty("action").GetString()).ToList();
+            Assert.Contains("trashed", actions);
+            Assert.Contains("restored", actions);
+        }
+    }
+
+    [Fact]
+    public async Task A_contract_being_analyzed_cannot_go_to_the_trash()
+    {
+        var (client, _, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            await Scenario.StartAnalysisAsync(client, contractId, versionId);
+            await ApiAssert.ProblemAsync(await client.DeleteAsync($"/contracts/{contractId}"), HttpStatusCode.Conflict, "ERR-CTR-003");
+        }
+    }
+
+    [Fact]
+    public async Task Organization_owner_sees_and_restores_the_trash_of_organization_contracts()
+    {
+        var (owner, _, _) = await Scenario.SignedInUserAsync(factory);
+        var (member, _, memberEmail) = await Scenario.SignedInUserAsync(factory);
+        using (owner)
+        using (member)
+        {
+            var organizationId = await OrganizationWithMemberAsync(owner, member, memberEmail);
+            var (contractId, _) = await Scenario.UploadContractAsync(factory, member, organizationId);
+            ApiAssert.Status(await member.DeleteAsync($"/contracts/{contractId}", organizationId), HttpStatusCode.NoContent);
+
+            // Not in the owner's personal trash: the trash belongs to the workspace.
+            Assert.Equal(0, (await ApiAssert.JsonAsync(await owner.GetAsync("/contracts/trash"))).GetArrayLength());
+            var trash = await ApiAssert.JsonAsync(await owner.GetAsync("/contracts/trash", organizationId));
+            Assert.Equal(contractId, trash[0].GetProperty("contractId").GetGuid());
+            ApiAssert.Status(await owner.PostAsync($"/contracts/{contractId}/restore", null, organizationId), HttpStatusCode.NoContent);
+            ApiAssert.Status(await member.GetAsync($"/contracts/{contractId}", organizationId), HttpStatusCode.OK);
+        }
+    }
+
+    [Fact]
+    public async Task Rename_is_for_the_owner_and_is_logged()
+    {
+        var (owner, _, _) = await Scenario.SignedInUserAsync(factory);
+        var (member, _, memberEmail) = await Scenario.SignedInUserAsync(factory);
+        using (owner)
+        using (member)
+        {
+            var (contractId, _) = await Scenario.UploadContractAsync(factory, owner);
+            ApiAssert.Status(await owner.PostAsync($"/contracts/{contractId}/shares", new { email = memberEmail }), HttpStatusCode.NoContent);
+
+            ApiAssert.Status(await owner.PutAsync($"/contracts/{contractId}/name", new { name = "  Hợp đồng thuê kho 2026  " }), HttpStatusCode.NoContent);
+            var detail = await ApiAssert.JsonAsync(await owner.GetAsync($"/contracts/{contractId}"));
+            Assert.Equal("Hợp đồng thuê kho 2026", detail.GetProperty("contractName").GetString());
+            var library = await ApiAssert.JsonAsync(await owner.GetAsync("/contracts?search=thuê kho"));
+            Assert.Equal(1, library.GetProperty("total").GetInt32());
+
+            await ApiAssert.ProblemAsync(await owner.PutAsync($"/contracts/{contractId}/name", new { name = "   " }), HttpStatusCode.BadRequest, "ERR-GEN-VALIDATION");
+            await ApiAssert.ProblemAsync(await owner.PutAsync($"/contracts/{contractId}/name", new { name = new string('a', 301) }), HttpStatusCode.BadRequest, "ERR-GEN-VALIDATION");
+            await ApiAssert.ProblemAsync(await member.PutAsync($"/contracts/{contractId}/name", new { name = "Tên khác" }), HttpStatusCode.Forbidden, "ERR-SEC-001");
+
+            var log = await ApiAssert.JsonAsync(await owner.GetAsync($"/contracts/{contractId}/audit"));
+            var renamed = log.EnumerateArray().Single(e => e.GetProperty("action").GetString() == "renamed");
+            Assert.Equal("hop-dong -> Hợp đồng thuê kho 2026", renamed.GetProperty("detail").GetString());
+        }
+    }
+
+    [Fact]
+    public async Task Deleting_for_good_removes_its_files_and_every_row()
     {
         var (client, _, _) = await Scenario.SignedInUserAsync(factory);
         using (client)
@@ -285,6 +393,7 @@ public sealed class ManagementTests(ApiFactory factory)
             Assert.True(factory.Storage.Exists($"results/{jobId}/extraction.json"));
 
             ApiAssert.Status(await client.DeleteAsync($"/contracts/{contractId}"), HttpStatusCode.NoContent);
+            ApiAssert.Status(await client.DeleteAsync($"/contracts/{contractId}/permanent"), HttpStatusCode.NoContent);
 
             Assert.False(factory.Storage.Exists(sourceKey));
             Assert.False(factory.Storage.Exists($"results/{jobId}/extraction.json"));
@@ -295,6 +404,37 @@ public sealed class ManagementTests(ApiFactory factory)
             Assert.False(await db.Findings.AnyAsync(f => f.AnalysisRunId == jobId, Ct));
             Assert.False(await db.AuditEvents.IgnoreQueryFilters().AnyAsync(e => e.ContractId == contractId, Ct));
             await ApiAssert.ProblemAsync(await client.GetAsync($"/contracts/{contractId}"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
+        }
+    }
+
+    [Fact]
+    public async Task The_purge_job_deletes_only_what_stayed_in_the_trash_for_30_days()
+    {
+        var (client, _, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (expiredId, _, expiredJob) = await Scenario.AnalyzedContractAsync(factory, client);
+            var (recentId, _) = await Scenario.UploadContractAsync(factory, client);
+            var (keptId, _) = await Scenario.UploadContractAsync(factory, client);
+            ApiAssert.Status(await client.DeleteAsync($"/contracts/{expiredId}"), HttpStatusCode.NoContent);
+            ApiAssert.Status(await client.DeleteAsync($"/contracts/{recentId}"), HttpStatusCode.NoContent);
+
+            await using (var scope = factory.CreateSystemScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var longAgo = DateTimeOffset.UtcNow.AddDays(-31);
+                await db.Contracts.IgnoreQueryFilters().Where(c => c.ContractId == expiredId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.DeletedAt, longAgo), Ct);
+                var purged = await scope.ServiceProvider.GetRequiredService<ContractPurger>().PurgeExpiredAsync(Ct);
+                Assert.True(purged >= 1);
+            }
+
+            await using var check = factory.CreateSystemScope();
+            var rows = check.ServiceProvider.GetRequiredService<AppDbContext>().Contracts.IgnoreQueryFilters();
+            Assert.False(await rows.AnyAsync(c => c.ContractId == expiredId, Ct));
+            Assert.True(await rows.AnyAsync(c => c.ContractId == recentId && c.DeletedAt != null, Ct));
+            Assert.True(await rows.AnyAsync(c => c.ContractId == keptId && c.DeletedAt == null, Ct));
+            Assert.False(factory.Storage.Exists($"results/{expiredJob}/extraction.json"));
         }
     }
 

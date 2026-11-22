@@ -81,11 +81,11 @@ test("a contract goes from upload to report, chat, new version and deletion", as
   await expect(page.getByText("Bạn đang xem phiên bản cũ V1.", { exact: false })).toBeVisible();
   await expect(page.getByRole("meter", { name: "Điểm rủi ro tổng" })).toBeVisible();
 
-  // F-CTR-006: permanent deletion, then the contract is gone.
+  // F-CTR-006 with CR-CTR-001: to the trash, then the contract is gone from the library.
   await page.goto(`/contracts/${contractId}?view=versions`);
   await context.getByRole("button", { name: "Đóng" }).click(); // V2 still asks for its context on arrival.
-  await page.getByRole("button", { name: "Xóa vĩnh viễn hợp đồng này" }).click();
-  await page.getByRole("dialog", { name: "Xóa vĩnh viễn hợp đồng?" }).getByRole("button", { name: "Xóa vĩnh viễn" }).click();
+  await page.getByRole("button", { name: "Chuyển vào thùng rác" }).click();
+  await page.getByRole("dialog", { name: "Chuyển hợp đồng vào thùng rác?" }).getByRole("button", { name: "Chuyển vào thùng rác" }).click();
   await expect(page).toHaveURL(/\/contracts$/);
   await expect(page.getByText("Chưa có hợp đồng nào.", { exact: false })).toBeVisible();
   const response = await page.request.get(`/api/v1/contracts/${contractId}`);
