@@ -185,7 +185,12 @@ public sealed class ContractQueries(
             .Where(v => v.ContractId == contractId && v.ContractVersionId == contractVersionId)
             .Join(db.Contracts, v => v.ContractId, c => c.ContractId, (v, c) => new
             {
-                v.SourceFileKey, v.OriginalFileName, v.FileType, v.VersionNumber, c.OrganizationId, c.OwnerUserAccountId
+                v.SourceFileKey,
+                v.OriginalFileName,
+                v.FileType,
+                v.VersionNumber,
+                c.OrganizationId,
+                c.OwnerUserAccountId
             })
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw NotFound("Contract version");
