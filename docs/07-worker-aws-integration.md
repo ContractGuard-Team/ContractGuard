@@ -250,3 +250,14 @@ Bỏ 4 trường tùy chọn mà backend không lưu, không dùng: `document.is
 
 **Thứ tự deploy:** worker ngừng gửi trước (nhánh `feat/chatbotAI`: `orchestration/extraction.py`, `common/schemas/business/outbound.py`), rồi mới deploy backend. Backend mới từ chối kết quả còn các trường này (`additionalProperties: false`).
 
+
+## 14. Lỗi gặp khi chạy thật trên staging (2026-11-22)
+
+| Lỗi | Nguyên nhân | Sửa |
+|---|---|---|
+| Kết quả bị từ chối vì `is_scanned`, `output_language`, `tenant_id` | EC2 chạy image `langgraph` cũ | `git pull` + build lại trên EC2 (§13) |
+| `ValueError ... does not follow a cut clause` sau agent-3 | Agent 1 gắn nhầm `continuation` cho điều khoản đầu tiên; `_merge_chunks` làm hỏng cả job | Repo AI `a18836f5`: cờ sai không làm hỏng job (id mới = điều khoản riêng, id đã có = nối chữ) |
+| `NoSuchKey` khi phân tích lại | Worker xóa `quarantine/` ngay sau khi gửi `completed`, trước khi backend chấp nhận; kết quả bị từ chối thì phiên bản trỏ vào file đã mất | Backend `AnalysisStarter.RestoreSourceAsync`: file quarantine mất mà bản `clean/` còn thì chép lại trước khi gửi job (worker chỉ được đọc `quarantine/*`) |
+| `TransientModelError` ở agent-3, thử lại hỏng sau ~2 s | Nhiều khả năng 429 TPM: OpenAI tính `max_output_tokens` (128k) vào giới hạn mỗi phút | Repo AI nhánh `fix/model-limits`: agent-2 64k, agent-3 32k, chat 4k + reasoning low; SDK `max_retries=5` (chờ theo `Retry-After`); log ghi `status`/`code` của lỗi |
+
+Còn lại, phía AI tự xử lý (không làm hỏng job, nhưng agent gần như không tra được văn bản pháp luật): `supabase_select` `APIError`, `postgres_query` `IntegrationNotConfigured`, `s3_list_objects`/`s3_get_object` `PermissionError` (`MCP_S3_BUCKETS`). Tool `partner_document` đọc `clean_file_key` bị `AccessDenied` vì role chỉ được đọc `quarantine/*`; agent vẫn đọc được bằng `source_file_key`.

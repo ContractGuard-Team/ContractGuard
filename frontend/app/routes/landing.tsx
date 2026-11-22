@@ -230,7 +230,12 @@ export default function Landing() {
       <footer className="border-t border-rule">
         <div className={`${container} flex flex-col gap-4 py-10 text-body text-ink-muted sm:flex-row sm:items-baseline sm:justify-between`}>
           <Logo />
-          <p className="max-w-[60ch]">ContractGuard chỉ ra rủi ro tiềm ẩn để bạn xem xét, không thay thế tư vấn pháp lý. © 2026 ContractGuard.</p>
+          <p className="max-w-[60ch]">
+            ContractGuard chỉ ra rủi ro tiềm ẩn để bạn xem xét, không thay thế tư vấn pháp lý. © 2026 ContractGuard.{" "}
+            <Link to="/privacy" className="underline underline-offset-4 hover:text-ink">
+              Chính sách quyền riêng tư
+            </Link>
+          </p>
         </div>
       </footer>
     </div>
