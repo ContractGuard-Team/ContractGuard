@@ -7,6 +7,9 @@ public sealed class Contract
 {
     public const int NameMaxLength = 300;
 
+    // CR-CTR-001: a deleted contract stays in the trash this long, then it is purged for good.
+    public static readonly TimeSpan TrashRetention = TimeSpan.FromDays(30);
+
     // User transitions of SRS §13.2 (TR-CTR-004, 005, 006, 008, 009).
     // System transitions (start, complete, fail analysis) have their own methods.
     private static readonly Dictionary<ApprovalStatus, ApprovalStatus[]> UserTransitions = new()
@@ -35,6 +38,10 @@ public sealed class Contract
     public ApprovalStatus? StatusBeforeAnalysis { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    // Set while the contract is in the trash (CR-CTR-001); the query filters then hide it everywhere else.
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public Guid? DeletedByUserAccountId { get; private set; }
     public IReadOnlyCollection<ContractVersion> Versions => _versions;
 
     public ContractVersion LatestVersion => _versions.MaxBy(v => v.VersionNumber)
@@ -58,8 +65,27 @@ public sealed class Contract
 
     public void Rename(string name, DateTimeOffset now)
     {
-        ContractName = ValidateName(name);
+        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > NameMaxLength)
+        {
+            throw new DomainException(ErrorCodes.Validation, $"The name is required, at most {NameMaxLength} characters.");
+        }
+
+        ContractName = name.Trim();
         UpdatedAt = now;
+    }
+
+    // CR-CTR-001. Not while an analysis runs: the worker would write results for a hidden job.
+    public void MoveToTrash(Guid userAccountId, DateTimeOffset now)
+    {
+        EnsureNotAnalyzing();
+        DeletedAt = now;
+        DeletedByUserAccountId = userAccountId;
+    }
+
+    public void RestoreFromTrash()
+    {
+        DeletedAt = null;
+        DeletedByUserAccountId = null;
     }
 
     // F-CTR-005: a new version cannot be uploaded while an analysis runs (ERR-CTR-003).

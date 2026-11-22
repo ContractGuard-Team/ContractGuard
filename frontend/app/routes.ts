@@ -14,6 +14,7 @@ export default [
   layout("routes/app-layout.tsx", [
     route("contracts", "routes/contracts.tsx"),
     route("contracts/new", "routes/contracts-new.tsx"),
+    route("contracts/trash", "routes/contracts-trash.tsx"),
     route("contracts/:contractId", "routes/contract-detail.tsx"),
     route("organization", "routes/organization.tsx"),
     route("organizations/new", "routes/organization-new.tsx"),

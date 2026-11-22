@@ -25,7 +25,7 @@ Tên bucket, queue, quyền IAM trên AWS thật và cách chạy worker trên E
 | 1 | Worker đọc `analysis-requests`, ghi `extraction.v2` lên S3, gửi `progress`/`completed`/`failed` lên `analysis-results` | `contracts/queue-messages.v1.schema.json`, `contracts/analysis-request.v1.schema.json`, `contracts/extraction.v2.schema.json` | Gửi job (`AnalysisStarter`), nhận và kiểm tra (`AnalysisResultHandler`, `ExtractionConsistencyValidator`), lưu (`AnalysisResultProcessor`) |
 | 2 | Gửi khối `scoring` (mới, xem §3.1) | `extraction.v2.schema.json` → `scoring` | Kiểm tra luật điểm, lưu, hiển thị thước rủi ro, lọc và sắp xếp thư viện theo điểm, đưa vào báo cáo |
 | 3 | Chatbot: worker trả lời qua SQS (`docs/04` C6, đổi SD-14 A) | Đọc `chat-requests`, trả `chat_answered` (`docs/07` §10, `contracts/chat-request.v1.schema.json`) | Endpoint SSE, lưu lịch sử chung, lọc trích dẫn sai, UI stream và nhảy tới điều khoản; `WorkerChatResponder` gửi câu hỏi và chờ câu trả lời |
-| 4 | Worker xóa bản trong `quarantine/` sau khi ghi `clean/` | SD-07 | Khi xóa hợp đồng, backend chỉ biết key mà version đang trỏ tới, cùng key `clean/` tính được (`ContractCommands.DeleteAsync`) |
+| 4 | Worker xóa bản trong `quarantine/` sau khi ghi `clean/` | SD-07 | Khi xóa hợp đồng, backend chỉ biết key mà version đang trỏ tới, cùng các key `clean/` và bản chép cho lần chạy lại tính được (`ContractPurger.PurgeAsync`, khi xóa vĩnh viễn từ thùng rác hoặc sau 30 ngày) |
 
 Không còn việc embedding: từ 2026-11-21 `extraction.v2` bỏ trường `embeddings` vì chat đi qua worker (`docs/07` §13). Worker gửi trường này thì backend từ chối cả kết quả.
 

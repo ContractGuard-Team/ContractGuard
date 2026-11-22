@@ -10,7 +10,7 @@ tier: 2
 output_language: vi
 upstream:
   - "02-PRD.md"
-version: "1.4"
+version: "1.5"
 status: REVIEW
 authors:
   - "Agent"
@@ -653,10 +653,10 @@ Bảng dưới bổ sung phần SRS thêm vào cho từng feature trong phạm v
 | F-SHARE-001 | UC-SHARE-001, UC-SHARE-002 | BR-ORG-003, BR-SHARE-001, BR-SHARE-002, BR-SHARE-003, BR-SHARE-004 | FR-SHARE-001, FR-SHARE-002, FR-SHARE-003, FR-SHARE-004, FR-SHARE-005, FR-SHARE-006, FR-SHARE-007, FR-SHARE-008, FR-SHARE-009, FR-SHARE-010 | Owner tổ chức có mọi quyền của Owner hợp đồng trên mọi hợp đồng của tổ chức (DEC-PRD-017). FR-SHARE-005 đã DEPRECATED (DEC-PRD-018) |
 | F-CTR-001 | UC-CTR-001, UC-CTR-006 | BR-CTR-001, BR-ORG-004, BR-RISK-011 | FR-CTR-001, FR-CTR-002, FR-CTR-004, FR-CTR-005, FR-UPL-002, FR-UPL-004, FR-UPL-005 | Giới hạn ≤ 20 MB, ≤ 100 trang (DEC-PRD-014) |
 | F-CTR-002 | UC-ANA-001, UC-CTR-006 | - | FR-ANA-013, FR-CTR-006, FR-CTR-007 | Owner và Member hợp đồng đều sửa được metadata và ngữ cảnh (OQ-SHARE-002) |
-| F-CTR-003 | UC-CTR-002 | BR-ORG-004, BR-SHARE-001 | FR-CTR-008, FR-CTR-009, FR-CTR-010, FR-CTR-011 | Thư viện của Owner tổ chức gồm mọi hợp đồng của tổ chức (DEC-PRD-013) |
+| F-CTR-003 | UC-CTR-002 | BR-ORG-004, BR-SHARE-001 | FR-CTR-008, FR-CTR-009, FR-CTR-010, FR-CTR-011, FR-CTR-022 | Thư viện của Owner tổ chức gồm mọi hợp đồng của tổ chức (DEC-PRD-013). [CHANGE] CR-CTR-001: thêm FR-CTR-022 (đổi tên) |
 | F-CTR-004 | UC-CTR-003 | BR-CTR-002 | FR-CTR-003, FR-CTR-012, FR-CTR-013 | Hệ thống tự chuyển các trạng thái gắn với phân tích, người dùng chuyển các trạng thái còn lại (OQ-CTR-002, OQ-CTR-004); mô hình trạng thái ở §13 |
 | F-CTR-005 | UC-CTR-004 | BR-CTR-003 | FR-CTR-014, FR-CTR-015, FR-CTR-016, FR-CTR-017 | Khi phân tích phiên bản mới, hợp đồng chuyển sang `Đang phân tích`, xong thì `Chờ review` (OQ-CTR-002) |
-| F-CTR-006 | UC-CTR-005 | - | FR-CTR-018, FR-CTR-019 | Phạm vi và thời hạn xóa dữ liệu được làm rõ ở §9.9 |
+| F-CTR-006 | UC-CTR-005 | - | FR-CTR-018, FR-CTR-019, FR-CTR-021 | Phạm vi và thời hạn xóa dữ liệu được làm rõ ở §9.9. [CHANGE] CR-CTR-001: xóa qua thùng rác 30 ngày, thêm FR-CTR-021 (khôi phục) |
 | F-AUD-001 | - | - | FR-AUD-001, FR-AUD-002 | Owner hợp đồng và Owner tổ chức xem được nhật ký (OQ-AUD-001). Thời gian lưu nhật ký ở §9.9 |
 | F-ANA-001 | UC-ANA-001, UC-ANA-002 | BR-DATA-002 | FR-ANA-001, FR-ANA-002, FR-ANA-003, FR-ANA-004, FR-ANA-005, FR-ANA-014, FR-ANA-015, FR-ANA-016, FR-ANA-017 | Mục tiêu thời gian theo SC-GEN-003, SC-GEN-004 (§11.3) |
 | F-ANA-002 | UC-ANA-001 | BR-RISK-006, BR-UPL-001 | FR-ANA-006, FR-ANA-008, FR-ANA-009, FR-ANA-010, FR-ANA-011, FR-ANA-012 | Danh mục 21 loại điều khoản ở §7 |
@@ -700,7 +700,7 @@ Nguồn chung: PS §2.2, §6; PRD §6 (OPS-GEN-001..006), §8 (user stories). C�
 | UC-CTR-002 | Tìm hợp đồng trong thư viện | ACT-GEN-003 | Mở đúng hợp đồng cần xử lý | F-CTR-003 | Must | APPROVED |
 | UC-CTR-003 | Chuyển trạng thái duyệt | ACT-GEN-004 | Cả nhóm biết hợp đồng đang ở bước nào | F-CTR-004 | Must | APPROVED |
 | UC-CTR-004 | Upload phiên bản mới | ACT-GEN-004 | Phân tích bản hợp đồng sau đàm phán | F-CTR-005 | Must | APPROVED |
-| UC-CTR-005 | Xóa vĩnh viễn hợp đồng | ACT-GEN-004 | Dữ liệu hợp đồng không còn trong hệ thống | F-CTR-006 | Must | APPROVED |
+| UC-CTR-005 | Xóa vĩnh viễn hợp đồng | ACT-GEN-004 | Dữ liệu hợp đồng không còn trong hệ thống | F-CTR-006 | Must | REVIEW |
 | UC-CTR-006 | Sửa metadata và ngữ cảnh | ACT-GEN-004 | Thông tin hợp đồng đúng | F-CTR-002, F-CTR-001 | Must | APPROVED |
 | UC-ANA-001 | Phân tích hợp đồng | ACT-GEN-004 | Có kết quả phân tích rủi ro của một phiên bản | F-ANA-001, F-ANA-002, F-RISK-001, F-RISK-002, F-RISK-003, F-SEC-001, F-CTR-002 | Must | APPROVED |
 | UC-ANA-002 | Chạy lại phân tích | ACT-GEN-004 | Kết quả phản ánh ngữ cảnh đã sửa | F-ANA-001 | Must | APPROVED |
@@ -1334,7 +1334,7 @@ Như EF-UPL-001, EF-UPL-002, EF-UPL-003. Khi phân tích phiên bản mới th�
 | Supporting Actors | None |
 | Trigger | Owner hợp đồng chọn xóa hợp đồng |
 | Priority | Must |
-| Status | APPROVED |
+| Status | REVIEW |
 
 ##### Preconditions
 
@@ -1343,12 +1343,18 @@ Như EF-UPL-001, EF-UPL-002, EF-UPL-003. Khi phân tích phiên bản mới th�
 ##### Main Flow
 
 1. Owner hợp đồng chọn xóa hợp đồng.
-2. Hệ thống xóa vĩnh viễn file gốc, dữ liệu trích xuất, embedding, finding và lịch sử chat của mọi phiên bản.
-3. Hệ thống gỡ hợp đồng khỏi thư viện của mọi người dùng.
+2. Hệ thống chuyển hợp đồng vào thùng rác và gỡ nó khỏi thư viện của mọi người dùng.
+3. Sau 30 ngày ở thùng rác, hoặc khi Owner chọn xóa vĩnh viễn từ thùng rác, hệ thống xóa vĩnh viễn file gốc, dữ liệu trích xuất, embedding, finding và lịch sử chat của mọi phiên bản.
 
 ##### Alternative Flows
 
-None.
+###### AF-CTR-005 Khôi phục trong 30 ngày
+
+- **Branches At**: Step 3
+- **Condition**: Owner khôi phục hợp đồng từ thùng rác trước khi xóa vĩnh viễn (FR-CTR-021).
+- **Resulting State**: Hợp đồng trở lại thư viện như trước khi xóa.
+
+[CHANGE] Changed by CR-CTR-001 (2026-11-22): thêm thùng rác 30 ngày.
 
 ##### Exception Flows
 
@@ -2294,9 +2300,11 @@ Các yêu cầu chức năng (`FR`) chuyển từ feature, user story (PRD §7, 
 | FR-CTR-015 | Ngữ cảnh của phiên bản mới | Khi một phiên bản mới được tạo, hệ thống phải điền sẵn ngữ cảnh của phiên bản trước cho phiên bản mới để người dùng xác nhận hoặc sửa trước khi phân tích. | UC-CTR-004 | Must | Test | APPROVED |
 | FR-CTR-016 | Lịch sử phiên bản | Hệ thống phải hiển thị danh sách phiên bản của hợp đồng và cho mở kết quả phân tích của từng phiên bản. | PS §6.2 CON-06 | Must | Test | APPROVED |
 | FR-CTR-017 | Kết quả độc lập theo phiên bản | Nếu phân tích một phiên bản thất bại, thì hệ thống phải giữ nguyên kết quả phân tích của các phiên bản khác. | PRD OPS-GEN-004; PS §6.2 CON-06 | Must | Test | APPROVED |
-| FR-CTR-018 | Xóa vĩnh viễn hợp đồng | Khi Owner hợp đồng xóa hợp đồng, hệ thống phải xóa vĩnh viễn file gốc, dữ liệu trích xuất, embedding, finding, kết quả check, điểm, metadata, ngữ cảnh và lịch sử chat của mọi phiên bản. | PS §6.2 CON-07, §8 (Riêng tư) | Must | Test | APPROVED |
+| FR-CTR-018 | Xóa hợp đồng qua thùng rác | Khi Owner hợp đồng xóa hợp đồng, hệ thống phải chuyển hợp đồng vào thùng rác; khi hợp đồng đã ở thùng rác 30 ngày hoặc Owner chọn xóa vĩnh viễn từ thùng rác, hệ thống phải xóa vĩnh viễn file gốc, dữ liệu trích xuất, embedding, finding, kết quả check, điểm, metadata, ngữ cảnh và lịch sử chat của mọi phiên bản. | PS §6.2 CON-07, §8 (Riêng tư); CR-CTR-001 | Must | Test | REVIEW |
 | FR-CTR-019 | Từ chối xóa của người không phải Owner | Nếu người dùng yêu cầu xóa hợp đồng mà không có vai trò Owner hợp đồng hoặc Owner tổ chức, thì hệ thống phải từ chối yêu cầu. | PS §6.1 bảng vai trò; UC-CTR-005 EF-CTR-001 | Must | Test | APPROVED |
 | FR-CTR-020 | So sánh phiên bản | Khi người dùng chọn so sánh hai phiên bản đã phân tích của một hợp đồng, hệ thống phải hiển thị các điều khoản bị yếu đi và mức thay đổi điểm rủi ro giữa hai phiên bản. | PS §6.7 EXT-01; DEC-GEN-009 | Could | Demonstration | APPROVED |
+| FR-CTR-021 | Khôi phục hợp đồng từ thùng rác | Khi Owner hợp đồng hoặc Owner tổ chức khôi phục một hợp đồng đang ở thùng rác, hệ thống phải đưa hợp đồng về thư viện với mọi phiên bản, kết quả phân tích, lịch sử chat và quyền chia sẻ như trước khi xóa. | CR-CTR-001 | Should | Test | REVIEW |
+| FR-CTR-022 | Đổi tên hợp đồng | Khi Owner hợp đồng hoặc Owner tổ chức đổi tên hợp đồng, hệ thống phải lưu tên mới (1 đến 300 ký tự, bỏ khoảng trắng đầu cuối) và ghi vào nhật ký hoạt động. | CR-CTR-001 | Should | Test | REVIEW |
 | FR-UPL-001 | Nhận diện loại file thật | Hệ thống phải xác định loại file từ nội dung file (magic bytes), không chỉ từ phần mở rộng tên file. | PS §9.1 | Must | Test | APPROVED |
 | FR-UPL-002 | Định dạng cho phép | Nếu loại file thật nằm ngoài danh sách PDF, DOCX, thì hệ thống phải từ chối file và hiển thị lý do. | PS §5, §6.2 CON-01 | Must | Test | REVIEW |
 | FR-UPL-003 | Khớp phần mở rộng | Nếu loại file thật khác với phần mở rộng tên file, thì hệ thống phải từ chối file và hiển thị lý do. | PS §9.1; PRD US-SEC-001 | Must | Test | REVIEW |
@@ -3209,20 +3217,22 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 - **Dependencies**: BR-CTR-003, FR-ANA-005
 - **Notes**: None
 
-#### FR-CTR-018 Xóa vĩnh viễn hợp đồng
+#### FR-CTR-018 Xóa hợp đồng qua thùng rác
 
-- **Statement**: Khi Owner hợp đồng xóa hợp đồng, hệ thống phải xóa vĩnh viễn file gốc, dữ liệu trích xuất, embedding, finding, kết quả check, điểm, metadata, ngữ cảnh và lịch sử chat của mọi phiên bản.
+- **Statement**: Khi Owner hợp đồng xóa hợp đồng, hệ thống phải chuyển hợp đồng vào thùng rác; khi hợp đồng đã ở thùng rác 30 ngày hoặc Owner chọn xóa vĩnh viễn từ thùng rác, hệ thống phải xóa vĩnh viễn file gốc, dữ liệu trích xuất, embedding, finding, kết quả check, điểm, metadata, ngữ cảnh và lịch sử chat của mọi phiên bản.
 - **Priority**: Must
-- **Status**: APPROVED
-- **Source**: PS §6.2 CON-07, §8 (Riêng tư)
-- **Rationale**: Dữ liệu nhạy cảm không còn nằm trong hệ thống.
+- **Status**: REVIEW
+- **Source**: PS §6.2 CON-07, §8 (Riêng tư); CR-CTR-001
+- **Rationale**: Dữ liệu nhạy cảm không còn nằm trong hệ thống, nhưng một lần bấm nhầm không làm mất hợp đồng.
 - **Parent**: F-CTR-006, US-CTR-007, UC-CTR-005
 - **Verification Method**: Test
 - **Acceptance Criteria**:
-  1. Given hợp đồng H có 2 phiên bản đã phân tích và có lịch sử chat, when Owner hợp đồng xóa H, then không còn file, dữ liệu trích xuất, embedding, finding, kết quả check, điểm, metadata, ngữ cảnh hay tin nhắn chat nào của H trong hệ thống.
-  2. Given H đã bị xóa, when bất kỳ người dùng nào xem thư viện, then hệ thống phải không hiển thị H.
+  1. Given H đã bị xóa, when bất kỳ người dùng nào xem thư viện hoặc mở H, then hệ thống phải không hiển thị H, kể cả với người được chia sẻ.
+  2. Given H ở thùng rác, when Owner hợp đồng xem thùng rác, then hệ thống phải hiển thị H cùng ngày xóa vĩnh viễn (ngày xóa + 30 ngày).
+  3. Given hợp đồng H có 2 phiên bản đã phân tích và có lịch sử chat, when Owner chọn xóa vĩnh viễn H từ thùng rác hoặc H đã ở thùng rác 30 ngày, then không còn file, dữ liệu trích xuất, embedding, finding, kết quả check, điểm, metadata, ngữ cảnh hay tin nhắn chat nào của H trong hệ thống.
+  4. Given H đang được phân tích, when Owner yêu cầu xóa H, then hệ thống phải từ chối (ERR-CTR-003).
 - **Dependencies**: BR-SHARE-002
-- **Notes**: Hợp đồng biến mất khỏi giao diện ngay khi xóa; mọi dữ liệu liên quan bị xóa hẳn trong vòng 24 giờ (OQ-DATA-001, NFR-PRIV-001). Nhật ký hoạt động bị xóa cùng hợp đồng (OQ-DATA-002). Owner tổ chức cũng xóa được (DEC-PRD-017).
+- **Notes**: Hợp đồng biến mất khỏi giao diện ngay khi xóa. Nhật ký hoạt động bị xóa cùng hợp đồng khi xóa vĩnh viễn (OQ-DATA-002). Owner tổ chức cũng xóa được (DEC-PRD-017). [CHANGE] Changed by CR-CTR-001 (2026-11-22): xóa vào thùng rác 30 ngày thay vì xóa hẳn trong 24 giờ (OQ-DATA-001).
 
 #### FR-CTR-019 Từ chối xóa của người không phải Owner
 
@@ -3251,6 +3261,37 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
   1. Given V1 quy định thông báo sự cố trong 24 giờ và V2 đổi thành "promptly", when so sánh V1 với V2, then hệ thống phải chỉ ra điều khoản thông báo sự cố bị yếu đi và hiển thị chênh lệch điểm tổng.
 - **Dependencies**: FR-CTR-016
 - **Notes**: Feature Could.
+
+#### FR-CTR-021 Khôi phục hợp đồng từ thùng rác
+
+- **Statement**: Khi Owner hợp đồng hoặc Owner tổ chức khôi phục một hợp đồng đang ở thùng rác, hệ thống phải đưa hợp đồng về thư viện với mọi phiên bản, kết quả phân tích, lịch sử chat và quyền chia sẻ như trước khi xóa.
+- **Priority**: Should
+- **Status**: REVIEW
+- **Source**: CR-CTR-001
+- **Rationale**: Sửa được thao tác xóa nhầm trong thời hạn 30 ngày.
+- **Parent**: F-CTR-006
+- **Verification Method**: Test
+- **Acceptance Criteria**:
+  1. Given H đã phân tích, được chia sẻ cho g@x.vn và đang ở thùng rác, when Owner hợp đồng khôi phục H, then H hiện lại trong thư viện với kết quả cũ và g@x.vn mở được H.
+  2. Given g@x.vn là Member hợp đồng H đang ở thùng rác, when g@x.vn yêu cầu khôi phục H, then hệ thống phải từ chối.
+- **Dependencies**: FR-CTR-018, FR-CTR-019
+- **Notes**: Thùng rác thuộc không gian làm việc: hợp đồng của tổ chức chỉ thấy khi đang ở tổ chức đó.
+
+#### FR-CTR-022 Đổi tên hợp đồng
+
+- **Statement**: Khi Owner hợp đồng hoặc Owner tổ chức đổi tên hợp đồng, hệ thống phải lưu tên mới (1 đến 300 ký tự, bỏ khoảng trắng đầu cuối) và ghi vào nhật ký hoạt động.
+- **Priority**: Should
+- **Status**: REVIEW
+- **Source**: CR-CTR-001
+- **Rationale**: Tên mặc định lấy từ tên file, thường khó đọc và khó tìm (FR-CTR-009).
+- **Parent**: F-CTR-003
+- **Verification Method**: Test
+- **Acceptance Criteria**:
+  1. Given Owner hợp đồng H, when đổi tên H thành "Hợp đồng thuê kho 2026", then thư viện và trang hợp đồng hiển thị tên mới, tìm "thuê kho" ra H, và nhật ký có dòng đổi tên.
+  2. Given tên rỗng hoặc dài hơn 300 ký tự, when lưu, then hệ thống phải từ chối và giữ tên cũ.
+  3. Given g@x.vn là Member hợp đồng H, when g@x.vn đổi tên H, then hệ thống phải từ chối.
+- **Dependencies**: FR-AUD-001
+- **Notes**: Đổi được cả khi đang phân tích vì tên không gửi cho worker.
 
 **Domain `UPL`: upload an toàn**
 
@@ -4911,7 +4952,7 @@ erDiagram
 
 | Data Category | Entity/Table | Retention Period | Retention Basis | Deletion Trigger | Deletion Method | Archive Rule | Authorized Role | Verification |
 |---|---|---|---|---|---|---|---|---|
-| Contract data (file gốc, ngữ cảnh, metadata, kết quả phân tích, embedding, cảnh báo, chat) | TBL-DATA-005..017, TBL-DATA-020, TBL-DATA-022 | Đến khi Owner hợp đồng xóa, hoặc Owner tổ chức xóa với hợp đồng của tổ chức | Business (DEC-PRD-013) | FR-CTR-018 | Hard Delete; ẩn khỏi giao diện ngay, xóa hẳn trong vòng 24 giờ (OQ-DATA-001) | Không lưu trữ | Owner hợp đồng; Owner tổ chức với hợp đồng của tổ chức | Test |
+| Contract data (file gốc, ngữ cảnh, metadata, kết quả phân tích, embedding, cảnh báo, chat) | TBL-DATA-005..017, TBL-DATA-020, TBL-DATA-022 | Đến khi Owner hợp đồng xóa, hoặc Owner tổ chức xóa với hợp đồng của tổ chức | Business (DEC-PRD-013) | FR-CTR-018 | Soft Delete rồi Hard Delete: ẩn khỏi giao diện ngay, nằm ở thùng rác 30 ngày (khôi phục được, FR-CTR-021), rồi xóa hẳn; Owner có thể xóa hẳn sớm hơn. [CHANGE] CR-CTR-001 thay "xóa hẳn trong vòng 24 giờ" (OQ-DATA-001) | Không lưu trữ | Owner hợp đồng; Owner tổ chức với hợp đồng của tổ chức | Test |
 | Activity log | TBL-DATA-018 | Cùng thời gian lưu của hợp đồng (OQ-DATA-002) | Business | Hợp đồng bị xóa | Hard Delete cùng hợp đồng | Không lưu trữ | Hệ thống | Test |
 | Technical logs (gồm log sự kiện bảo mật, có correlation ID) | Ngoài mô hình dữ liệu nghiệp vụ | 30 ngày (OQ-DATA-002) | Technical | Hết hạn lưu | Tự động xóa khi hết hạn | Không lưu trữ | Hệ thống | Inspection |
 | User accounts (kèm không gian cá nhân) | TBL-DATA-002 | Đến khi người dùng yêu cầu xóa (OQ-DATA-003) | Business | Người dùng yêu cầu xóa tài khoản | Hard Delete, xử lý thủ công; không cam kết thời hạn | Không lưu trữ | Nhóm dự án | Inspection |
@@ -5008,7 +5049,7 @@ Các yêu cầu phi chức năng (`NFR`) tinh chỉnh STR-QUAL-001..015 của PR
 | NFR-SEC-006 | Security | Security | Hệ thống phải không để nội dung hợp đồng thay đổi chỉ dẫn của model AI trong phân tích và chatbot. | PS §8 (An toàn AI); PRD STR-QUAL-009, RC-GEN-003; DEC-PRD-016 | 0 lỗi mức Critical trong bộ test prompt injection | Test | Must | APPROVED |
 | NFR-SEC-007 | Security | Security | Hệ thống phải giới hạn mọi truy xuất dữ liệu cho phân tích và chatbot trong hợp đồng và phiên bản đang xử lý cùng cơ sở tri thức. | PS §8 (An toàn AI), §9.2; PRD STR-QUAL-009 | 0 kết quả truy xuất ngoài phạm vi trong bộ kiểm thử | Test | Must | APPROVED |
 | NFR-SEC-008 | Security | Security | Hệ thống phải không gửi dữ liệu khách hàng tới bất kỳ quá trình huấn luyện model nào. | PS §8 (An toàn AI); PRD STR-QUAL-009 | 0 luồng dữ liệu tới huấn luyện model | Inspection | Must | APPROVED |
-| NFR-PRIV-001 | Privacy | Security | Hệ thống phải không còn lưu dữ liệu nào của hợp đồng đã xóa sau 24 giờ kể từ khi xóa. | PS §8 (Riêng tư); PRD STR-QUAL-010 | 0 bản ghi, file, vector hay tin nhắn còn lại | Test | Must | APPROVED |
+| NFR-PRIV-001 | Privacy | Security | Hệ thống phải không còn lưu dữ liệu nào của hợp đồng sau 24 giờ kể từ khi hợp đồng bị xóa vĩnh viễn (Owner xóa từ thùng rác, hoặc hết 30 ngày ở thùng rác). | PS §8 (Riêng tư); PRD STR-QUAL-010; CR-CTR-001 | 0 bản ghi, file, vector hay tin nhắn còn lại | Test | Must | REVIEW |
 | NFR-PRIV-002 | Privacy | Security | Hệ thống phải chỉ xử lý dữ liệu hợp đồng cho các chức năng được đặc tả trong SRS này. | PS §8 (Riêng tư); PRD STR-QUAL-010 | 0 luồng xử lý dữ liệu hợp đồng ngoài các chức năng đã đặc tả | Inspection | Must | APPROVED |
 | NFR-USAB-001 | Usability | Interaction Capability | Hệ thống phải cung cấp mọi nhãn và thông báo giao diện bằng cả tiếng Việt và tiếng Anh. | PS §5, §8; PRD STR-QUAL-013 | 100% chuỗi giao diện có bản tiếng Việt và tiếng Anh | Test | Must | APPROVED |
 | NFR-USAB-002 | Usability | Interaction Capability | Hệ thống phải cho dùng đầy đủ chức năng trên laptop màn hình 14–15 inch và cho xem dashboard, document viewer, chatbot trên tablet. | PS §8; PD Users; PRD STR-QUAL-013 | Kịch bản demo chạy trọn trên laptop 14–15 inch; xem được kết quả trên tablet | Demonstration | Must | APPROVED |
@@ -5269,18 +5310,18 @@ Các yêu cầu phi chức năng (`NFR`) tinh chỉnh STR-QUAL-001..015 của PR
 
 - **Category**: Privacy
 - **ISO/IEC 25010 Characteristic**: Security
-- **Statement**: Hệ thống phải không còn lưu dữ liệu nào của hợp đồng đã xóa sau 24 giờ kể từ khi xóa.
+- **Statement**: Hệ thống phải không còn lưu dữ liệu nào của hợp đồng sau 24 giờ kể từ khi hợp đồng bị xóa vĩnh viễn (Owner xóa từ thùng rác, hoặc hết 30 ngày ở thùng rác).
 - **Target/Measure**: 0 bản ghi, file, vector hay tin nhắn còn lại
 - **Priority**: Must
-- **Status**: APPROVED
-- **Source**: PS §8 (Riêng tư); PRD STR-QUAL-010
+- **Status**: REVIEW
+- **Source**: PS §8 (Riêng tư); PRD STR-QUAL-010; CR-CTR-001
 - **Rationale**: Xóa hợp đồng là xóa toàn bộ dữ liệu liên quan.
 - **Parent**: STR-QUAL-010
 - **Verification Method**: Test
 - **Acceptance Criteria**:
   1. Given hợp đồng có đủ mọi loại dữ liệu, when xóa và chờ hết thời hạn đã chốt, then tìm kiếm trên mọi nơi lưu trữ phải không thấy dữ liệu nào của hợp đồng.
 - **Dependencies**: FR-CTR-018, CDC-DATA-002
-- **Notes**: None
+- **Notes**: [CHANGE] Changed by CR-CTR-001 (2026-11-22): mốc 24 giờ tính từ lúc xóa vĩnh viễn, không từ lúc chuyển vào thùng rác.
 
 #### NFR-PRIV-002 Giới hạn mục đích xử lý
 
@@ -5891,9 +5932,11 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-CTR-015 | Ngữ cảnh của phiên bản mới | UC-CTR-004 | §8.2 | BG-GEN-004, STR-CTR-001 | F-CTR-005, UC-CTR-004 | F-CTR-005, UC-CTR-004 | Test | APPROVED |
 | FR-CTR-016 | Lịch sử phiên bản | PS §6.2 CON-06 | §8.2 | BG-GEN-004, STR-CTR-001, US-CTR-006 | F-CTR-005, US-CTR-006, UC-CTR-004 | F-CTR-005, UC-CTR-004 | Test | APPROVED |
 | FR-CTR-017 | Kết quả độc lập theo phiên bản | PRD OPS-GEN-004; PS §6.2 CON-06 | §8.2 | BG-GEN-004, STR-CTR-001 | F-CTR-005, UC-CTR-004 | F-CTR-005, UC-CTR-004 | Test | APPROVED |
-| FR-CTR-018 | Xóa vĩnh viễn hợp đồng | PS §6.2 CON-07, §8 (Riêng tư) | §8.2 | BG-GEN-004, STR-SEC-001, US-CTR-007 | F-CTR-006, US-CTR-007, UC-CTR-005 | F-CTR-006, UC-CTR-005 | Test | APPROVED |
+| FR-CTR-018 | Xóa hợp đồng qua thùng rác | PS §6.2 CON-07, §8 (Riêng tư); CR-CTR-001 | §8.2 | BG-GEN-004, STR-SEC-001, US-CTR-007 | F-CTR-006, US-CTR-007, UC-CTR-005 | F-CTR-006, UC-CTR-005 | Test | REVIEW |
 | FR-CTR-019 | Từ chối xóa của người không phải Owner | PS §6.1 bảng vai trò; UC-CTR-005 EF-CTR-001 | §8.2 | BG-GEN-004, STR-SEC-001, US-CTR-007 | F-CTR-006, US-CTR-007, UC-CTR-005 | F-CTR-006, UC-CTR-005 | Test | APPROVED |
 | FR-CTR-020 | So sánh phiên bản | PS §6.7 EXT-01; DEC-GEN-009 | §8.2 | BG-GEN-002, STR-CTR-001, US-CMP-001 | F-CMP-001, US-CMP-001 | F-CMP-001 | Demonstration | APPROVED |
+| FR-CTR-021 | Khôi phục hợp đồng từ thùng rác | CR-CTR-001 | §8.2 | BG-GEN-004 | F-CTR-006 | F-CTR-006 | Test | REVIEW |
+| FR-CTR-022 | Đổi tên hợp đồng | CR-CTR-001 | §8.2 | BG-GEN-004, STR-CTR-001 | F-CTR-003 | F-CTR-003 | Test | REVIEW |
 | FR-UPL-001 | Nhận diện loại file thật | PS §9.1 | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001, US-SEC-001 | F-SEC-001, US-SEC-001, UC-CTR-001 | F-SEC-001, UC-CTR-001 | Test | APPROVED |
 | FR-UPL-002 | Định dạng cho phép | PS §5, §6.2 CON-01 | §8.2 | BG-GEN-001, BG-GEN-003, STR-RISK-001, US-CTR-001 | F-CTR-001, US-CTR-001, UC-CTR-001 | F-CTR-001, UC-CTR-001 | Test | REVIEW |
 | FR-UPL-003 | Khớp phần mở rộng | PS §9.1; PRD US-SEC-001 | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001, US-SEC-001 | F-SEC-001, US-SEC-001, UC-CTR-001 | F-SEC-001, UC-CTR-001 | Test | REVIEW |
@@ -6169,7 +6212,7 @@ Priority: `Must` nghĩa là OQ chặn ít nhất một yêu cầu Must.
 | OQ-ANA-002 | (a) Khi nhiều người xem cùng phiên bản chọn ngôn ngữ khác nhau, phần giải thích của finding hiển thị bằng ngôn ngữ nào; (b) chatbot trả lời bằng ngôn ngữ nào | PS §5 chỉ nêu "theo ngôn ngữ người dùng chọn" | FR-RISK-013, FR-CHAT-001 | Approver | - | Must | CLOSED | 2026-10-26: (a) ngôn ngữ giao diện của người bắt đầu phân tích; (b) ngôn ngữ của câu hỏi |
 | OQ-ANA-003 | (a) Hành vi khi không tách được điều khoản nào; (b) hợp đồng song ngữ có gộp finding trùng không; (c) có cho chạy lại phân tích hoặc upload phiên bản mới khi một lần phân tích khác của cùng hợp đồng đang chạy không; (d) thao tác nào bị chặn khi hợp đồng đang phân tích | Trường hợp biên ở §14.2 | §13.1, §14.2 | Approver | - | Should | CLOSED | 2026-10-26: (a) báo thất bại; (b) không gộp; (c) không cho; (d) chặn chạy lại và upload phiên bản mới |
 | OQ-AUD-001 | Ai được xem nhật ký hoạt động của một hợp đồng (Owner hợp đồng, Member hợp đồng, Owner tổ chức)? | PS §6.2 CON-08 không nêu | FR-AUD-002, §12.3 | Approver | - | Should | CLOSED | 2026-10-26: Owner hợp đồng và Owner tổ chức |
-| OQ-DATA-001 | Sau khi Owner xóa hợp đồng, việc xóa dữ liệu phải hoàn tất trong bao lâu? | PRD US-CTR-007 để chi tiết cho SRS | FR-CTR-018, NFR-PRIV-001, §9.9 | Approver | - | Must | CLOSED | 2026-10-26: ẩn khỏi giao diện ngay, xóa hẳn trong vòng 24 giờ |
+| OQ-DATA-001 | Sau khi Owner xóa hợp đồng, việc xóa dữ liệu phải hoàn tất trong bao lâu? | PRD US-CTR-007 để chi tiết cho SRS | FR-CTR-018, NFR-PRIV-001, §9.9 | Approver | - | Must | CLOSED | 2026-10-26: ẩn khỏi giao diện ngay, xóa hẳn trong vòng 24 giờ. [CHANGE] CR-CTR-001 (2026-11-22): ẩn ngay, ở thùng rác 30 ngày, xóa hẳn trong 24 giờ sau khi xóa vĩnh viễn |
 | OQ-DATA-002 | Thời gian lưu nhật ký hoạt động và log kỹ thuật; nhật ký của hợp đồng đã xóa được giữ hay xóa; có ghi log sự kiện bảo mật (file bị từ chối, truy cập bị từ chối) không? | PS §8 nêu có audit log nhưng chưa nêu thời gian lưu | §9.9, §11.13, §14.1 | Approver | - | Should | CLOSED | 2026-10-26: nhật ký xóa cùng hợp đồng; log kỹ thuật lưu 30 ngày; có log sự kiện bảo mật |
 | OQ-DATA-003 | Có chức năng xóa tài khoản người dùng không? Dữ liệu tài khoản được lưu bao lâu? | Email là dữ liệu cá nhân | §9.9, §12.3, §11.8 | Approver | - | Should | CLOSED | 2026-10-26: không có chức năng tự xóa tài khoản; xóa thủ công khi người dùng yêu cầu, không cam kết thời hạn |
 | OQ-EXP-002 | Báo cáo đã xuất có được lưu lại trong hệ thống không? | Nguồn chưa nêu | FR-EXP-001, §9.9 | Approver | - | Could | CLOSED | 2026-10-26: không lưu; tạo lại khi cần |

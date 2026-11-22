@@ -14,6 +14,7 @@ interface NavItem {
 
 const libraryItem: NavItem = { to: "/contracts", label: "Thư viện hợp đồng", icon: <LibraryIcon /> };
 const organizationItem: NavItem = { to: "/organization", label: "Thành viên tổ chức", icon: <PeopleIcon /> };
+const trashItem: NavItem = { to: "/contracts/trash", label: "Thùng rác", icon: <TrashIcon /> };
 
 export interface WorkspaceOption {
   organizationId: string | null;
@@ -56,7 +57,7 @@ export function AppShell({
   onUpload: () => void;
   onLogout: () => void;
 }) {
-  const navItems = workspace ? [libraryItem, organizationItem] : [libraryItem];
+  const navItems = workspace ? [libraryItem, organizationItem, trashItem] : [libraryItem, trashItem];
   const wide = useIsWideScreen();
   const drawer = compact || !wide;
   const [railOpen, setRailOpen] = useState(readRailOpen);
@@ -229,6 +230,14 @@ function LibraryIcon() {
   return (
     <svg className="size-4 shrink-0" viewBox="0 0 16 16" aria-hidden="true">
       <path d="M3 2.5h7l3 3v8H3z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg className="size-4 shrink-0" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.5 6.5v4.5M9.5 6.5v4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

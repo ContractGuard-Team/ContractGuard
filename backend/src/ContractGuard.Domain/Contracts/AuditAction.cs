@@ -13,5 +13,8 @@ public enum AuditAction
     Shared,
     ShareRevoked,
     OwnerTransferred,
-    ReportExported
+    ReportExported,
+    Renamed,
+    Trashed,
+    Restored
 }

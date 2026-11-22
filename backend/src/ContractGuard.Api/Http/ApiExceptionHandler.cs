@@ -19,6 +19,7 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails)
         [ErrorCodes.NotFound] = StatusCodes.Status404NotFound,
         [ErrorCodes.InvalidStatusTransition] = StatusCodes.Status409Conflict,
         [ErrorCodes.ContractBusy] = StatusCodes.Status409Conflict,
+        [ErrorCodes.SourceFileMissing] = StatusCodes.Status409Conflict,
         [ErrorCodes.EmailSendFailed] = StatusCodes.Status503ServiceUnavailable,
         [ErrorCodes.AnalysisFailed] = StatusCodes.Status503ServiceUnavailable,
         [ErrorCodes.ExportFailed] = StatusCodes.Status500InternalServerError,

@@ -62,6 +62,8 @@ internal sealed record MetadataRequest(
 
 internal sealed record ApprovalStatusRequest(ApprovalStatus Status);
 
+internal sealed record RenameRequest(string Name);
+
 internal sealed record ShareRequest(string? Email = null, bool WholeOrganization = false);
 
 internal sealed record TransferOwnerRequest(Guid UserId);

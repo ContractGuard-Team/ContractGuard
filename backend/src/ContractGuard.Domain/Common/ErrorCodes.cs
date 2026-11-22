@@ -40,6 +40,9 @@ public static class ErrorCodes
     public const string Unauthenticated = "ERR-GEN-UNAUTHENTICATED";
     public const string CsrfInvalid = "ERR-GEN-CSRF";
 
+    // A re-run whose version file is gone from storage (both quarantine/ and clean/): trying again cannot help.
+    public const string SourceFileMissing = "ERR-GEN-FILE-MISSING";
+
     // FR-AUTH-008 describes this case, but §14.1 has no code for it.
     public const string EmailNotConfirmed = "ERR-GEN-EMAIL-UNCONFIRMED";
 }

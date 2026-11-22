@@ -261,6 +261,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    next?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    next?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invitations/{token}": {
         parameters: {
             query?: never;
@@ -548,6 +618,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contracts/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TrashItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contracts/{contractId}": {
         parameters: {
             query?: never;
@@ -808,6 +913,115 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/name": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RenameRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{contractId}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    contractId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -1478,7 +1692,7 @@ export interface components {
             contractVersionId?: null | string;
         };
         /** @enum {unknown} */
-        AuditAction: "uploaded" | "viewed" | "version_uploaded" | "context_confirmed" | "metadata_edited" | "status_changed" | "finding_handled" | "shared" | "share_revoked" | "owner_transferred" | "report_exported";
+        AuditAction: "uploaded" | "viewed" | "version_uploaded" | "context_confirmed" | "metadata_edited" | "status_changed" | "finding_handled" | "shared" | "share_revoked" | "owner_transferred" | "report_exported" | "renamed" | "trashed" | "restored";
         AuditEntry: {
             /** Format: uuid */
             auditEventId: string;
@@ -1826,6 +2040,9 @@ export interface components {
             email: string;
             password: string;
         };
+        RenameRequest: {
+            name: string;
+        };
         ResetPasswordRequest: {
             /** Format: uuid */
             userId: string;
@@ -1867,6 +2084,16 @@ export interface components {
         TransferOwnerRequest: {
             /** Format: uuid */
             userId: string;
+        };
+        TrashItem: {
+            /** Format: uuid */
+            contractId: string;
+            contractName: string;
+            originalFileName: string;
+            /** Format: date-time */
+            deletedAt: string;
+            /** Format: date-time */
+            purgeAt: string;
         };
         /** @enum {unknown} */
         UiLanguage: "vi" | "en";

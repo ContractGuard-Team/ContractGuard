@@ -418,6 +418,14 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by_user_account_id");
+
                     b.Property<Guid?>("OrganizationId")
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
@@ -436,6 +444,9 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
 
                     b.HasKey("ContractId")
                         .HasName("pk_contract");
+
+                    b.HasIndex("DeletedAt")
+                        .HasDatabaseName("ix_contract_deleted_at");
 
                     b.HasIndex("OrganizationId")
                         .HasDatabaseName("ix_contract_organization_id");

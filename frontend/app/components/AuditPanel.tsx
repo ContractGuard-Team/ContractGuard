@@ -17,6 +17,9 @@ export const auditActionLabels: Record<Schemas["AuditAction"], string> = {
   share_revoked: "Thu hồi chia sẻ",
   owner_transferred: "Chuyển người phụ trách",
   report_exported: "Xuất báo cáo",
+  renamed: "Đổi tên hợp đồng",
+  trashed: "Chuyển vào thùng rác",
+  restored: "Khôi phục từ thùng rác",
 };
 
 // F-AUD-001: who did what and when, for the contract owner and organization owners (FR-AUD-002).

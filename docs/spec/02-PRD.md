@@ -11,7 +11,7 @@ prd_scope: Whole Product
 output_language: vi
 role_in_layer: Primary
 upstream: []
-version: "1.3"
+version: "1.4"
 status: REVIEW
 authors:
   - "Agent"
@@ -1044,12 +1044,12 @@ Mẫu story và từ khóa tiêu chí nghiệm thu theo DEC-GEN-013. Story chỉ
 - **Feature**: F-CTR-006
 - **Need**: STR-SEC-001
 - **Priority**: Must
-- **Status**: APPROVED
-- **Source**: PS §6.1 bảng vai trò, §6.2 CON-07
+- **Status**: REVIEW
+- **Source**: PS §6.1 bảng vai trò, §6.2 CON-07; CR-CTR-001
 - **Acceptance Criteria**:
-  1. Given là Owner hợp đồng, when xóa hợp đồng, then file gốc, dữ liệu trích xuất, embedding, finding và lịch sử chat của mọi phiên bản bị xóa vĩnh viễn, và hợp đồng không còn xuất hiện với bất kỳ ai.
+  1. Given là Owner hợp đồng, when xóa hợp đồng, then hợp đồng không còn xuất hiện với bất kỳ ai và nằm trong thùng rác; sau 30 ngày, hoặc khi Owner xóa vĩnh viễn từ thùng rác, file gốc, dữ liệu trích xuất, embedding, finding và lịch sử chat của mọi phiên bản bị xóa vĩnh viễn.
   2. Given là Member hợp đồng, when thử xóa hợp đồng, then hệ thống từ chối.
-- **Notes**: Thời hạn hoàn tất việc xóa dữ liệu được làm rõ ở SRS.
+- **Notes**: Thời hạn hoàn tất việc xóa dữ liệu được làm rõ ở SRS. [CHANGE] Changed by CR-CTR-001 (2026-11-22): xóa qua thùng rác 30 ngày, khôi phục được.
 
 #### US-AUD-001 Xem nhật ký hoạt động
 

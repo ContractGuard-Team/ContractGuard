@@ -45,15 +45,15 @@ test("an owner hands a contract to another member from the share dialog", async 
   await share.getByLabel("Chia sẻ theo email").fill(memberEmail);
   await share.getByRole("button", { name: "Chia sẻ", exact: true }).click();
   const memberRow = share.getByRole("listitem").filter({ hasText: memberEmail });
-  await expect(memberRow.getByText("Member", { exact: true })).toBeVisible();
+  await expect(memberRow.getByText("Được chia sẻ", { exact: true })).toBeVisible();
   await expect(memberRow.getByRole("button", { name: "Thu hồi" })).toBeVisible();
   await expect(share.locator(`datalist option[value="${memberEmail}"]`)).toHaveCount(0);
-  await share.getByLabel("Chuyển quyền Owner hợp đồng cho").selectOption({ label: `E2E Người nhận hợp đồng có tên rất dài (${memberEmail})` });
+  await share.getByLabel("Chuyển người phụ trách hợp đồng cho").selectOption({ label: `E2E Người nhận hợp đồng có tên rất dài (${memberEmail})` });
   // A long member name must not push the dialog wider than the screen.
   expect(await share.evaluate((d) => d.scrollWidth <= d.clientWidth)).toBe(true);
 
   // Asks first: cancel keeps the owner, confirm hands it over and closes the share dialog.
-  const confirmTransfer = page.getByRole("dialog", { name: /Chuyển quyền Owner cho/ });
+  const confirmTransfer = page.getByRole("dialog", { name: /Giao hợp đồng cho .* phụ trách/ });
   await share.getByRole("button", { name: "Chuyển", exact: true }).click();
   await confirmTransfer.getByRole("button", { name: "Hủy" }).click();
   await expect(confirmTransfer).toBeHidden();
@@ -64,5 +64,5 @@ test("an owner hands a contract to another member from the share dialog", async 
   // Still an owner of the organization, so still allowed to manage it (BR-SHARE-002); the new owner is listed.
   await page.getByRole("button", { name: "Chia sẻ" }).click();
   await expect(share.getByRole("listitem").first()).toContainText(memberEmail);
-  await expect(share.getByRole("listitem").first()).toContainText("Owner");
+  await expect(share.getByRole("listitem").first()).toContainText("Người phụ trách");
 });

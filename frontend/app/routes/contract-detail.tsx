@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRevalidator, useSearchParams } from "react-router";
 
 import { AnalysisProgress } from "~/components/AnalysisProgress";
@@ -10,6 +10,7 @@ import { Checklist } from "~/components/Checklist";
 import { ContextForm } from "~/components/ContextForm";
 import { ContractSheet } from "~/components/ContractSheet";
 import { ContractWorkspace } from "~/components/ContractWorkspace";
+import { TextField } from "~/components/Field";
 import { FileViewer } from "~/components/FileViewer";
 import { MetadataPanel } from "~/components/MetadataPanel";
 import { Notice } from "~/components/Notice";
@@ -99,6 +100,9 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
   const deleteDialog = useRef<HTMLDialogElement>(null);
   const [sharing, setSharing] = useState(false);
   const remove = useAction();
+  const renameDialog = useRef<HTMLDialogElement>(null);
+  const [newName, setNewName] = useState(contract.contractName);
+  const rename = useAction();
   const job = contract.latestJob;
   const { revalidate } = useRevalidator();
   const contextDialog = useRef<HTMLDialogElement>(null);
@@ -156,11 +160,27 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
     });
   }
 
-  // F-CTR-006: permanent, so it asks first (DESIGN: a modal only for deleting and sharing).
+  // F-CTR-006 with CR-CTR-001: to the trash, restorable for 30 days. Still asks first (DESIGN: a modal
+  // only for deleting and sharing).
   function deleteContract() {
     void remove.run(async () => {
       await apiFetch(`/contracts/${contract.contractId}`, { method: "DELETE" });
       await navigate("/contracts");
+    });
+  }
+
+  function openRename() {
+    setNewName(contract.contractName);
+    rename.clearError();
+    renameDialog.current?.showModal();
+  }
+
+  function saveName(event: FormEvent) {
+    event.preventDefault();
+    void rename.run(async () => {
+      await apiPut(`/contracts/${contract.contractId}/name`, { name: newName });
+      renameDialog.current?.close();
+      refresh();
     });
   }
 
@@ -196,6 +216,11 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
         actions={
           <>
             <ApprovalControl contractId={contract.contractId} status={contract.approvalStatus} onChanged={refresh} />
+            {isOwner && (
+              <Button variant="secondary" size="sm" onClick={openRename}>
+                Đổi tên
+              </Button>
+            )}
             {isOwner && (
               <Button
                 variant="secondary"
@@ -302,9 +327,10 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
                           <h2 id="danger-title" className="text-label text-ink-secondary">
                             Xóa hợp đồng
                           </h2>
-                          <Button variant="danger" size="sm" className="self-start" onClick={() => deleteDialog.current?.showModal()}>
-                            Xóa vĩnh viễn hợp đồng này
+                          <Button variant="danger" size="sm" className="self-start" disabled={running} onClick={() => deleteDialog.current?.showModal()}>
+                            Chuyển vào thùng rác
                           </Button>
+                          {running && <p className="text-caption text-ink-muted">Chờ phân tích xong rồi mới xóa được.</p>}
                         </>
                       )}
                     </section>
@@ -356,10 +382,10 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
         className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-md border border-rule bg-sheet p-6 text-ink backdrop:bg-ink/30"
       >
         <h2 id="delete-title" className="mb-2 text-title">
-          Xóa vĩnh viễn hợp đồng?
+          Chuyển hợp đồng vào thùng rác?
         </h2>
         <p className="mb-4 max-w-prose">
-          File gốc, mọi phiên bản, kết quả phân tích, finding, lịch sử chat và nhật ký của “{contract.contractName}” sẽ bị xóa và không khôi phục được.
+          “{contract.contractName}” sẽ biến mất khỏi thư viện, kể cả với người được chia sẻ. Bạn khôi phục được trong 30 ngày từ trang Thùng rác; sau đó hợp đồng và mọi dữ liệu của nó bị xóa vĩnh viễn.
         </p>
         {remove.error !== null && (
           <div className="mb-3">
@@ -371,9 +397,31 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
             Hủy
           </Button>
           <Button variant="danger" className="border border-severity-critical/40" loading={remove.pending} onClick={deleteContract}>
-            Xóa vĩnh viễn
+            Chuyển vào thùng rác
           </Button>
         </div>
+      </dialog>
+
+      <dialog
+        ref={renameDialog}
+        aria-labelledby="rename-title"
+        className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-md border border-rule bg-sheet p-6 text-ink backdrop:bg-ink/30"
+      >
+        <h2 id="rename-title" className="mb-3 text-title">
+          Đổi tên hợp đồng
+        </h2>
+        <form onSubmit={saveName} className="flex flex-col gap-4">
+          <TextField label="Tên hợp đồng" required maxLength={300} value={newName} onChange={(e) => setNewName(e.target.value)} />
+          {rename.error !== null && <Notice tone="error">{errorMessage(rename.error)}</Notice>}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => renameDialog.current?.close()}>
+              Hủy
+            </Button>
+            <Button type="submit" loading={rename.pending} disabled={!newName.trim() || newName.trim() === contract.contractName}>
+              Lưu
+            </Button>
+          </div>
+        </form>
       </dialog>
     </>
   );

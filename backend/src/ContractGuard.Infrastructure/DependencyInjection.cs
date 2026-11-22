@@ -159,5 +159,6 @@ public static class DependencyInjection
         services.AddSingleton<IReportRenderer, DocxReportRenderer>();
         services.AddHostedService<AnalysisResultsConsumer>();
         services.AddHostedService<StaleRunSweeperService>();
+        services.AddHostedService<TrashPurgeService>();
     }
 }

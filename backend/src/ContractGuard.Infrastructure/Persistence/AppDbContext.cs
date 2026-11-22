@@ -58,7 +58,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, Current
     // reads it, and a filter on it that read contracts back would loop.
     private void ApplyWorkspaceFilters(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Contract>().HasQueryFilter(c =>
+        // CR-CTR-001: contracts in the trash are hidden from everything but the trash page and the purge job,
+        // which ignore only this filter. Child tables read Set<Contract>(), so they are hidden too.
+        modelBuilder.Entity<Contract>().HasQueryFilter(QueryFilters.NotDeleted, c => c.DeletedAt == null);
+        modelBuilder.Entity<Contract>().HasQueryFilter(QueryFilters.Workspace, c =>
             workspace.IsSystem
             || (workspace.OrganizationId == null
                 && c.OrganizationId == null
