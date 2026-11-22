@@ -481,6 +481,7 @@ Quy tắc "chỉ C# ghi DB" đổi thành: C# là nơi duy nhất ghi **dữ li�
   - Identity đã xác minh (trước 2026-11-18). IAM của API chỉ cần `ses:SendEmail` trên ARN của identity.
   - Còn trong sandbox thì phải xác minh từng người nhận (thành viên nhóm, tài khoản test, giám khảo).
   - **Rủi ro:** gửi với địa chỉ `@gmail.com` qua SES không đạt DMARC alignment (SPF/DKIM là của amazonses.com), nên thư dễ vào spam hoặc bị từ chối, và AWS thường không cho ra khỏi sandbox nếu không có domain riêng. **Dự phòng** khi bị từ chối: gửi qua SMTP của Gmail (`smtp.gmail.com:587`, App Password, khoảng 500 thư/ngày) bằng `SmtpEmailSender` có sẵn, thêm username/password và TLS vào `EmailOptions`.
+  - **2026-11-22:** Railway chặn SMTP ra ngoài với gói dưới Pro (thử Gmail SMTP bị timeout), nên staging dùng `Email:Provider = gmail`: `GmailEmailSender` gửi qua Gmail API (HTTPS), bằng refresh token scope `gmail.send` của `contractguard.info@gmail.com`. Có domain thì quay về `ses` chỉ bằng biến môi trường.
 
 **Quyết định:** như bảng trên (Approver chọn 2026-11-18).
 
