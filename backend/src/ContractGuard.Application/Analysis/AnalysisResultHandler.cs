@@ -142,14 +142,32 @@ public sealed partial class AnalysisResultHandler(
             return await RejectAsync(jobId, consistencyErrors, cancellationToken);
         }
 
-        var outcome = await resultProcessor.ApplyAsync(run, contract, version, read.Document!, cancellationToken);
+        var document = read.Document!;
+        foreach (var warning in ExtractionConsistencyValidator.ScoringWarnings(document))
+        {
+            LogScoringWarning(jobId, warning);
+        }
+
+        var scoringProblems = ExtractionConsistencyValidator.ScoringProblems(document);
+        if (scoringProblems.Count > 0)
+        {
+            // docs/04 P7-01: a scoring block the web cannot show must not cost the whole (paid) analysis.
+            foreach (var problem in scoringProblems.Take(10))
+            {
+                LogScoringDropped(jobId, problem);
+            }
+
+            document = document with { Scoring = null };
+        }
+
+        var outcome = await resultProcessor.ApplyAsync(run, contract, version, document, cancellationToken);
         if (outcome.Errors.Count > 0)
         {
             return await RejectAsync(jobId, outcome.Errors, cancellationToken);
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        LogCompleted(jobId, read.Document!.Clauses.Count);
+        LogCompleted(jobId, document.Clauses.Count);
         return ResultOutcome.Applied;
     }
 
@@ -214,6 +232,12 @@ public sealed partial class AnalysisResultHandler(
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Job {JobId} result rejected: {Error}")]
     private partial void LogInvalidResult(Guid jobId, string error);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Job {JobId} scoring dropped, rest of the result kept: {Problem}")]
+    private partial void LogScoringDropped(Guid jobId, string problem);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Job {JobId} scoring kept despite: {Warning}")]
+    private partial void LogScoringWarning(Guid jobId, string warning);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Message for unknown job {JobId} ignored")]
     private partial void LogUnknownJob(Guid jobId);

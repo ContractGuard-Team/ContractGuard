@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using ContractGuard.Application.Analysis;
 using ContractGuard.Domain.Analysis;
 using ContractGuard.Domain.Contracts;
@@ -48,6 +49,51 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
 
         Assert.Equal(ResultOutcome.Ignored, second);
         Assert.Equal(8, await CountClausesAsync(run.AnalysisRunId));
+    }
+
+    [Fact]
+    public async Task Worker_scoring_levels_are_saved_as_written()
+    {
+        // docs/04 P7-01: the worker's policy calls 5 points "medium"; the backend no longer rejects that.
+        var (contract, run) = await SeedAsync();
+        var key = $"results/{run.AnalysisRunId}/extraction.json";
+        var json = Regex.Replace(Seed.ExampleExtractionJson(run.AnalysisRunId, contract.ContractId),
+                "(\"overall_score\": 72,\\s*\"risk_level\": )\"high\"", "$1\"medium\"")
+            .Replace("\"domain\": \"operational\", \"applicable\": true, \"score\": 15, \"risk_level\": \"low\"",
+                     "\"domain\": \"operational\", \"applicable\": true, \"score\": 5, \"risk_level\": \"medium\"", StringComparison.Ordinal);
+        Assert.Contains("\"score\": 5, \"risk_level\": \"medium\"", json, StringComparison.Ordinal);
+        Assert.Matches("\"overall_score\": 72,\\s*\"risk_level\": \"medium\"", json);
+        factory.Storage.PutText(key, json);
+
+        var outcome = await HandleAsync(Completed(run.AnalysisRunId, key));
+
+        Assert.Equal(ResultOutcome.Applied, outcome);
+        await using var scope = factory.CreateSystemScope();
+        var saved = await scope.ServiceProvider.GetRequiredService<AppDbContext>().AnalysisRuns
+            .SingleAsync(r => r.AnalysisRunId == run.AnalysisRunId, Ct);
+        Assert.Equal(RiskLevel.Medium, saved.OverallRiskLevel);
+        Assert.Equal(RiskLevel.Medium, saved.Score!.Domains.Single(d => d.Domain == RiskDomain.Operational).RiskLevel);
+    }
+
+    [Fact]
+    public async Task Broken_scoring_is_dropped_and_the_rest_of_the_result_is_saved()
+    {
+        var (contract, run) = await SeedAsync();
+        var key = $"results/{run.AnalysisRunId}/extraction.json";
+        var json = Seed.ExampleExtractionJson(run.AnalysisRunId, contract.ContractId)
+            .Replace("\"domain\": \"legal\", \"applicable\": true, \"score\": 20,", "\"domain\": \"legal\", \"applicable\": true, \"score\": null,", StringComparison.Ordinal);
+        Assert.Contains("\"domain\": \"legal\", \"applicable\": true, \"score\": null,", json, StringComparison.Ordinal);
+        factory.Storage.PutText(key, json);
+
+        var outcome = await HandleAsync(Completed(run.AnalysisRunId, key));
+
+        Assert.Equal(ResultOutcome.Applied, outcome);
+        Assert.Equal(8, await CountClausesAsync(run.AnalysisRunId));
+        await using var scope = factory.CreateSystemScope();
+        var saved = await scope.ServiceProvider.GetRequiredService<AppDbContext>().AnalysisRuns
+            .SingleAsync(r => r.AnalysisRunId == run.AnalysisRunId, Ct);
+        Assert.Equal(RunStatus.Completed, saved.RunStatus);
+        Assert.Null(saved.Score);
     }
 
     [Fact]

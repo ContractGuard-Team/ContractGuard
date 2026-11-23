@@ -25,7 +25,7 @@ public sealed class AppStack : Stack
     private const string RepoRoot = "../..";
     private const string SpaBuild = "../../frontend/build/client";
 
-    // docs/04 C9: production shares the dev bucket and queues with staging, so the AI team's single worker
+    // docs/04 C9: this stack shares the dev bucket and queues with the Railway staging, so the AI team's single worker
     // (docs/07) serves both without a change. Their policies for the worker were set on them by hand.
     // Both APIs drop results of jobs they do not know, so the Railway API must be stopped while this runs.
     private const string DevBucket = "contractguard-dev-documents-699061129385";
@@ -71,6 +71,9 @@ public sealed class AppStack : Stack
             BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
             EnforceSSL = true,
             Encryption = BucketEncryption.S3_MANAGED,
+            // Only the SPA build, rebuilt on every deploy: `cdk destroy` would otherwise leave the bucket behind.
+            RemovalPolicy = RemovalPolicy.DESTROY,
+            AutoDeleteObjects = true,
         });
 
         // Client-side routes (/contracts/123) are not files: CloudFront answers them with the app shell.
@@ -190,7 +193,7 @@ public sealed class AppStack : Stack
             Logging = LogDriver.AwsLogs(new AwsLogDriverProps { StreamPrefix = "api", LogGroup = logs }),
             Environment = new Dictionary<string, string>
             {
-                // Production: Secure cookies (the browser is on https) and no fake chat responder.
+                // The .NET environment, not the stage name: Secure cookies (the browser is on https), no fake chat responder.
                 ["ASPNETCORE_ENVIRONMENT"] = "Production",
                 ["Storage__BucketName"] = documents.BucketName,
                 ["Queues__AnalysisRequests"] = requests.QueueName,

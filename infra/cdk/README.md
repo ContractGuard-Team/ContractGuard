@@ -1,6 +1,8 @@
-# Hạ tầng AWS cho production (CDK, C#)
+# Staging AWS cho demo (CDK, C#)
 
-Stack `ContractGuard-Production` ở `ap-southeast-1`, tài khoản `699061129385` (SD-18, `docs/04` C7). Chỉ bật khoảng 3 ngày quanh buổi showcase; staging chạy trên Railway (xem cuối file).
+Stack `ContractGuard-StagingAws` ở `ap-southeast-1`, tài khoản `699061129385` (SD-18, `docs/04` C7, C9). Chỉ bật khoảng 3 ngày quanh buổi showcase; staging hằng ngày chạy trên Railway (xem cuối file).
+
+**Không phải production** (`docs/04` C9): chưa có domain, SES còn sandbox, DB dùng chung với staging Railway. Production thật cần domain + ACM, SES production access, DB và S3/SQS riêng.
 
 ```
 Trình duyệt ──https──► CloudFront ─┬─ /*      ──► S3 (SPA, OAC)
@@ -12,7 +14,7 @@ Worker AI (tài khoản 333596350642) ──► S3/SQS bộ dev, như staging (d
 - Không domain (`docs/04` C9): app ở `https://<id>.cloudfront.net` (output `AppUrl`). ALB chỉ nghe HTTP; API lấy scheme từ `CloudFront-Forwarded-Proto`.
 - Bucket và 3 queue là bộ `contractguard-dev-*` được **import**: stack không tạo, `cdk destroy` không xóa. Policy cho worker đã đặt tay sẵn trên chúng.
 - Không NAT gateway: task API ở subnet public có IP public, security group chỉ cho ALB vào. ALB ở subnet isolated, chỉ CloudFront tới được.
-- Secret tạo tay, không đi qua CloudFormation: `contractguard/production/database` (chuỗi kết nối, dạng text) và `contractguard/production/google` (JSON `{"ClientId": "...", "ClientSecret": "..."}`).
+- Secret tạo tay, không đi qua CloudFormation: `contractguard/staging-aws/database` (chuỗi kết nối, dạng text) và `contractguard/staging-aws/google` (JSON `{"ClientId": "...", "ClientSecret": "..."}`).
 
 ## Checklist (Git Bash, `export AWS_PROFILE=contractguard-admin`)
 
@@ -24,7 +26,7 @@ Worker AI (tài khoản 333596350642) ──► S3/SQS bộ dev, như staging (d
 4. Tạo hai secret ở trên trong `ap-southeast-1`. Secret database là chuỗi kết nối Supabase staging qua Supavisor **session** `:5432`, `SSL Mode=Require` (C1).
 5. Migration mới (nếu có) chạy trước khi deploy, trong thư mục `backend`: `ASPNETCORE_ENVIRONMENT=Cloud dotnet ef database update --project src/ContractGuard.Infrastructure --startup-project src/ContractGuard.Api` (đọc `appsettings.Cloud.local.json`).
 6. Kiểm tra mã hóa của 3 queue dev (`aws sqs get-queue-attributes --attribute-names KmsMasterKeyId SqsManagedSseEnabled`). Nếu là KMS khóa riêng thì phải thêm `kms:Decrypt`/`kms:GenerateDataKey` cho task role.
-7. (Bỏ) Production không đọc bảng DynamoDB của worker, nên nhóm AI không phải đổi resource policy. Trang phân tích hiện danh sách bước từ message `progress` trên SQS, không có thanh %.
+7. (Bỏ) Staging AWS không đọc bảng DynamoDB của worker, nên nhóm AI không phải đổi resource policy. Trang phân tích hiện danh sách bước từ message `progress` trên SQS, không có thanh %.
 8. SES sandbox: xác minh email từng người nhận (nhóm, tài khoản test, giám khảo); xin production access. Bị từ chối thì đổi `Email__Provider` sang `gmail` (cần thêm secret Gmail như Railway).
 
 **Deploy** (Docker phải chạy: CDK build image API ARM64)
@@ -37,7 +39,7 @@ cd infra/cdk && npx aws-cdk@2.1149.0 deploy
 
 **Sau deploy** (domain CloudFront đổi sau mỗi lần destroy rồi deploy lại, nên làm lại bước 10–11)
 
-9. **Tắt service `api` trên Railway** suốt thời gian production chạy. Hai API cùng đọc `analysis-results` thì kết quả và câu trả lời chat của bên kia bị xóa. Bật lại sau `cdk destroy`.
+9. **Tắt service `api` trên Railway** suốt thời gian staging AWS chạy. Hai API cùng đọc `analysis-results` thì kết quả và câu trả lời chat của bên kia bị xóa. Bật lại sau `cdk destroy`.
 10. CORS của bucket dev: `aws s3api get-bucket-cors --bucket contractguard-dev-documents-699061129385` → thêm `AppUrl` vào `AllowedOrigins` của rule hiện có → `put-bucket-cors`. Không ghi đè các origin cũ (Railway, localhost).
 11. Google OAuth client: thêm redirect URI `<AppUrl>/api/v1/auth/google/callback`. Nếu client còn ở chế độ Testing thì thêm test user.
 

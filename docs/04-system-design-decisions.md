@@ -550,19 +550,21 @@ Code: `WorkerChatResponder`, `ChatAnswerWaiter`, cấu hình `Chat:Responder=wor
 
 **Quyết định:** B (Approver chọn 2026-11-21).
 
-### C9 Production trên AWS: không domain, dùng lại bộ dev, lưu khóa phiên vào DB (đổi SD-03, C5, C7)
+### C9 Staging AWS (demo): không domain, dùng lại bộ dev, lưu khóa phiên vào DB (đổi SD-03, C5, C7)
 
 **Bối cảnh:** tài khoản SE mới có SES, bucket và queue bộ dev. Stack CDK (C7) chờ domain, ACM và listener HTTPS. Worker AI chỉ có một máy EC2 đọc queue dev. Approver chọn 2026-11-23:
+
+**Tên gọi (Approver đổi 2026-11-23):** stack này là **staging AWS (demo)**, không phải production: chưa có domain, SES còn sandbox, DB dùng chung với staging Railway. Stack `ContractGuard-StagingAws`, secret `contractguard/staging-aws/*` (thay `ContractGuard-Production`, `contractguard/production/*`). Production thật (domain + ACM, SES production access, DB và S3/SQS riêng) chưa làm. `ASPNETCORE_ENVIRONMENT` vẫn là `Production`: đó là chế độ chạy của .NET (cookie `Secure`, chặn responder giả), giống Railway.
 
 | Mục | Chọn | Đánh đổi |
 |---|---|---|
 | Domain | **Không mua.** Dùng `https://<id>.cloudfront.net`. ALB vẫn nghe HTTP trong VPC origin; API lấy scheme từ header `CloudFront-Forwarded-Proto` (`Program.cs`) | Không tốn tiền, không chờ DNS. Lệch C7 ("có domain"). URL xấu, và đổi mỗi lần `cdk destroy` rồi deploy lại, nên phải sửa lại CORS bucket và redirect URI của Google. Không xác minh được domain trên SES |
-| S3/SQS | **Dùng lại `contractguard-dev-*`** (CDK import, không tạo mới) | Worker không phải đổi gì; `cdk destroy` không xóa tài liệu. Nhưng staging và production cùng đọc `analysis-results`, và consumer **xóa** message của job lạ (`ResultOutcome.Ignored`), nên **phải tắt service `api` trên Railway khi production chạy**. Dữ liệu demo nằm chung bucket với dữ liệu thử |
+| S3/SQS | **Dùng lại `contractguard-dev-*`** (CDK import, không tạo mới) | Worker không phải đổi gì; `cdk destroy` không xóa tài liệu. Nhưng hai staging cùng đọc `analysis-results`, và consumer **xóa** message của job lạ (`ResultOutcome.Ignored`), nên **phải tắt service `api` trên Railway khi staging AWS chạy**. Dữ liệu demo nằm chung bucket với dữ liệu thử |
 | Email | **SES sandbox**; Approver xin production access | Phải xác minh từng người nhận. Bị từ chối thì đổi `Email__Provider=gmail` |
 | Khóa phiên | **Data Protection key lưu ở bảng `app.data_protection_keys`** | Hết cảnh mọi người bị đăng xuất sau mỗi lần restart hoặc deploy (cả staging). Khóa nằm ở dạng thường trong Supabase; ai đọc được schema `app` thì giả được cookie. **IA xem lại**; mã hóa khóa khi có KMS dùng được |
 
-- **Database: dùng chung Supabase staging** (Approver chọn 2026-11-23, đổi C5 "Supabase project mới"). Hai môi trường vốn không chạy cùng lúc được (dùng chung S3/SQS), nên tách DB cũng không tách được gì thật. Đổi lại: không tạo project mới, không đụng giới hạn gói Free, migration và kho pháp luật có sẵn. Demo bằng tài khoản và workspace mới để không lẫn dữ liệu thử (SD-05). Muốn production chạy song song staging thì phải tách cả DB lẫn S3/SQS.
-- **Không đọc DynamoDB của worker ở production** (Approver chọn 2026-11-23): không phải nhờ nhóm AI đổi resource policy bảng `contract-risk-jobs`. Trang phân tích chỉ hiện danh sách bước từ message `progress` trên SQS, mất thanh % và dòng "AI đang làm gì" (C8). Staging vẫn có, vì Railway còn biến `WorkerActivity__TableArn`.
+- **Database: dùng chung Supabase staging** (Approver chọn 2026-11-23, đổi C5 "Supabase project mới"). Hai môi trường vốn không chạy cùng lúc được (dùng chung S3/SQS), nên tách DB cũng không tách được gì thật. Đổi lại: không tạo project mới, không đụng giới hạn gói Free, migration và kho pháp luật có sẵn. Demo bằng tài khoản và workspace mới để không lẫn dữ liệu thử (SD-05). Muốn hai môi trường chạy song song thì phải tách cả DB lẫn S3/SQS.
+- **Không đọc DynamoDB của worker ở staging AWS** (Approver chọn 2026-11-23): không phải nhờ nhóm AI đổi resource policy bảng `contract-risk-jobs`. Trang phân tích chỉ hiện danh sách bước từ message `progress` trên SQS, mất thanh % và dòng "AI đang làm gì" (C8). Staging Railway vẫn có, vì còn biến `WorkerActivity__TableArn`.
 - SSE gửi event `ping` mỗi 15 giây khi worker chưa trả lời, vì CloudFront cắt origin im lặng 30 giây (rủi ro đã nêu ở C6).
 
 **Quyết định:** như bảng trên (Approver chọn 2026-11-23).
@@ -609,6 +611,26 @@ Code: `WorkerChatResponder`, `ChatAnswerWaiter`, cấu hình `Chat:Responder=wor
 Code: `backend/src/ContractGuard.Infrastructure/Identity/GoogleAccounts.cs`, `Api/Endpoints/GoogleLoginEndpoints.cs`. Chỉ gộp khi Google báo `email_verified = true`.
 
 **Quyết định:**
+
+### P7-01 Mức rủi ro trong `scoring`: tin mức của worker (trả lời `docs/06` §3.1 câu 1)
+
+**Bối cảnh:** backend suy lại mức từ điểm theo ngưỡng SRS BR-RISK-010 (`< 30` low, `< 55` medium, `< 85` high, còn lại critical) và **bỏ cả kết quả** khi worker ghi mức khác. Worker tính mức theo policy có phiên bản của mình (`scoring.rule_version`, hiện `4.5b-1.2.2`): domain high từ 12 điểm, medium từ 5; tổng high từ 35, medium từ 15; không có critical. Hai output thật trên bucket dev (2026-11-18, 2026-11-20) qua hết kiểm tra khác nhưng bị loại vì `operational` 5 điểm worker ghi `medium`, SE suy ra `low`. Mỗi lần như vậy mất trọn lượt gọi model.
+
+| Phương án | Ưu | Nhược |
+|---|---|---|
+| **A. Tin mức của worker (Approver chọn 2026-11-23)** | Không phải đổi worker; mức trên web khớp lời giải thích của AI; ngưỡng nằm ở một chỗ có phiên bản | Lệch BR-RISK-010 của SRS đã baseline: cần change request để cập nhật ngưỡng |
+| B. Backend tính lại mức theo SRS | Giữ đúng SRS | Web có thể ghi mức khác lời giải thích của AI |
+| C. Nhóm AI đổi policy theo 30/55/85 | Backend giữ nguyên | Phải chờ nhóm AI sửa và deploy lại |
+
+**Đã làm (A):** `ExtractionConsistencyValidator` thôi so mức với ngưỡng, và scoring không còn làm hỏng cả kết quả:
+
+- Khối `scoring` hỏng cấu trúc (thiếu hoặc trùng domain, domain áp dụng mà thiếu điểm, domain N/A mà có điểm hoặc thiếu lý do): **bỏ khối scoring**, ghi log cảnh báo, vẫn lưu clause và finding.
+- Finding thuộc domain N/A (BR-RISK-003) và finding critical mà tổng dưới 55 (FR-RISK-022): **chỉ ghi log**, giữ nguyên scoring. Policy hiện tại luôn để `cybersecurity` là N/A trong khi check `CY-*` vẫn sinh finding cybersecurity, nên nếu bỏ scoring ở đây thì gần như lần nào cũng mất điểm.
+- Kiểm tra clause, trích dẫn, trang, 20 check, domain của finding từ check: giữ nguyên, sai vẫn bỏ cả kết quả.
+
+**Còn mở:** change request cho BR-RISK-010 (ngưỡng theo policy của worker); nhóm AI xem lại `cybersecurity` N/A và mức critical.
+
+**Quyết định:** A (Approver chọn 2026-11-23).
 
 ## Việc của các nhóm khác (để theo dõi, không cần quyết ở đây)
 

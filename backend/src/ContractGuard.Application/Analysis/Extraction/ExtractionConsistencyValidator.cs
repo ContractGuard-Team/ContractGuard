@@ -123,65 +123,68 @@ public static partial class ExtractionConsistencyValidator
             }
         }
 
-        CheckScoring(document, errors);
-
         return errors;
     }
 
-    // VAL-DATA-013 and docs/05 §4: the worker computes the scores, the backend only checks they obey
-    // the rules it can see. A wrong score rejects the whole result, like a wrong quote.
-    private static void CheckScoring(ExtractionDocument document, List<string> errors)
+    // docs/04 P7-01: the worker computes scores and levels with its own versioned policy (scoring.rule_version),
+    // so the backend keeps its levels as they are and does not re-derive them from score thresholds.
+    // Scoring never rejects a result: a block the web cannot show is dropped (these problems), the clauses
+    // and findings are still saved.
+    public static IReadOnlyList<string> ScoringProblems(ExtractionDocument document)
     {
+        var problems = new List<string>();
         var scoring = document.Scoring;
         if (scoring is null)
         {
-            return;
+            return problems;
         }
 
-        if (scoring.Domains.Select(d => d.Domain).Distinct().Count() != Enum.GetValues<RiskDomain>().Length)
+        if (scoring.Domains.Select(d => d.Domain).Distinct().Count() != Enum.GetValues<RiskDomain>().Length
+            || scoring.Domains.Count != Enum.GetValues<RiskDomain>().Length)
         {
-            errors.Add("scoring.domains must list each of the 7 domains exactly once (REL-DATA-014).");
+            problems.Add("scoring.domains must list each of the 7 domains exactly once (REL-DATA-014).");
         }
 
-        CheckLevel(scoring.OverallScore, scoring.RiskLevel, "Overall", errors);
         foreach (var domain in scoring.Domains)
         {
             if (!domain.Applicable)
             {
                 if (domain.Score is not null || domain.RiskLevel is not null || string.IsNullOrWhiteSpace(domain.NaReason))
                 {
-                    errors.Add($"Domain '{domain.Domain}' is N/A, so it needs a reason and no score (FR-VIEW-003).");
+                    problems.Add($"Domain '{domain.Domain}' is N/A, so it needs a reason and no score (FR-VIEW-003).");
                 }
             }
             else if (domain.Score is null || domain.RiskLevel is null)
             {
-                errors.Add($"Domain '{domain.Domain}' applies, so it needs a score and a level (FR-RISK-019).");
+                problems.Add($"Domain '{domain.Domain}' applies, so it needs a score and a level (FR-RISK-019).");
             }
-            else
-            {
-                CheckLevel(domain.Score.Value, domain.RiskLevel, $"Domain '{domain.Domain}'", errors);
-            }
+        }
+
+        return problems;
+    }
+
+    // Rules the worker's policy does not follow yet; logged for the AI team, the scoring is kept (docs/04 P7-01).
+    public static IReadOnlyList<string> ScoringWarnings(ExtractionDocument document)
+    {
+        var warnings = new List<string>();
+        var scoring = document.Scoring;
+        if (scoring is null)
+        {
+            return warnings;
         }
 
         var notApplicable = scoring.Domains.Where(d => !d.Applicable).Select(d => d.Domain).ToHashSet(StringComparer.Ordinal);
         foreach (var finding in document.Findings.Where(f => notApplicable.Contains(f.PrimaryDomain)))
         {
-            errors.Add($"Finding '{finding.FindingId}' is in domain '{finding.PrimaryDomain}', which is N/A (BR-RISK-003).");
+            warnings.Add($"Finding '{finding.FindingId}' is in domain '{finding.PrimaryDomain}', which is N/A (BR-RISK-003).");
         }
 
         if (document.Findings.Any(f => f.Severity == "critical") && scoring.OverallScore < RiskLevels.CriticalFindingFloor)
         {
-            errors.Add($"Overall score {scoring.OverallScore} is below {RiskLevels.CriticalFindingFloor} although there is a critical finding (FR-RISK-022).");
+            warnings.Add($"Overall score {scoring.OverallScore} is below {RiskLevels.CriticalFindingFloor} although there is a critical finding (FR-RISK-022).");
         }
-    }
 
-    private static void CheckLevel(int score, string level, string owner, List<string> errors)
-    {
-        var expected = RiskLevels.FromScore(score).ToString().ToLowerInvariant();
-        if (level != expected)
-        {
-            errors.Add($"{owner} score {score} is level '{expected}', not '{level}' (BR-RISK-010).");
-        }
+        return warnings;
     }
 
     private static void CheckEvidence(

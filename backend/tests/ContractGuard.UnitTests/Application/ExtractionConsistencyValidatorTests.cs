@@ -89,64 +89,74 @@ public sealed class ExtractionConsistencyValidatorTests
         Assert.Contains(errors, e => e.Contains("outside pages 1..2", StringComparison.Ordinal));
     }
 
-    [Theory]
-    [InlineData(29, "low", true)]
-    [InlineData(30, "low", false)]
-    [InlineData(54, "medium", true)]
-    [InlineData(55, "high", true)]
-    [InlineData(84, "critical", false)]
-    [InlineData(85, "critical", true)]
-    public void Overall_level_must_match_the_thresholds(int score, string level, bool valid)
+    [Fact]
+    public void Worker_levels_are_kept_even_when_they_differ_from_the_srs_thresholds()
     {
-        // BR-RISK-010. Score is kept >= 55 because the example has a critical finding.
-        var document = WithScoring(s => s with { OverallScore = score, RiskLevel = level });
-        if (score < 55)
+        // docs/04 P7-01, real worker output 2026-11-20: policy 4.5b-1.2.2 calls 5 points "medium" (SRS: low).
+        var document = WithScoring(s => s with
         {
-            document = document with { Findings = [.. document.Findings.Where(f => f.Severity != "critical")] };
-            document = document with { Checks = [.. document.Checks.Select(c => c.FindingId == "f-001" ? c with { FindingId = null } : c)] };
-        }
+            RiskLevel = "medium",
+            Domains = [.. s.Domains.Select(d => d.Domain == "operational" ? d with { Score = 5, RiskLevel = "medium" } : d)]
+        });
 
-        var errors = ExtractionConsistencyValidator.Validate(document, JobId, ContractId, 1);
-
-        Assert.Equal(valid, !errors.Any(e => e.Contains("BR-RISK-010", StringComparison.Ordinal)));
+        Assert.Empty(Validate(document));
+        Assert.Empty(ExtractionConsistencyValidator.ScoringProblems(document));
     }
 
     [Fact]
-    public void Critical_finding_sets_a_floor_of_55()
+    public void Critical_finding_below_the_floor_is_only_a_warning()
     {
-        var errors = Validate(WithScoring(s => s with { OverallScore = 40, RiskLevel = "medium" }));
+        var document = WithScoring(s => s with { OverallScore = 40, RiskLevel = "medium" });
 
-        Assert.Contains(errors, e => e.Contains("FR-RISK-022", StringComparison.Ordinal));
+        Assert.Empty(Validate(document));
+        Assert.Empty(ExtractionConsistencyValidator.ScoringProblems(document));
+        Assert.Contains(ExtractionConsistencyValidator.ScoringWarnings(document), e => e.Contains("FR-RISK-022", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Na_domain_with_a_score_or_without_reason_is_rejected()
+    public void Na_domain_with_a_score_or_without_reason_drops_the_scoring()
     {
         var document = WithScoring(s => s with
         {
             Domains = [.. s.Domains.Select(d => d.Domain == "compliance" ? d with { Score = 10, NaReason = null } : d)]
         });
 
-        Assert.Contains(Validate(document), e => e.Contains("FR-VIEW-003", StringComparison.Ordinal));
+        Assert.Empty(Validate(document));
+        Assert.Contains(ExtractionConsistencyValidator.ScoringProblems(document), e => e.Contains("FR-VIEW-003", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Finding_in_a_na_domain_is_rejected()
+    public void Applicable_domain_without_a_score_drops_the_scoring()
     {
+        var document = WithScoring(s => s with
+        {
+            Domains = [.. s.Domains.Select(d => d.Domain == "legal" ? d with { Score = null } : d)]
+        });
+
+        Assert.Contains(ExtractionConsistencyValidator.ScoringProblems(document), e => e.Contains("FR-RISK-019", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Finding_in_a_na_domain_is_only_a_warning()
+    {
+        // The worker marks cybersecurity N/A (no rule in its policy) yet CY checks yield cybersecurity findings.
         var document = WithScoring(s => s with
         {
             Domains = [.. s.Domains.Select(d => d.Domain == "third_party" ? d with { Applicable = false, Score = null, RiskLevel = null, NaReason = "x" } : d)]
         });
 
-        Assert.Contains(Validate(document), e => e.Contains("BR-RISK-003", StringComparison.Ordinal));
+        Assert.Empty(Validate(document));
+        Assert.Empty(ExtractionConsistencyValidator.ScoringProblems(document));
+        Assert.Contains(ExtractionConsistencyValidator.ScoringWarnings(document), e => e.Contains("BR-RISK-003", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Missing_domain_is_rejected()
+    public void Missing_domain_drops_the_scoring()
     {
         var document = WithScoring(s => s with { Domains = [.. s.Domains.Take(6), s.Domains[0]] });
 
-        Assert.Contains(Validate(document), e => e.Contains("REL-DATA-014", StringComparison.Ordinal));
+        Assert.Empty(Validate(document));
+        Assert.Contains(ExtractionConsistencyValidator.ScoringProblems(document), e => e.Contains("REL-DATA-014", StringComparison.Ordinal));
     }
 
     [Fact]
