@@ -25,8 +25,11 @@ public sealed class AppStack : Stack
     private const string RepoRoot = "../..";
     private const string SpaBuild = "../../frontend/build/client";
 
-    // docs/07 §5: the AI team's worker, on EC2 in their account.
-    private const string AiWorkerRole = "arn:aws:iam::333596350642:role/ContractRisk-EC2-Role";
+    // docs/04 C9: production shares the dev bucket and queues with staging, so the AI team's single worker
+    // (docs/07) serves both without a change. Their policies for the worker were set on them by hand.
+    // Both APIs drop results of jobs they do not know, so the Railway API must be stopped while this runs.
+    private const string DevBucket = "contractguard-dev-documents-699061129385";
+    private const string DevQueuePrefix = "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-";
 
     // docs/04 C5: an SES email identity, verified by hand (no domain yet).
     private const string EmailSender = "contractguard.info@gmail.com";
@@ -58,9 +61,9 @@ public sealed class AppStack : Stack
             PrefixListName = "com.amazonaws.global.cloudfront.origin-facing",
         });
         alb.Connections.AllowFrom(cloudFront, Port.Tcp(80), "CloudFront VPC origin");
-        // shortcut: http listener until the team's domain and its ACM certificate exist (docs/04 C7). With http
-        // the ALB sends X-Forwarded-Proto: http and the API's Secure cookies fail, so add the https listener
-        // (and HTTPS_ONLY on the VPC origin) before the first production deploy.
+        // shortcut: http listener, as there is no domain and so no ACM certificate (docs/04 C9). Traffic stays
+        // inside the VPC origin; the API takes the scheme from CloudFront-Forwarded-Proto (Program.cs). With a
+        // domain: https listener, HTTPS_ONLY on the VPC origin, alias on the distribution.
         var listener = alb.AddListener("Http", new BaseApplicationListenerProps { Port = 80, Open = false });
 
         var site = new Bucket(this, "Site", new BucketProps
@@ -140,40 +143,23 @@ public sealed class AppStack : Stack
             DistributionPaths = ["/*"],
         });
 
-        // SD-07: one bucket, prefixes quarantine/, clean/, results/. SSE-S3 rather than SSE-KMS: the AWS
-        // managed KMS key cannot be used from the AI team's account. No versioning, so a delete is final.
-        var documents = new Bucket(this, "Documents", new BucketProps
-        {
-            BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
-            EnforceSSL = true,
-            Encryption = BucketEncryption.S3_MANAGED,
-            // The browser uploads with a presigned POST and the viewer reads with range requests.
-            Cors =
-            [
-                new CorsRule
-                {
-                    AllowedOrigins = [appUrl],
-                    AllowedMethods = [HttpMethods.POST, HttpMethods.GET, HttpMethods.HEAD],
-                    AllowedHeaders = ["*"],
-                    ExposedHeaders = ["Accept-Ranges", "Content-Length", "Content-Range"],
-                },
-            ],
-        });
+        // Imported, so `cdk destroy` never deletes them. The bucket's CORS must list appUrl, added by hand after
+        // the first deploy (infra/cdk/README.md): an imported bucket cannot be changed from here.
+        var documents = Bucket.FromBucketName(this, "Documents", DevBucket);
+        var requests = Queue.FromQueueArn(this, "AnalysisRequests", DevQueuePrefix + "analysis-requests");
+        var results = Queue.FromQueueArn(this, "AnalysisResults", DevQueuePrefix + "analysis-results");
+        var chatRequests = Queue.FromQueueArn(this, "ChatRequests", DevQueuePrefix + "chat-requests");
 
-        var requests = NewQueue($"contractguard-{stage}-analysis-requests", visibilitySeconds: 900);
-        var results = NewQueue($"contractguard-{stage}-analysis-results", visibilitySeconds: 60);
-
-        // docs/07 §2, §5: the same rights as on the dev bucket and queues.
-        var worker = new ArnPrincipal(AiWorkerRole);
-        AllowWorker(documents, worker, ["s3:ListBucket"], documents.BucketArn);
-        AllowWorker(documents, worker, ["s3:GetObject"], documents.ArnForObjects("quarantine/*"), documents.ArnForObjects("results/*/request.json"));
-        AllowWorker(documents, worker, ["s3:PutObject"], documents.ArnForObjects("clean/*"), documents.ArnForObjects("results/*/extraction.json"));
-        AllowWorker(documents, worker, ["s3:DeleteObject"], documents.ArnForObjects("quarantine/*"));
-        requests.GrantConsumeMessages(worker);
-        results.GrantSendMessages(worker);
-
-        // Created by hand once, so the password never passes through CloudFormation (infra/cdk/README.md).
+        // Created by hand once, so passwords never pass through CloudFormation (infra/cdk/README.md).
         var database = SmSecret.FromSecretNameV2(this, "Database", $"contractguard/{stage}/database");
+        var google = SmSecret.FromSecretNameV2(this, "Google", $"contractguard/{stage}/google");
+
+        // A fixed name, so policies in the AI team's account can name it before a deploy.
+        var taskRole = new Role(this, "ApiTaskRole", new RoleProps
+        {
+            RoleName = $"contractguard-{stage}-api-task",
+            AssumedBy = new ServicePrincipal("ecs-tasks.amazonaws.com"),
+        });
 
         var logs = new LogGroup(this, "ApiLogs", new LogGroupProps
         {
@@ -185,6 +171,7 @@ public sealed class AppStack : Stack
         {
             Cpu = 512,
             MemoryLimitMiB = 1024,
+            TaskRole = taskRole,
             RuntimePlatform = new RuntimePlatform
             {
                 CpuArchitecture = CpuArchitecture.ARM64,
@@ -208,22 +195,29 @@ public sealed class AppStack : Stack
                 ["Storage__BucketName"] = documents.BucketName,
                 ["Queues__AnalysisRequests"] = requests.QueueName,
                 ["Queues__AnalysisResults"] = results.QueueName,
+                ["Queues__ChatRequests"] = chatRequests.QueueName,
+                ["Chat__Responder"] = "worker",
+                // No WorkerActivity__TableArn (docs/04 C9): the page shows the steps from the worker's SQS
+                // progress messages, without the percent bar read from the worker's DynamoDB (C8).
                 ["Email__Provider"] = "ses",
                 ["Email__FromAddress"] = EmailSender,
                 ["Email__FrontendBaseUrl"] = appUrl,
-                // Until the AI worker reads this environment's queue (docs/07): confirming a context only saves it.
-                ["Analysis__WorkerEnabled"] = (string?)Node.TryGetContext("workerEnabled") ?? "false",
+                // `-c workerEnabled=false`: confirming a context only saves it, no job reaches the worker.
+                ["Analysis__WorkerEnabled"] = (string?)Node.TryGetContext("workerEnabled") ?? "true",
             },
             Secrets = new Dictionary<string, EcsSecret>
             {
                 ["Database__ConnectionString"] = EcsSecret.FromSecretsManager(database),
+                ["Authentication__Google__ClientId"] = EcsSecret.FromSecretsManager(google, "ClientId"),
+                ["Authentication__Google__ClientSecret"] = EcsSecret.FromSecretsManager(google, "ClientSecret"),
             },
         });
 
-        documents.GrantReadWrite(task.TaskRole);
-        requests.GrantSendMessages(task.TaskRole);
-        results.GrantConsumeMessages(task.TaskRole);
-        task.TaskRole.AddToPrincipalPolicy(new PolicyStatement(new PolicyStatementProps
+        documents.GrantReadWrite(taskRole);
+        requests.GrantSendMessages(taskRole);
+        chatRequests.GrantSendMessages(taskRole);
+        results.GrantConsumeMessages(taskRole);
+        taskRole.AddToPrincipalPolicy(new PolicyStatement(new PolicyStatementProps
         {
             Actions = ["ses:SendEmail"],
             // In the SES sandbox the recipients are identities too, so the resource cannot be the sender alone.
@@ -259,37 +253,7 @@ public sealed class AppStack : Stack
         });
 
         _ = new CfnOutput(this, "AppUrl", new CfnOutputProps { Value = appUrl });
-        _ = new CfnOutput(this, "DocumentsBucket", new CfnOutputProps { Value = documents.BucketName });
-        _ = new CfnOutput(this, "RequestsQueueUrl", new CfnOutputProps { Value = requests.QueueUrl });
-        _ = new CfnOutput(this, "ResultsQueueUrl", new CfnOutputProps { Value = results.QueueUrl });
+        _ = new CfnOutput(this, "TaskRoleArn", new CfnOutputProps { Value = taskRole.RoleArn });
         _ = new CfnOutput(this, "ApiLogGroup", new CfnOutputProps { Value = logs.LogGroupName });
     }
-
-    // Each queue has a dead-letter queue after 3 receives, like the local ones (infra/local/localstack).
-    private Queue NewQueue(string name, int visibilitySeconds) => new(this, name, new QueueProps
-    {
-        QueueName = name,
-        VisibilityTimeout = Duration.Seconds(visibilitySeconds),
-        Encryption = QueueEncryption.SQS_MANAGED,
-        EnforceSSL = true,
-        DeadLetterQueue = new DeadLetterQueue
-        {
-            MaxReceiveCount = 3,
-            Queue = new Queue(this, $"{name}-dlq", new QueueProps
-            {
-                QueueName = $"{name}-dlq",
-                Encryption = QueueEncryption.SQS_MANAGED,
-                EnforceSSL = true,
-                RetentionPeriod = Duration.Days(14),
-            }),
-        },
-    });
-
-    private static void AllowWorker(Bucket bucket, IPrincipal worker, string[] actions, params string[] resources) =>
-        bucket.AddToResourcePolicy(new PolicyStatement(new PolicyStatementProps
-        {
-            Principals = [worker],
-            Actions = actions,
-            Resources = resources,
-        }));
 }

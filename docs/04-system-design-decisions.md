@@ -365,7 +365,7 @@ Phương án khác: dựng AWS ngay từ đầu để phát hiện lỗi hạ t�
     - Trước khi triển khai lên AWS, cần phải nhắc lại với các thành viên cấu hình billing, cảnh báo
 ---
 
-## Đổi sau khi chốt (2026-11-17, 2026-11-18, 2026-11-20, 2026-11-21)
+## Đổi sau khi chốt (2026-11-17, 2026-11-18, 2026-11-20, 2026-11-21, 2026-11-23)
 
 Approver đổi ba điểm khi chuẩn bị Phase 7 (C1–C3), thêm C4–C5 ngày 2026-11-18 khi nối Supabase, theo drawio `architecture/contractguard-architecture.drawio`. Phần dưới ghi lại hệ quả và trade-off để cả nhóm biết đã đánh đổi gì. Các mục SD cũ giữ nguyên để lưu vết; dòng Quyết định của chúng trỏ về đây.
 
@@ -502,7 +502,7 @@ Quy tắc "chỉ C# ghi DB" đổi thành: C# là nơi duy nhất ghi **dữ li�
 - **Ghép câu trả lời:** backend giữ câu hỏi đang chờ trong bộ nhớ (`ChatAnswerWaiter`). Chỉ đúng với một instance API; chạy nhiều instance thì phải lưu câu trả lời vào DB rồi poll.
 - **Lỗi:** worker gửi `failed` với `job_id` của câu hỏi, hoặc không trả lời trong 3 phút: người dùng nhận ERR-CHAT-001, câu hỏi vẫn được lưu.
 - **Trust boundary:** như cũ. `ChatService` bỏ trích dẫn tới điều khoản không thuộc run; `answer_text` tối đa 8000 ký tự.
-- **Rủi ro:** trên Fargate, ALB cắt kết nối im lặng quá 60 giây. Backend chưa gửi keepalive SSE (`shortcut:` ở `ChatEndpoints.cs`), nên cần thêm trước khi lên ALB nếu worker trả lời chậm.
+- **Rủi ro:** trên Fargate, ALB cắt kết nối im lặng quá 60 giây (CloudFront 30 giây). Đã xử lý ở C9: event `ping` mỗi 15 giây.
 
 Code: `WorkerChatResponder`, `ChatAnswerWaiter`, cấu hình `Chat:Responder=worker` (môi trường `Cloud`) và `Queues:ChatRequests`. Development và e2e vẫn dùng `fake`.
 
@@ -549,6 +549,23 @@ Code: `WorkerChatResponder`, `ChatAnswerWaiter`, cấu hình `Chat:Responder=wor
 **Ràng buộc với nhóm AI:** đổi tên bảng, khóa hoặc ba trường trên thì báo SE trước (`docs/07` §12). Đổi tên stage thì trang chỉ mất dòng chữ, vẫn còn %.
 
 **Quyết định:** B (Approver chọn 2026-11-21).
+
+### C9 Production trên AWS: không domain, dùng lại bộ dev, lưu khóa phiên vào DB (đổi SD-03, C5, C7)
+
+**Bối cảnh:** tài khoản SE mới có SES, bucket và queue bộ dev. Stack CDK (C7) chờ domain, ACM và listener HTTPS. Worker AI chỉ có một máy EC2 đọc queue dev. Approver chọn 2026-11-23:
+
+| Mục | Chọn | Đánh đổi |
+|---|---|---|
+| Domain | **Không mua.** Dùng `https://<id>.cloudfront.net`. ALB vẫn nghe HTTP trong VPC origin; API lấy scheme từ header `CloudFront-Forwarded-Proto` (`Program.cs`) | Không tốn tiền, không chờ DNS. Lệch C7 ("có domain"). URL xấu, và đổi mỗi lần `cdk destroy` rồi deploy lại, nên phải sửa lại CORS bucket và redirect URI của Google. Không xác minh được domain trên SES |
+| S3/SQS | **Dùng lại `contractguard-dev-*`** (CDK import, không tạo mới) | Worker không phải đổi gì; `cdk destroy` không xóa tài liệu. Nhưng staging và production cùng đọc `analysis-results`, và consumer **xóa** message của job lạ (`ResultOutcome.Ignored`), nên **phải tắt service `api` trên Railway khi production chạy**. Dữ liệu demo nằm chung bucket với dữ liệu thử |
+| Email | **SES sandbox**; Approver xin production access | Phải xác minh từng người nhận. Bị từ chối thì đổi `Email__Provider=gmail` |
+| Khóa phiên | **Data Protection key lưu ở bảng `app.data_protection_keys`** | Hết cảnh mọi người bị đăng xuất sau mỗi lần restart hoặc deploy (cả staging). Khóa nằm ở dạng thường trong Supabase; ai đọc được schema `app` thì giả được cookie. **IA xem lại**; mã hóa khóa khi có KMS dùng được |
+
+- **Database: dùng chung Supabase staging** (Approver chọn 2026-11-23, đổi C5 "Supabase project mới"). Hai môi trường vốn không chạy cùng lúc được (dùng chung S3/SQS), nên tách DB cũng không tách được gì thật. Đổi lại: không tạo project mới, không đụng giới hạn gói Free, migration và kho pháp luật có sẵn. Demo bằng tài khoản và workspace mới để không lẫn dữ liệu thử (SD-05). Muốn production chạy song song staging thì phải tách cả DB lẫn S3/SQS.
+- **Không đọc DynamoDB của worker ở production** (Approver chọn 2026-11-23): không phải nhờ nhóm AI đổi resource policy bảng `contract-risk-jobs`. Trang phân tích chỉ hiện danh sách bước từ message `progress` trên SQS, mất thanh % và dòng "AI đang làm gì" (C8). Staging vẫn có, vì Railway còn biến `WorkerActivity__TableArn`.
+- SSE gửi event `ping` mỗi 15 giây khi worker chưa trả lời, vì CloudFront cắt origin im lặng 30 giây (rủi ro đã nêu ở C6).
+
+**Quyết định:** như bảng trên (Approver chọn 2026-11-23).
 
 ## Điểm phát sinh khi code
 
