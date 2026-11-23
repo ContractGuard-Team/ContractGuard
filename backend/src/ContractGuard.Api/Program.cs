@@ -86,6 +86,20 @@ if (args.Contains("seed"))
 }
 
 app.UseForwardedHeaders();
+
+// On AWS the ALB listens on http (no domain, so no certificate; docs/04 C9) and sets X-Forwarded-Proto: http.
+// CloudFront overwrites CloudFront-Forwarded-Proto with the viewer's real scheme, and only CloudFront reaches
+// the ALB. A client sending it elsewhere can only turn http into https, which makes cookies stricter.
+app.Use((context, next) =>
+{
+    if (context.Request.Headers["CloudFront-Forwarded-Proto"] == "https")
+    {
+        context.Request.Scheme = "https";
+    }
+
+    return next(context);
+});
+
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseRateLimiter();

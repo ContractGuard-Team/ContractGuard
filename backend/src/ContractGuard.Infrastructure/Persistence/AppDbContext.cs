@@ -5,6 +5,7 @@ using ContractGuard.Domain.Contracts;
 using ContractGuard.Domain.Workspaces;
 using ContractGuard.Infrastructure.Identity;
 using ContractGuard.Infrastructure.Persistence.Conventions;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,7 @@ namespace ContractGuard.Infrastructure.Persistence;
 // IdentityUserContext (not IdentityDbContext) creates the user tables only, without role tables:
 // roles in ContractGuard live in membership.org_role and contract_share.contract_role.
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options, CurrentWorkspace workspace)
-    : IdentityUserContext<AppUser, Guid>(options), IApplicationDbContext
+    : IdentityUserContext<AppUser, Guid>(options), IApplicationDbContext, IDataProtectionKeyContext
 {
     public const string AppSchema = "app";
 
@@ -29,6 +30,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, Current
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<ContractShare> ContractShares => Set<ContractShare>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
+
+    // Keys behind the session cookie and email tokens, so they survive a restart or deploy of the API.
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     public void DiscardChanges() => ChangeTracker.Clear();
 

@@ -12,4 +12,9 @@
     <PackageReference Include="Amazon.CDK.Lib" Version="2.277.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- cdk.out holds a copy of the repo for the API image; a second synth run (after a lookup) must not compile it. -->
+    <Compile Remove="cdk.out/**" />
+  </ItemGroup>
+
 </Project>

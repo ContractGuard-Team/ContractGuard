@@ -24,8 +24,10 @@ internal static class ChatEndpoints
     private static async Task<Ok<ChatThread>> GetThread(Guid contractId, ChatService chat, CancellationToken cancellationToken) =>
         TypedResults.Ok(await chat.GetThreadAsync(contractId, cancellationToken));
 
-    // shortcut: no keep-alive comments while the model is silent; add one every 15s if the real model
-    // can stay silent longer than the load balancer idle timeout (60s).
+    // CloudFront drops an origin that stays silent for 30s (the ALB after 60s), and the worker answers in one
+    // go, often later than that (docs/04 C6). A "ping" event in between keeps the stream open; the web ignores it.
+    internal static readonly TimeSpan KeepAliveInterval = TimeSpan.FromSeconds(15);
+
     private static async Task<ServerSentEventsResult<ChatEvent>> Ask(
         Guid contractId,
         AskRequest request,
@@ -37,14 +39,30 @@ internal static class ChatEndpoints
         var user = await users.GetUserAsync(principal)
             ?? throw new DomainException(ErrorCodes.Unauthenticated, "The account no longer exists.");
         var prepared = await chat.PrepareAsync(contractId, request.ContractVersionId, request.Question, user.DisplayName, user.UiLanguage, cancellationToken);
-        return TypedResults.ServerSentEvents(Events(chat, prepared, cancellationToken));
+        return TypedResults.ServerSentEvents(WithKeepAlive(chat.StreamAnswerAsync(prepared, cancellationToken), KeepAliveInterval, cancellationToken));
     }
 
-    private static async IAsyncEnumerable<SseItem<ChatEvent>> Events(ChatService chat, PreparedQuestion prepared, [EnumeratorCancellation] CancellationToken cancellationToken)
+    internal static async IAsyncEnumerable<SseItem<ChatEvent>> WithKeepAlive(IAsyncEnumerable<ChatEvent> events, TimeSpan interval, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        await foreach (var item in chat.StreamAnswerAsync(prepared, cancellationToken))
+        await using var items = events.GetAsyncEnumerator(cancellationToken);
+        var next = items.MoveNextAsync().AsTask();
+        while (true)
         {
-            yield return new SseItem<ChatEvent>(item, item.Type);
+            var silence = Task.Delay(interval, cancellationToken);
+            // On cancellation, fall through and await the stream too: disposing it mid-move would throw.
+            if (await Task.WhenAny(next, silence) == silence && !cancellationToken.IsCancellationRequested)
+            {
+                yield return new SseItem<ChatEvent>(new ChatEvent("ping"), "ping");
+                continue;
+            }
+
+            if (!await next)
+            {
+                yield break;
+            }
+
+            yield return new SseItem<ChatEvent>(items.Current, items.Current.Type);
+            next = items.MoveNextAsync().AsTask();
         }
     }
 }

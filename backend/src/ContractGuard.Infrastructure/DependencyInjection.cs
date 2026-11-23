@@ -13,6 +13,7 @@ using ContractGuard.Infrastructure.Reports;
 using ContractGuard.Application.Reports;
 using ContractGuard.Infrastructure.Storage;
 using Amazon.S3;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -124,6 +125,11 @@ public static class DependencyInjection
 
         // Same scoped instance whether asked for as AppDbContext or as the Application port.
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+
+        // In the container the default key folder is lost on every restart, which signed everyone out (docs/04 C9).
+        services.AddDataProtection()
+            .PersistKeysToDbContext<AppDbContext>()
+            .SetApplicationName("ContractGuard");
 
         services.AddHealthChecks()
             .AddDbContextCheck<AppDbContext>("postgres", tags: ["ready"]);
