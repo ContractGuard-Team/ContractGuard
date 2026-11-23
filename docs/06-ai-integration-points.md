@@ -72,7 +72,7 @@ Backend từ chối **cả kết quả** (job `failed`, không lưu gì, theo VA
 
 **Câu hỏi mở:**
 
-1. Khi ngưỡng được hiệu chỉnh bằng eval, ngưỡng nằm ở đâu? Hiện đang cố định trong `RiskLevels.cs` (có ghi `shortcut:`). Đề xuất: worker gửi kèm ngưỡng đã dùng, hoặc hai bên đọc cùng một file cấu hình có version.
+1. ~~Khi ngưỡng được hiệu chỉnh bằng eval, ngưỡng nằm ở đâu?~~ **Đã chốt 2026-11-23 (`docs/04` P7-01):** worker tính cả điểm lẫn mức theo policy có phiên bản (`scoring.rule_version`); backend lưu đúng mức worker ghi, không suy lại theo ngưỡng SRS. Scoring hỏng cấu trúc thì backend bỏ khối scoring, vẫn lưu phần còn lại.
 2. Khi nào `scoring` thành bắt buộc? Đề xuất: ngay khi worker đầu tiên chạy được.
 3. Có giữ `re_enabled` (BR-RISK-004) không, hay worker tự bật lại nhóm rồi chỉ báo `applicable: true`?
 

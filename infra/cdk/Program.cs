@@ -3,11 +3,12 @@ using ContractGuard.Infra;
 
 var app = new App();
 
-// Production only, up for ~3 days around the showcase; staging runs on Railway (docs/04 C7).
-_ = new AppStack(app, "ContractGuard-Production", "production", new StackProps
+// Staging on AWS for the demo, up for ~3 days around the showcase; the everyday staging runs on Railway
+// (docs/04 C7, C9). Not production: no domain, SES in sandbox, database shared with the Railway staging.
+_ = new AppStack(app, "ContractGuard-StagingAws", "staging-aws", new StackProps
 {
     Env = new Amazon.CDK.Environment { Account = "699061129385", Region = "ap-southeast-1" },
-    Description = "ContractGuard production: SPA on CloudFront + S3, API on ECS Fargate behind an internal ALB",
+    Description = "ContractGuard staging on AWS (demo): SPA on CloudFront + S3, API on ECS Fargate behind an internal ALB",
 });
 
 app.Synth();
