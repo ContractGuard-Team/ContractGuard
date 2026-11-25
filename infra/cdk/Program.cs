@@ -11,4 +11,11 @@ _ = new AppStack(app, "ContractGuard-StagingAws", "staging-aws", new StackProps
     Description = "ContractGuard staging on AWS (demo): SPA on CloudFront + S3, API on ECS Fargate behind an internal ALB",
 });
 
+// The role the manual "Deploy: Staging (AWS)" workflow signs in with. Deployed once; it stays when the demo is destroyed.
+_ = new GitHubDeployStack(app, "ContractGuard-GitHubDeploy", new StackProps
+{
+    Env = new Amazon.CDK.Environment { Account = "699061129385", Region = "ap-southeast-1" },
+    Description = "ContractGuard: IAM role for GitHub Actions deploys (OIDC)",
+});
+
 app.Synth();

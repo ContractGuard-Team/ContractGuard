@@ -83,17 +83,27 @@ Truy cập chéo tài khoản chỉ thông khi **cả hai phía** cùng cho phé
 | AI `333596350642` | Inline policy trên `ContractRisk-EC2-Role` (bên dưới) | ✅ Worker đã đọc và ghi bộ dev (2026-11-21) |
 | AI `333596350642` | Gắn role vào EC2; IMDS hop limit 2 | ✅ Như trên |
 
-Inline policy cho `ContractRisk-EC2-Role` (IAM → Roles → `ContractRisk-EC2-Role` → Add permissions → Create inline policy → JSON):
+Quyền vào tài khoản ContractGuard nằm trong **một** inline policy `ContractGuard-Partner` trên `ContractRisk-EC2-Role` (gộp ngày 2026-11-25 từ `partner-contract-source`, `ContractRisk-Partner-SQS-Policy`, `ContractGuardChat`; quyền thực tế không đổi, thêm queue hủy §15). Thêm queue hoặc key mới thì sửa policy này, không tạo policy rời. Các policy khác của role: `ContractRisk-DataPipeline` (bucket kho pháp luật + `contract-data-update-queue`), `ContractRisk-JobTables` (hai bảng DynamoDB), `ContractRisk-SecretsManager-ReadPolicy`, `AmazonSSMManagedInstanceCore`.
+
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
-    { "Sid": "ListBucket", "Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::contractguard-dev-documents-699061129385" },
-    { "Sid": "ReadInputs", "Effect": "Allow", "Action": "s3:GetObject", "Resource": ["arn:aws:s3:::contractguard-dev-documents-699061129385/quarantine/*", "arn:aws:s3:::contractguard-dev-documents-699061129385/results/*/request.json"] },
-    { "Sid": "WriteOutputs", "Effect": "Allow", "Action": "s3:PutObject", "Resource": ["arn:aws:s3:::contractguard-dev-documents-699061129385/clean/*", "arn:aws:s3:::contractguard-dev-documents-699061129385/results/*/extraction.json"] },
-    { "Sid": "RemoveQuarantined", "Effect": "Allow", "Action": "s3:DeleteObject", "Resource": "arn:aws:s3:::contractguard-dev-documents-699061129385/quarantine/*" },
-    { "Sid": "ConsumeRequests", "Effect": "Allow", "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-requests" },
-    { "Sid": "PublishResults", "Effect": "Allow", "Action": ["sqs:SendMessage", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-results" }
+    { "Sid": "DocumentsList", "Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::contractguard-dev-documents-699061129385" },
+    { "Sid": "DocumentsReadInputs", "Effect": "Allow", "Action": "s3:GetObject",
+      "Resource": ["arn:aws:s3:::contractguard-dev-documents-699061129385/quarantine/*", "arn:aws:s3:::contractguard-dev-documents-699061129385/results/*/request.json"] },
+    { "Sid": "DocumentsWriteOutputs", "Effect": "Allow", "Action": "s3:PutObject",
+      "Resource": ["arn:aws:s3:::contractguard-dev-documents-699061129385/clean/*", "arn:aws:s3:::contractguard-dev-documents-699061129385/results/*/extraction.json"] },
+    { "Sid": "DocumentsRemoveQuarantined", "Effect": "Allow", "Action": "s3:DeleteObject", "Resource": "arn:aws:s3:::contractguard-dev-documents-699061129385/quarantine/*" },
+    { "Sid": "ConsumeAnalysisAndChatRequests", "Effect": "Allow",
+      "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"],
+      "Resource": ["arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-requests", "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-chat-requests"] },
+    { "Sid": "ConsumeCancels", "Effect": "Allow",
+      "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage"],
+      "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-cancels" },
+    { "Sid": "PublishResults", "Effect": "Allow",
+      "Action": ["sqs:SendMessage", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"],
+      "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-results" }
   ]
 }
 ```
@@ -195,7 +205,7 @@ Quyền thêm cho role `ContractRisk-EC2-Role`. Phiếu câu hỏi khớp `resul
 | Phía | Việc | Trạng thái |
 |---|---|---|
 | ContractGuard `699061129385` | Tạo queue và DLQ; queue policy cho role (Receive, Delete, ChangeMessageVisibility, GetQueueAttributes, GetQueueUrl); thêm `sqs:SendMessage`, `sqs:GetQueueUrl` cho user của API | ✅ Đã có, đã kiểm (2026-11-21) |
-| AI `333596350642` | Thêm vào inline policy: `{ "Sid": "ConsumeChat", "Effect": "Allow", "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-chat-requests" }` | ⏳ Nhóm AI làm |
+| AI `333596350642` | ✅ Có trong `ContractGuard-Partner` (§5). Gốc: `{ "Sid": "ConsumeChat", "Effect": "Allow", "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-chat-requests" }` | ⏳ Nhóm AI làm |
 | AI | Thêm `ChatRequested` vào `common/schemas/business/inbound.py`, `ChatAnswered` vào `outbound.py`, viết handler | ✅ SE viết hộ ngày 2026-11-21 trên nhánh `feat/chatbotAI` của repo AI, chờ nhóm AI review |
 
 Cách SE viết (nhánh `feat/chatbotAI`): process thứ 3 `chat-worker` trong `workers/main.py` chạy `workers/chat.py` khi có `WORKER_CHAT_QUEUE_URL`. Worker không giữ khóa model, nên chuyển câu hỏi tới agent-3 (`POST /v1/chat`, `agents/chat.py`, xác thực bằng `INTERNAL_API_TOKEN`). Agent-3 gọi model một lần với điều khoản, finding và lịch sử của phiếu. Lỗi nào cũng trả `failed` ngay và xóa message, vì backend chỉ chờ 3 phút. Trên EC2 cần thêm vào `.env`: `WORKER_CHAT_QUEUE_URL=https://sqs.ap-southeast-1.amazonaws.com/699061129385/contractguard-dev-chat-requests` (`WORKER_CHAT_URL` đã đặt sẵn trong `docker-compose.yml`).
@@ -258,8 +268,43 @@ Bỏ 4 trường tùy chọn mà backend không lưu, không dùng: `document.is
 | Kết quả bị từ chối vì `is_scanned`, `output_language`, `tenant_id` | EC2 chạy image `langgraph` cũ | `git pull` + build lại trên EC2 (§13) |
 | `ValueError ... does not follow a cut clause` sau agent-3 | Agent 1 gắn nhầm `continuation` cho điều khoản đầu tiên; `_merge_chunks` làm hỏng cả job | Repo AI `a18836f5`: cờ sai không làm hỏng job (id mới = điều khoản riêng, id đã có = nối chữ) |
 | `NoSuchKey` khi phân tích lại | Worker xóa `quarantine/` ngay sau khi gửi `completed`, trước khi backend chấp nhận; kết quả bị từ chối thì phiên bản trỏ vào file đã mất | Backend `AnalysisStarter.PrepareWorkerInputAsync`: file quarantine mất mà bản `clean/` còn thì chép lại trước khi gửi job (worker chỉ được đọc `quarantine/*`). Không còn bản nào thì từ chối ngay với `ERR-GEN-FILE-MISSING` thay vì chờ worker báo lỗi |
-| Phân tích lại một hợp đồng đã phân tích xong (dự đoán, chưa gặp trên staging) | Kết quả được chấp nhận thì phiên bản trỏ sang `clean/...`; `source_file_key` gửi đi là `clean/` mà worker không được đọc | Cùng hàm trên: chép bản `clean/` sang `quarantine/{owner}/{versionId}.{ext}` và gửi key đó; worker xóa nó sau `completed` như mọi file quarantine |
+| Phân tích lại một hợp đồng đã phân tích xong (dự đoán, chưa gặp trên staging) | Kết quả được chấp nhận thì phiên bản trỏ sang `clean/...`; `source_file_key` gửi đi là `clean/` mà worker không được đọc | Cùng hàm trên: chép bản `clean/` sang `quarantine/{owner}/{jobId}.{ext}` (trước 2026-11-23 là `{versionId}`) và gửi key đó; worker xóa nó sau `completed` như mọi file quarantine |
+| `NoSuchKey` ở lần chạy lại ngay sau khi người dùng dừng phân tích (CR-ANA-001) | Worker không biết job đã dừng, chạy nốt rồi xóa file `quarantine/` dùng chung, trong khi job chạy lại còn xếp hàng phía sau | Cùng hàm trên: phiên bản đã có lần bị dừng thì mỗi lần chạy nhận bản chép riêng `quarantine/{owner}/{jobId}.{ext}`. Đề xuất cho worker bỏ job đã dừng: `docs/06` §3.5 |
 | `ERR-AI-002: RemoteServiceError` ở bước tách điều khoản (2026-11-22) | Tài khoản OpenAI hết credit (`429 credit_balance_exhausted`); worker xếp là lỗi tạm thời nên thử lại ~5 phút rồi mới báo | **Nhóm AI:** nạp credit; xếp `credit_balance_exhausted` là lỗi vĩnh viễn (không thử lại); `failure_reason` nên ghi lý do đọc được (vd. "model provider out of credit") thay vì chỉ tên exception |
 | `TransientModelError` ở agent-3, thử lại hỏng sau ~2 s | Nhiều khả năng 429 TPM: OpenAI tính `max_output_tokens` (128k) vào giới hạn mỗi phút | Repo AI nhánh `fix/model-limits`: agent-2 64k, agent-3 32k, chat 4k + reasoning low; SDK `max_retries=5` (chờ theo `Retry-After`); log ghi `status`/`code` của lỗi |
 
 Còn lại, phía AI tự xử lý (không làm hỏng job, nhưng agent gần như không tra được văn bản pháp luật): `supabase_select` `APIError`, `postgres_query` `IntegrationNotConfigured`, `s3_list_objects`/`s3_get_object` `PermissionError` (`MCP_S3_BUCKETS`). Tool `partner_document` đọc `clean_file_key` bị `AccessDenied` vì role chỉ được đọc `quarantine/*`; agent vẫn đọc được bằng `source_file_key`.
+
+## 15. Dừng phân tích và mã lỗi của worker (2026-11-24, CR-ANA-001)
+
+Thiết kế của nhóm AI: repo AI `docs/partner_cancel_and_failure.md` (commit `13785369`). Backend đã nối theo đúng thiết kế đó.
+
+| Thứ | Giá trị |
+|---|---|
+| Queue hủy | `contractguard-dev-analysis-cancels` (Standard, giữ 1 ngày, DLQ `-dlq` sau 5 lần nhận). Local: `analysis-cancels` |
+| Message | `{"message_version":"1","event_type":"cancel_requested","job_id":"<job_id>"}`, schema `cancelRequested` trong `contracts/queue-messages.v1.schema.json` |
+| Ai gửi | `ContractCommands.CancelAnalysisAsync`, sau khi đã lưu run `cancelled`. Gửi lỗi thì chỉ ghi log (người dùng vẫn thấy đã dừng; worker chạy nốt như trước) |
+| Worker trả lời | `failed` + `error_code: ERR-AI-003` trên `analysis-results`. Run đã `cancelled` nên backend bỏ qua (log "Late or duplicate failed") |
+| Worker đọc | Luồng riêng `workers/cancel.py`, đọc liên tục kể cả khi đang chạy job; job còn trong `analysis-requests` thì tới lượt sẽ bị bỏ. Env `WORKER_CANCEL_QUEUE_URL` |
+
+Không gửi `cancel_requested` vào `analysis-requests`: worker coi là request sai. Job đã `completed` trước khi lệnh hủy tới thì không có message mới, và `completed` tới sau khi backend đã đánh `cancelled` cũng bị bỏ qua (người dùng đã chọn dừng). Backend vẫn giữ bản chép riêng `quarantine/{owner}/{jobId}{ext}` cho lần chạy lại (§14), phòng khi lệnh hủy không tới.
+
+**Mã lỗi trong `failed`** (không có trong SRS §14.1, đều thuộc `ERR-ANA-001`; frontend có chữ tiếng Việt trong `frontend/app/lib/errors.ts`):
+
+| `error_code` | Ý nghĩa |
+|---|---|
+| `ERR-UPL-004` | Quá số trang (`max_pages`) |
+| `ERR-AI-001` | Request hoặc file không hợp lệ; gửi lại y nguyên vẫn lỗi |
+| `ERR-AI-002` | Vẫn lỗi sau 3 lần nhận (model, mạng, file hỏng) |
+| `ERR-AI-003` | Người dùng dừng |
+
+Khi lỗi (trừ hủy và request hỏng), worker ghi file lỗi tại `result_key`: đủ các mục cấp cao nhất, phần lớn là `null`, `document_complete: false`. Backend chỉ đọc `result_key` sau `completed`, nên file này không bao giờ được nạp; xóa vĩnh viễn hợp đồng cũng xóa nó (`ContractPurger` xóa `results/{jobId}/extraction.json` của mọi lần chạy).
+
+Quyền:
+
+| Phía | Việc | Trạng thái |
+|---|---|---|
+| ContractGuard `699061129385` | Tạo queue + DLQ; queue policy cho `ContractRisk-EC2-Role` (`sqs:ReceiveMessage`, `sqs:DeleteMessage`); `sqs:SendMessage`, `sqs:GetQueueUrl`, `sqs:GetQueueAttributes` cho user API (Railway). Staging AWS: CDK cấp cho role `contractguard-staging-api-task` | ✅ Đã tạo, đã kiểm (2026-11-24): queue + DLQ (SSE SQS), queue policy, inline policy `contractguard-dev-cancel-queue` của `contractguard-dev-api-local` (gửi thử được) |
+| AI `333596350642` | Thêm `sqs:ReceiveMessage`, `sqs:DeleteMessage` trên `arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-cancels`: ✅ đã có trong `ContractGuard-Partner` (2026-11-25, kiểm bằng IAM policy simulator). Còn đặt `WORKER_CANCEL_QUEUE_URL=https://sqs.ap-southeast-1.amazonaws.com/699061129385/contractguard-dev-analysis-cancels` rồi deploy | ⏳ Nhóm AI làm |
+
+Nghiệm thu: chạy bảng §4 của tài liệu nhóm AI (hủy khi đang chạy, hủy khi còn trong queue, hủy job đã xong, hủy hai lần, các mã lỗi).

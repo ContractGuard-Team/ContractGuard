@@ -40,10 +40,11 @@ public sealed partial class ContractPurger(IApplicationDbContext db, IObjectStor
             .Where(v => v.ContractId == contractId)
             .Select(v => new { v.ContractVersionId, v.SourceFileKey, v.VersionNumber, v.OriginalFileName })
             .ToListAsync(cancellationToken);
-        var runIds = await db.AnalysisRuns.IgnoreQueryFilters([QueryFilters.NotDeleted])
+        var runs = await db.AnalysisRuns.IgnoreQueryFilters([QueryFilters.NotDeleted])
             .Where(r => r.ContractId == contractId)
-            .Select(r => r.AnalysisRunId)
+            .Select(r => new { r.AnalysisRunId, r.ContractVersionId })
             .ToListAsync(cancellationToken);
+        var extensionOf = versions.ToDictionary(v => v.ContractVersionId, v => Extension(v.OriginalFileName));
 
         // The worker deletes a quarantine file only after "completed"; the clean and retry-input keys are
         // predictable, so copies that were never recorded on the version go too.
@@ -52,8 +53,9 @@ public sealed partial class ContractPurger(IApplicationDbContext db, IObjectStor
         [
             .. versions.Select(v => v.SourceFileKey),
             .. versions.Select(v => AnalysisStorageKeys.CleanKey(workspaceSegment, contractId, v.VersionNumber, Extension(v.OriginalFileName))),
-            .. versions.Select(v => AnalysisStorageKeys.RetryInputKey(contract.OwnerUserAccountId, v.ContractVersionId, Extension(v.OriginalFileName))),
-            .. runIds.SelectMany(id => new[] { AnalysisStorageKeys.RequestKey(id), AnalysisStorageKeys.ExtractionKey(id) })
+            .. versions.Select(v => AnalysisStorageKeys.RetryInputKey(contract.OwnerUserAccountId, v.ContractVersionId, extensionOf[v.ContractVersionId])),
+            .. runs.Select(r => AnalysisStorageKeys.RetryInputKey(contract.OwnerUserAccountId, r.AnalysisRunId, extensionOf[r.ContractVersionId])),
+            .. runs.SelectMany(r => new[] { AnalysisStorageKeys.RequestKey(r.AnalysisRunId), AnalysisStorageKeys.ExtractionKey(r.AnalysisRunId) })
         ];
         foreach (var key in keys.Distinct())
         {

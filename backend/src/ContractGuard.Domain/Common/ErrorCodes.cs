@@ -9,6 +9,7 @@ public static class ErrorCodes
     public const string LinkExpired = "ERR-AUTH-004";
     public const string LockedOut = "ERR-AUTH-005";
     public const string TooManyRequests = "ERR-AUTH-006";
+    public const string WrongCurrentPassword = "ERR-AUTH-007";
 
     public const string UnsupportedFileType = "ERR-UPL-001";
     public const string FileTypeMismatch = "ERR-UPL-002";

@@ -10,7 +10,7 @@ tier: 2
 output_language: vi
 upstream:
   - "02-PRD.md"
-version: "1.5"
+version: "1.7"
 status: REVIEW
 authors:
   - "Agent"
@@ -20,7 +20,7 @@ reviewers:
 approvers:
   - "SE của nhóm"
 created: 2026-10-24
-last_updated: 2026-11-17
+last_updated: 2026-11-23
 tags:
   - srs
   - requirements
@@ -197,6 +197,8 @@ tags:
 | 1.2 | 2026-11-17 | Agent | §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §15, §16 | CR-GEN-001 (DEC-PRD-023): bỏ đọc bản scan và OCR, chỉ nhận PDF có lớp chữ và DOCX. FR-ANA-007, NFR-PERF-003, EXT-INTG-002, IF-INTG-002 DEPRECATED; BR-CTR-001, FR-UPL-002, FR-UPL-003, FR-ANA-004, FR-ANA-008, FR-ANA-013, VAL-DATA-003 sửa và về REVIEW; EDGE-UPL-001, EDGE-ANA-001 cập nhật | REVIEW |
 | 1.3 | 2026-11-17 | Agent | §1.4, §7, §8, §9, §12.3, §14 | CR-GEN-002: mỗi người có một vai trò hiệu lực trên hợp đồng (mức cao nhất); Owner tổ chức không được chia sẻ như Member hợp đồng; danh sách truy cập liệt kê cả Owner tổ chức; tên hiển thị của vai trò. BR-SHARE-002, FR-SHARE-006 sửa và về REVIEW; thêm VAL-DATA-016, ERR-SHARE-003 | REVIEW |
 | 1.4 | 2026-11-17 | Agent | §1.1, §1.2, §2.1, §2.4, §2.5, §2.6, §3.4, §10, §17 | CR-GEN-003 (DEC-GEN-029): model AI tự host bằng Docker trên Amazon EC2 thay Amazon Bedrock. CON-GEN-001, EXT-INTG-001, IF-INTG-001, RISK-SRS-003 sửa và về REVIEW | REVIEW |
+| 1.6 | 2026-11-23 | Agent | §5, §8, §13, §16 | CR-ANA-001 (DEC-GEN-031): người dùng dừng được phân tích đang chạy và chạy lại ngay. Thêm FR-ANA-018, STATE-ANA-004, TR-ANA-004 (REVIEW); STATE-ANA-001, STATE-CTR-002, TR-CTR-003 và bảng F-ANA-001 có ghi chú `[CHANGE]` | REVIEW |
+| 1.7 | 2026-11-23 | Agent | §6, §8, §9, §14, §16 | CR-AUTH-001 (DEC-GEN-032): trang hồ sơ (tên hiển thị, số điện thoại, ngôn ngữ kết quả) và đổi hoặc đặt mật khẩu khi đã đăng nhập. Thêm FR-AUTH-016, FR-AUTH-017, ERR-AUTH-007, ATTR-DATA-047, ATTR-DATA-048 (REVIEW); FR-VIEW-015 và bảng F-AUTH-001 có ghi chú `[CHANGE]` | REVIEW |
 
 ### 0.3 Review And Approval
 
@@ -645,7 +647,7 @@ Bảng dưới bổ sung phần SRS thêm vào cho từng feature trong phạm v
 
 | Feature ID | Use Cases | Business Rules | Functional Requirements | Ghi chú SRS |
 |---|---|---|---|---|
-| F-AUTH-001 | UC-AUTH-001, UC-AUTH-002, UC-AUTH-003 | - | FR-AUTH-001, FR-AUTH-002, FR-AUTH-003, FR-AUTH-004, FR-AUTH-005, FR-AUTH-006, FR-AUTH-007, FR-AUTH-008, FR-AUTH-009, FR-AUTH-010, FR-AUTH-014, FR-AUTH-015 | Chính sách mật khẩu và hành vi khi chưa xác thực email được làm rõ ở §8 |
+| F-AUTH-001 | UC-AUTH-001, UC-AUTH-002, UC-AUTH-003 | - | FR-AUTH-001, FR-AUTH-002, FR-AUTH-003, FR-AUTH-004, FR-AUTH-005, FR-AUTH-006, FR-AUTH-007, FR-AUTH-008, FR-AUTH-009, FR-AUTH-010, FR-AUTH-014, FR-AUTH-015, FR-AUTH-016, FR-AUTH-017 | Chính sách mật khẩu và hành vi khi chưa xác thực email được làm rõ ở §8. [CHANGE] CR-AUTH-001: thêm FR-AUTH-016 (hồ sơ), FR-AUTH-017 (đổi mật khẩu) |
 | F-AUTH-002 | UC-AUTH-002 | - | FR-AUTH-011 | Email và Google dùng chung một tài khoản theo email (OQ-AUTH-001) |
 | F-AUTH-003 | - | - | FR-AUTH-012, FR-AUTH-013 | Won't (DEC-PRD-022); FR-AUTH-012, FR-AUTH-013 DEPRECATED. Sau MVP, ưu tiên Should: mỗi lần đăng nhập đều bắt buộc MFA bằng mã gửi qua email; không dùng ứng dụng xác thực bên thứ ba |
 | F-ORG-001 | UC-ORG-001, UC-ORG-002, UC-ORG-003 | BR-ORG-001, BR-ORG-002, BR-ORG-003 | FR-ORG-001, FR-ORG-002, FR-ORG-003, FR-ORG-004, FR-ORG-005, FR-ORG-006, FR-ORG-007, FR-ORG-008, FR-ORG-009, FR-ORG-010, FR-ORG-011, FR-ORG-012 | Member tổ chức xem được email và vai trò của các thành viên (OQ-ORG-001); MVP không có chức năng xóa tổ chức (OQ-ORG-002) |
@@ -658,7 +660,7 @@ Bảng dưới bổ sung phần SRS thêm vào cho từng feature trong phạm v
 | F-CTR-005 | UC-CTR-004 | BR-CTR-003 | FR-CTR-014, FR-CTR-015, FR-CTR-016, FR-CTR-017 | Khi phân tích phiên bản mới, hợp đồng chuyển sang `Đang phân tích`, xong thì `Chờ review` (OQ-CTR-002) |
 | F-CTR-006 | UC-CTR-005 | - | FR-CTR-018, FR-CTR-019, FR-CTR-021 | Phạm vi và thời hạn xóa dữ liệu được làm rõ ở §9.9. [CHANGE] CR-CTR-001: xóa qua thùng rác 30 ngày, thêm FR-CTR-021 (khôi phục) |
 | F-AUD-001 | - | - | FR-AUD-001, FR-AUD-002 | Owner hợp đồng và Owner tổ chức xem được nhật ký (OQ-AUD-001). Thời gian lưu nhật ký ở §9.9 |
-| F-ANA-001 | UC-ANA-001, UC-ANA-002 | BR-DATA-002 | FR-ANA-001, FR-ANA-002, FR-ANA-003, FR-ANA-004, FR-ANA-005, FR-ANA-014, FR-ANA-015, FR-ANA-016, FR-ANA-017 | Mục tiêu thời gian theo SC-GEN-003, SC-GEN-004 (§11.3) |
+| F-ANA-001 | UC-ANA-001, UC-ANA-002 | BR-DATA-002 | FR-ANA-001, FR-ANA-002, FR-ANA-003, FR-ANA-004, FR-ANA-005, FR-ANA-014, FR-ANA-015, FR-ANA-016, FR-ANA-017, FR-ANA-018 | Mục tiêu thời gian theo SC-GEN-003, SC-GEN-004 (§11.3). [CHANGE] CR-ANA-001: thêm FR-ANA-018 (dừng phân tích) |
 | F-ANA-002 | UC-ANA-001 | BR-RISK-006, BR-UPL-001 | FR-ANA-006, FR-ANA-008, FR-ANA-009, FR-ANA-010, FR-ANA-011, FR-ANA-012 | Danh mục 21 loại điều khoản ở §7 |
 | F-RISK-001 | UC-ANA-001, UC-VIEW-001 | BR-DATA-002, BR-RISK-001, BR-RISK-002, BR-RISK-003, BR-RISK-004, BR-RISK-005, BR-RISK-006, BR-RISK-008, BR-RISK-011, BR-RISK-012, BR-RISK-013, BR-RISK-014, BR-UPL-001 | FR-ANA-016, FR-RISK-001, FR-RISK-002, FR-RISK-003, FR-RISK-004, FR-RISK-005, FR-RISK-006, FR-RISK-007, FR-RISK-008, FR-RISK-009, FR-RISK-010, FR-RISK-011, FR-RISK-012, FR-RISK-013, FR-RISK-014, FR-RISK-024, FR-RISK-025 | 7 nhóm, 3 quy tắc, severity, góc nhìn bên mình, cách diễn đạt kết luận ở §7 |
 | F-RISK-002 | UC-ANA-001, UC-VIEW-001 | BR-RISK-007 | FR-RISK-015, FR-RISK-016, FR-RISK-017, FR-RISK-018, FR-VIEW-012 | Danh mục 20 check ở §7 |
@@ -1517,7 +1519,7 @@ Như EF-ANA-001.
 ##### Related Items
 
 - **Business Rules**: None
-- **Requirements**: FR-ANA-014, FR-ANA-015
+- **Requirements**: FR-ANA-014, FR-ANA-015, FR-ANA-018 ([CHANGE] CR-ANA-001: dừng lần đang chạy để chạy lại)
 - **Open Questions**: None (đã đóng 2026-10-26: OQ-ANA-001)
 
 #### UC-VIEW-001 Xem kết quả phân tích
@@ -2259,6 +2261,8 @@ Các yêu cầu chức năng (`FR`) chuyển từ feature, user story (PRD §7, 
 | FR-AUTH-013 | Yêu cầu MFA khi đăng nhập | Trong khi tài khoản đã bật MFA, hệ thống phải gửi mã OTP tới email của tài khoản và chỉ tạo phiên đăng nhập khi người dùng nhập đúng mã trong vòng 10 phút kể từ khi gửi. | PS §6.1 ACC-09 | Should | Test | DEPRECATED |
 | FR-AUTH-014 | Giới hạn gửi email đặt lại mật khẩu | Nếu một tài khoản yêu cầu đặt lại mật khẩu trong vòng 3 phút sau lần gửi trước, hoặc đã được gửi 5 email đặt lại mật khẩu trong 1 giờ gần nhất, thì hệ thống phải không gửi thêm email và vẫn hiển thị cùng thông báo như khi gửi thành công. | DEC-GEN-024 | Must | Test | APPROVED |
 | FR-AUTH-015 | Đồng hồ đếm ngược gửi lại email | Khi yêu cầu đặt lại mật khẩu được gửi, hệ thống phải hiển thị đồng hồ đếm ngược 3 phút trước khi cho gửi lại và giữ nguyên đồng hồ khi người dùng tải lại trang hoặc mở tab khác của cùng trình duyệt. | DEC-GEN-024 | Should | Test | APPROVED |
+| FR-AUTH-016 | Xem và sửa hồ sơ | Hệ thống phải cho phép người dùng đã đăng nhập xem email của mình và sửa tên hiển thị (1 đến 100 ký tự), số điện thoại (không bắt buộc, 8 đến 15 chữ số, có thể bắt đầu bằng +) và ngôn ngữ kết quả (tiếng Việt hoặc tiếng Anh). | CR-AUTH-001 | Should | Test | REVIEW |
+| FR-AUTH-017 | Đổi hoặc đặt mật khẩu khi đã đăng nhập | Khi người dùng đã đăng nhập gửi mật khẩu hiện tại đúng và mật khẩu mới thỏa chính sách, hệ thống phải thay mật khẩu và kết thúc phiên đăng nhập trên các thiết bị khác; với tài khoản chưa có mật khẩu (chỉ đăng nhập bằng Google), hệ thống phải cho đặt mật khẩu mà không cần mật khẩu hiện tại. | CR-AUTH-001 | Should | Test | REVIEW |
 | FR-ORG-001 | Tạo tổ chức | Khi người dùng đã đăng nhập xác nhận tạo tổ chức, hệ thống phải tạo tổ chức với người dùng đó là Owner tổ chức. | PS §6.1 ACC-03 | Must | Test | APPROVED |
 | FR-ORG-002 | Một tổ chức cho mỗi người | Nếu một thao tác làm người dùng thuộc nhiều hơn một tổ chức, thì hệ thống phải từ chối thao tác và hiển thị lý do. | PS §6.1 ACC-03; DEC-PRD-013 | Must | Test | DEPRECATED |
 | FR-ORG-003 | Gửi lời mời | Khi Owner tổ chức mời một địa chỉ email, hệ thống phải gửi tới địa chỉ đó email chứa link tham gia tổ chức. | PS §6.1 ACC-04 | Must | Test | APPROVED |
@@ -2334,6 +2338,7 @@ Các yêu cầu chức năng (`FR`) chuyển từ feature, user story (PRD §7, 
 | FR-ANA-015 | Kết quả cũ khi chạy lại | Khi chạy lại phân tích một phiên bản hoàn tất thành công, hệ thống phải thay kết quả cũ của phiên bản đó bằng kết quả mới. | PRD US-ANA-002 (ghi chú: được làm rõ ở SRS) | Must | Test | APPROVED |
 | FR-ANA-016 | Lưu thông tin truy vết | Hệ thống phải lưu kèm mỗi điều khoản, finding, kết quả check và điểm phiên bản rule, prompt, model và schema đã tạo ra nó. | PS §4 (nguyên tắc 4), §8 (Truy vết) | Must | Inspection | APPROVED |
 | FR-ANA-017 | Correlation ID | Hệ thống phải gán cho mỗi lần phân tích một correlation ID duy nhất và ghi correlation ID đó vào mọi bản ghi log của lần phân tích. | PS §8 (Truy vết) | Must | Inspection | APPROVED |
+| FR-ANA-018 | Dừng phân tích | Khi Owner hoặc Member hợp đồng dừng một lần phân tích đang chạy, hệ thống phải kết thúc lần đó ở trạng thái `Đã dừng`, bỏ qua mọi kết quả đến sau của lần đó, đưa hợp đồng về trạng thái ngay trước khi phân tích, ghi vào nhật ký hoạt động và cho phép chạy lại phân tích ngay. | CR-ANA-001 | Should | Test | REVIEW |
 | FR-RISK-001 | Xác định nhóm áp dụng | Khi phân tích một phiên bản, hệ thống phải xác định mỗi nhóm rủi ro là áp dụng hoặc N/A theo BR-RISK-003 dựa trên ngữ cảnh. | PS §6.3 ANA-12, §7.1 (quy tắc 2) | Must | Test | APPROVED |
 | FR-RISK-002 | Bật lại nhóm N/A | Nếu hợp đồng có điều khoản thuộc một nhóm đang N/A theo ngữ cảnh, thì hệ thống phải đặt nhóm đó thành áp dụng. | PS §6.3 ANA-12 | Must | Test | APPROVED |
 | FR-RISK-003 | Nhắc kiểm tra ngữ cảnh | Khi hệ thống bật lại một nhóm N/A, hệ thống phải hiển thị lời nhắc người dùng kiểm tra lại ngữ cảnh, nêu tên nhóm được bật lại. | PS §6.3 ANA-12 | Must | Test | APPROVED |
@@ -2617,6 +2622,38 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
   1. Given vừa gửi yêu cầu đặt lại mật khẩu, when người dùng tải lại trang sau 1 phút, then đồng hồ phải còn khoảng 2 phút và nút gửi lại vẫn bị khóa.
 - **Dependencies**: FR-AUTH-014
 - **Notes**: Đồng hồ chỉ để hiển thị và được lưu ở trình duyệt; lớp chặn thật là FR-AUTH-014 ở phía server.
+
+#### FR-AUTH-016 Xem và sửa hồ sơ
+
+- **Statement**: Hệ thống phải cho phép người dùng đã đăng nhập xem email của mình và sửa tên hiển thị (1 đến 100 ký tự), số điện thoại (không bắt buộc, 8 đến 15 chữ số, có thể bắt đầu bằng +) và ngôn ngữ kết quả (tiếng Việt hoặc tiếng Anh).
+- **Priority**: Should
+- **Status**: REVIEW
+- **Source**: CR-AUTH-001
+- **Rationale**: Tên nhập lúc đăng ký hoặc lấy từ Google có thể sai hoặc thay đổi; người dùng cần chọn ngôn ngữ kết quả (FR-VIEW-015, FR-RISK-013).
+- **Parent**: F-AUTH-001
+- **Verification Method**: Test
+- **Acceptance Criteria**:
+  1. Given người dùng đã đăng nhập, when đổi tên thành "Phạm Văn D" và số điện thoại thành "0912 345 678", then trang hồ sơ và thanh bên hiển thị tên mới, số điện thoại được lưu là "0912345678".
+  2. Given tên rỗng, hoặc số điện thoại có chữ cái hoặc ít hơn 8 chữ số, when lưu, then hệ thống phải từ chối và giữ thông tin cũ.
+  3. Given người dùng chọn tiếng Anh, when bắt đầu một lần phân tích, then yêu cầu gửi worker phải có ngôn ngữ kết quả là tiếng Anh.
+- **Dependencies**: FR-VIEW-015, FR-RISK-013
+- **Notes**: Email không đổi được (cần luồng xác thực email mới). Số điện thoại chỉ được lưu, không xác thực bằng SMS, không dùng để đăng nhập.
+
+#### FR-AUTH-017 Đổi hoặc đặt mật khẩu khi đã đăng nhập
+
+- **Statement**: Khi người dùng đã đăng nhập gửi mật khẩu hiện tại đúng và mật khẩu mới thỏa chính sách, hệ thống phải thay mật khẩu và kết thúc phiên đăng nhập trên các thiết bị khác; với tài khoản chưa có mật khẩu (chỉ đăng nhập bằng Google), hệ thống phải cho đặt mật khẩu mà không cần mật khẩu hiện tại.
+- **Priority**: Should
+- **Status**: REVIEW
+- **Source**: CR-AUTH-001
+- **Rationale**: Trước đây chỉ đổi được mật khẩu qua email đặt lại (FR-AUTH-009).
+- **Parent**: F-AUTH-001
+- **Verification Method**: Test
+- **Acceptance Criteria**:
+  1. Given mật khẩu hiện tại sai, when đổi mật khẩu, then hệ thống phải từ chối với ERR-AUTH-007 và giữ mật khẩu cũ.
+  2. Given mật khẩu hiện tại đúng và mật khẩu mới thỏa FR-AUTH-005, when đổi mật khẩu, then phiên hiện tại vẫn đăng nhập, đăng nhập bằng mật khẩu cũ bị từ chối, đăng nhập bằng mật khẩu mới thành công.
+  3. Given tài khoản chỉ đăng nhập bằng Google, when đặt mật khẩu mới, then người dùng đăng nhập được bằng email và mật khẩu đó.
+- **Dependencies**: FR-AUTH-005, FR-AUTH-011
+- **Notes**: Giới hạn theo IP như đăng nhập (SEC-AUTH-007), vì nhập sai mật khẩu hiện tại không tính vào khóa tài khoản. Phiên trên thiết bị khác hết hiệu lực ở lần kiểm tra phiên kế tiếp (tối đa 30 phút).
 
 **Domain `ORG`: tổ chức và thành viên**
 
@@ -3706,6 +3743,22 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 - **Dependencies**: BR-DATA-002
 - **Notes**: None
 
+#### FR-ANA-018 Dừng phân tích
+
+- **Statement**: Khi Owner hoặc Member hợp đồng dừng một lần phân tích đang chạy, hệ thống phải kết thúc lần đó ở trạng thái `Đã dừng`, bỏ qua mọi kết quả đến sau của lần đó, đưa hợp đồng về trạng thái ngay trước khi phân tích, ghi vào nhật ký hoạt động và cho phép chạy lại phân tích ngay.
+- **Priority**: Should
+- **Status**: REVIEW
+- **Source**: CR-ANA-001
+- **Rationale**: Người dùng nhận ra đã khai sai ngữ cảnh hoặc chọn nhầm phiên bản thì không phải chờ phân tích xong, hay chờ 20 phút để hệ thống tự đánh thất bại.
+- **Parent**: F-ANA-001, UC-ANA-002
+- **Verification Method**: Test
+- **Acceptance Criteria**:
+  1. Given H đang phân tích ở bước Đánh giá, when Owner hợp đồng dừng phân tích, then lần phân tích chuyển sang `Đã dừng`, H về trạng thái ngay trước khi phân tích, nhật ký của H có dòng dừng phân tích, và Owner chạy lại phân tích được ngay.
+  2. Given một lần phân tích đã dừng, when worker gửi kết quả hoặc lỗi của lần đó, then hệ thống phải bỏ qua và giữ trạng thái `Đã dừng`.
+  3. Given g@x.vn không có vai trò trên H, when g@x.vn dừng phân tích của H, then hệ thống phải từ chối như với hợp đồng không tồn tại.
+- **Dependencies**: FR-ANA-014, FR-AUD-001
+- **Notes**: Worker AI chưa được báo dừng và có thể chạy nốt lần đã dừng (`docs/06-ai-integration-points.md`). Lần đã kết thúc trước khi người dùng bấm dừng thì giữ nguyên kết quả.
+
 **Domain `RISK`: đánh giá và chấm điểm rủi ro**
 
 #### FR-RISK-001 Xác định nhóm áp dụng
@@ -4299,7 +4352,7 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 - **Acceptance Criteria**:
   1. Given giao diện đang tiếng Việt, when chọn tiếng Anh, then mọi nhãn và thông báo của giao diện phải chuyển sang tiếng Anh.
 - **Dependencies**: None
-- **Notes**: None
+- **Notes**: [CHANGE] CR-AUTH-001 (2026-11-23): người dùng chọn ngôn ngữ ở trang hồ sơ (FR-AUTH-016). Hiện lựa chọn này chỉ đổi ngôn ngữ kết quả phân tích và câu trả lời của trợ lý (FR-RISK-013); giao diện chưa có bản tiếng Anh nên AC1 chưa đạt.
 
 **Domain `CHAT`: chatbot theo hợp đồng**
 
@@ -4839,6 +4892,8 @@ erDiagram
 | ATTR-DATA-004 | ENT-DATA-002 | `is_email_verified` | Email đã được xác thực hay chưa | Boolean | Yes | Yes | No | Internal | None |
 | ATTR-DATA-005 | ENT-DATA-002 | `is_mfa_enabled` [DEPRECATED] | [DEPRECATED] Không dùng; MFA không thuộc MVP (DEC-PRD-022) | Boolean | Yes | Yes | No | Internal | None |
 | ATTR-DATA-006 | ENT-DATA-002 | `ui_language` | Ngôn ngữ người dùng chọn | Enum | Yes | Yes | No | Internal | DATA-DATA-014 |
+| ATTR-DATA-047 | ENT-DATA-002 | `display_name` | Tên hiển thị, 1 đến 100 ký tự (CR-AUTH-001, REVIEW) | Text | Yes | Yes | No | Confidential | FR-AUTH-016 |
+| ATTR-DATA-048 | ENT-DATA-002 | `phone_number` | Số điện thoại, chỉ chữ số và dấu + đầu; không xác thực (CR-AUTH-001, REVIEW) | Text | No | Yes | No | Confidential | FR-AUTH-016 |
 | ATTR-DATA-007 | ENT-DATA-003 | `org_role` | Vai trò cấp tổ chức | Enum | Yes | Yes | No | Internal | BR-ORG-003 |
 | ATTR-DATA-008 | ENT-DATA-004 | `invited_email` | Địa chỉ nhận lời mời | Text | Yes | No | No | Confidential | None |
 | ATTR-DATA-009 | ENT-DATA-004 | `expires_at` | Thời điểm link mời hết hiệu lực, 7 ngày sau khi gửi | DateTime | Yes | No | Yes | Internal | FR-ORG-005 |
@@ -5703,14 +5758,15 @@ Email cảnh báo khi tài khoản bị nhập sai mật khẩu nhiều lần: W
 | State ID | Entity | State | Meaning | Entry Condition | Allowed Actions | Prohibited Actions | Exit Condition | Terminal |
 |---|---|---|---|---|---|---|---|---:|
 | STATE-CTR-001 | ENT-DATA-005 | Mới | Hợp đồng vừa được tạo | Upload hợp lệ (FR-CTR-003) | Khai báo ngữ cảnh | Duyệt, từ chối | Phân tích bắt đầu | No |
-| STATE-CTR-002 | ENT-DATA-005 | Đang phân tích | Phân tích đang chạy | Phân tích bắt đầu | Xem tiến trình và các thao tác khác theo quyền | Chạy lại phân tích, upload phiên bản mới (OQ-ANA-003) | Phân tích hoàn tất hoặc thất bại | No |
+| STATE-CTR-002 | ENT-DATA-005 | Đang phân tích | Phân tích đang chạy | Phân tích bắt đầu | Xem tiến trình và các thao tác khác theo quyền | Chạy lại phân tích, upload phiên bản mới (OQ-ANA-003) | Phân tích hoàn tất, thất bại hoặc bị dừng. [CHANGE] CR-ANA-001: thêm "bị dừng" | No |
 | STATE-CTR-003 | ENT-DATA-005 | Chờ review | Có kết quả, chờ người review | Phân tích hoàn tất | Xem kết quả, chat, chia sẻ, xử lý finding, xuất báo cáo | - | Người dùng chuyển trạng thái | No |
 | STATE-CTR-004 | ENT-DATA-005 | Đang đàm phán | Đang đàm phán với đối tác | Người dùng chuyển từ `Chờ review`, hoặc mở lại từ `Đã duyệt`, `Từ chối` | Như STATE-CTR-003, upload phiên bản mới | - | Người dùng duyệt hoặc từ chối | No |
 | STATE-CTR-005 | ENT-DATA-005 | Đã duyệt | Hợp đồng được chấp thuận ký | Người dùng duyệt | Xem, xuất báo cáo, mở lại | - | Người dùng mở lại sang `Đang đàm phán`, hoặc phân tích phiên bản mới bắt đầu (OQ-CTR-004) | No |
 | STATE-CTR-006 | ENT-DATA-005 | Từ chối | Hợp đồng không được chấp thuận | Người dùng từ chối | Xem, xuất báo cáo, mở lại | - | Người dùng mở lại sang `Đang đàm phán`, hoặc phân tích phiên bản mới bắt đầu (OQ-CTR-004) | No |
-| STATE-ANA-001 | ENT-DATA-010 | Đang chạy | Pipeline đang ở một trong các bước: đọc file, tách điều khoản, đánh giá, chấm điểm | Phân tích bắt đầu (FR-ANA-001, FR-ANA-014) | Xem tiến trình | Xem kết quả | Hoàn tất hoặc thất bại | No |
+| STATE-ANA-001 | ENT-DATA-010 | Đang chạy | Pipeline đang ở một trong các bước: đọc file, tách điều khoản, đánh giá, chấm điểm | Phân tích bắt đầu (FR-ANA-001, FR-ANA-014) | Xem tiến trình, dừng (FR-ANA-018) | Xem kết quả | Hoàn tất, thất bại hoặc đã dừng. [CHANGE] CR-ANA-001: thêm dừng | No |
 | STATE-ANA-002 | ENT-DATA-010 | Hoàn tất | Kết quả đầy đủ đã lưu | Mọi bước thành công | Xem kết quả, chat, xuất báo cáo | - | - | Yes |
 | STATE-ANA-003 | ENT-DATA-010 | Thất bại | Lỗi sau khi đã thử lại; không có kết quả dở dang | Lỗi sau thử lại (FR-ANA-004) | Xem lý do lỗi, chạy lại | Xem kết quả của lần này | - | Yes |
+| STATE-ANA-004 | ENT-DATA-010 | Đã dừng | Người dùng đã dừng lần phân tích; không có kết quả dở dang (CR-ANA-001, REVIEW) | Người dùng dừng (FR-ANA-018) | Chạy lại | Xem kết quả của lần này | - | Yes |
 | STATE-RISK-001 | ENT-DATA-014 | Open | Finding chưa được xử lý | Finding được sinh | Đổi trạng thái | - | Người dùng đổi trạng thái | No |
 | STATE-RISK-002 | ENT-DATA-014 | Chấp nhận rủi ro | Nhóm chấp nhận rủi ro này | Người dùng đặt | Đổi trạng thái | - | Người dùng đổi trạng thái | No |
 | STATE-RISK-003 | ENT-DATA-014 | Cần đàm phán | Cần đàm phán lại điểm này | Người dùng đặt | Đổi trạng thái | - | Người dùng đổi trạng thái | No |
@@ -5728,7 +5784,7 @@ Email cảnh báo khi tài khoản bị nhập sai mật khẩu nhiều lần: W
 |---|---|---|---|---|---|---|---|---|---|
 | TR-CTR-001 | ENT-DATA-005 | Mới | Phân tích bắt đầu | Hệ thống | Ngữ cảnh đã xác nhận | - | Đang phân tích | - | BR-CTR-002 |
 | TR-CTR-002 | ENT-DATA-005 | Đang phân tích | Phân tích hoàn tất | Hệ thống | Lần phân tích ở STATE-ANA-002 | - | Chờ review | - | BR-CTR-002 |
-| TR-CTR-003 | ENT-DATA-005 | Đang phân tích | Phân tích thất bại | Hệ thống | Lần phân tích ở STATE-ANA-003 | Hiển thị lý do lỗi | Trạng thái ngay trước khi phân tích | ERR-ANA-001 | BR-CTR-002 |
+| TR-CTR-003 | ENT-DATA-005 | Đang phân tích | Phân tích thất bại hoặc bị dừng | Hệ thống | Lần phân tích ở STATE-ANA-003 hoặc STATE-ANA-004 | Hiển thị lý do lỗi, hoặc báo đã dừng. [CHANGE] CR-ANA-001: áp dụng cả khi dừng | Trạng thái ngay trước khi phân tích | ERR-ANA-001 | BR-CTR-002 |
 | TR-CTR-004 | ENT-DATA-005 | Chờ review | Người dùng chuyển sang đàm phán | ACT-GEN-004, ACT-GEN-005 | - | Lưu trạng thái | Đang đàm phán | - | BR-CTR-002 |
 | TR-CTR-005 | ENT-DATA-005 | Đang đàm phán | Người dùng duyệt | ACT-GEN-004, ACT-GEN-005 | - | Lưu trạng thái | Đã duyệt | - | BR-CTR-002 |
 | TR-CTR-006 | ENT-DATA-005 | Đang đàm phán | Người dùng từ chối | ACT-GEN-004, ACT-GEN-005 | - | Lưu trạng thái | Từ chối | - | BR-CTR-002 |
@@ -5738,6 +5794,7 @@ Email cảnh báo khi tài khoản bị nhập sai mật khẩu nhiều lần: W
 | TR-ANA-001 | ENT-DATA-010 | - | Bắt đầu phân tích | Hệ thống | Có ngữ cảnh | Chạy pipeline | Đang chạy | - | None |
 | TR-ANA-002 | ENT-DATA-010 | Đang chạy | Mọi bước thành công | Hệ thống | Kết quả hợp lệ (VAL-DATA-011..014) | Lưu kết quả | Hoàn tất | - | BR-DATA-002 |
 | TR-ANA-003 | ENT-DATA-010 | Đang chạy | Một bước lỗi sau khi thử lại | Hệ thống | - | Loại bỏ kết quả trung gian | Thất bại | ERR-ANA-001 | None |
+| TR-ANA-004 | ENT-DATA-010 | Đang chạy | Người dùng dừng phân tích | ACT-GEN-004, ACT-GEN-005 | Có vai trò Owner hoặc Member trên hợp đồng | Ghi nhật ký; bỏ qua kết quả đến sau (CR-ANA-001, REVIEW) | Đã dừng | - | None |
 | TR-RISK-001 | ENT-DATA-014 | Bất kỳ trạng thái xử lý | Người dùng chọn trạng thái khác | ACT-GEN-004, ACT-GEN-005 | - | Lưu trạng thái và ghi chú | Trạng thái được chọn | - | BR-SHARE-002 |
 | TR-ORG-001 | ENT-DATA-004 | Đã gửi | Người được mời tham gia | ACT-GEN-001 | Link còn hiệu lực | Thêm vào tổ chức, sau đó xóa lời mời | Đã chấp nhận | ERR-ORG-002 | BR-ORG-004 |
 | TR-ORG-002 | ENT-DATA-004 | Đã gửi | Hết thời hạn 7 ngày | Hệ thống | Quá 7 ngày kể từ khi gửi (OQ-ORG-003) | Xóa lời mời | Không còn (đã xóa) | ERR-ORG-002 | None |
@@ -5796,6 +5853,7 @@ stateDiagram-v2
 | ERR-AUTH-004 | Validation | Liên kết xác thực hoặc liên kết đặt lại mật khẩu hết hiệu lực (quá 10 phút) | Kiểm tra thời hạn | Từ chối | Thông báo liên kết hoặc mã không còn hiệu lực | Không đổi | Yêu cầu liên kết hoặc mã mới | Không | FR-AUTH-004, FR-AUTH-010, FR-AUTH-013 |
 | ERR-AUTH-005 | Security | Email đang bị tạm khóa đăng nhập | Bộ đếm đăng nhập sai theo email ở phía server (SEC-AUTH-006) | Từ chối đăng nhập bằng mật khẩu | Thông báo tạm khóa, thử lại sau 15 phút hoặc đặt lại mật khẩu | Không đổi | Thử lại sau 15 phút hoặc dùng FR-AUTH-009 | Ghi log sự kiện bảo mật | FR-AUTH-007 |
 | ERR-AUTH-006 | Security | Vượt ngưỡng request theo IP | Rate limit theo IP ở phía server (SEC-AUTH-007) | Từ chối request, trả lỗi quá nhiều request (HTTP 429) | Thông báo thao tác quá nhanh, thử lại sau | Không đổi | Thử lại sau 1 phút | Ghi log sự kiện bảo mật | FR-AUTH-007, FR-AUTH-009 |
+| ERR-AUTH-007 | Validation | Mật khẩu hiện tại sai khi đổi mật khẩu | Kiểm tra mật khẩu hiện tại (CR-AUTH-001, REVIEW) | Từ chối, giữ mật khẩu cũ (HTTP 400) | Thông báo mật khẩu hiện tại không đúng | Không đổi | Nhập lại hoặc đặt lại qua email (FR-AUTH-009) | None | FR-AUTH-017 |
 | ERR-UPL-001 | Validation | Định dạng không được hỗ trợ | FR-UPL-001 | Từ chối file | Lý do định dạng | Không tạo hợp đồng | Người dùng chọn file khác | Không | FR-UPL-002 |
 | ERR-UPL-002 | Security | Loại file thật khác phần mở rộng | FR-UPL-001 | Từ chối file | Lý do không khớp | Không tạo hợp đồng | Không | Ghi log sự kiện bảo mật, không chứa nội dung file (OQ-DATA-002) | FR-UPL-003 |
 | ERR-UPL-003 | Validation | File lớn hơn 20 MB | Đo kích thước | Từ chối file | Lý do kèm giới hạn | Không tạo hợp đồng | Người dùng chọn file khác | Không | FR-UPL-004 |
@@ -5891,6 +5949,8 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-AUTH-013 | Yêu cầu MFA khi đăng nhập | PS §6.1 ACC-09 | §8.2 | US-AUTH-004 | F-AUTH-003, US-AUTH-004, UC-AUTH-002 | F-AUTH-003, UC-AUTH-002 | Test | DEPRECATED |
 | FR-AUTH-014 | Giới hạn gửi email đặt lại mật khẩu | DEC-GEN-024 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-002 | F-AUTH-001, US-AUTH-002, UC-AUTH-003 | F-AUTH-001, UC-AUTH-003 | Test | APPROVED |
 | FR-AUTH-015 | Đồng hồ đếm ngược gửi lại email | DEC-GEN-024 | §8.2 | BG-GEN-004, STR-SEC-001, US-AUTH-002 | F-AUTH-001, US-AUTH-002, UC-AUTH-003 | F-AUTH-001, UC-AUTH-003 | Test | APPROVED |
+| FR-AUTH-016 | Xem và sửa hồ sơ | CR-AUTH-001 | §8.2 | BG-GEN-004 | F-AUTH-001 | F-AUTH-001 | Test | REVIEW |
+| FR-AUTH-017 | Đổi hoặc đặt mật khẩu khi đã đăng nhập | CR-AUTH-001 | §8.2 | BG-GEN-004, STR-SEC-001 | F-AUTH-001 | F-AUTH-001 | Test | REVIEW |
 | FR-ORG-001 | Tạo tổ chức | PS §6.1 ACC-03 | §8.2 | BG-GEN-004, STR-SHARE-001, STR-SEC-001, US-ORG-001 | F-ORG-001, US-ORG-001, UC-ORG-001 | F-ORG-001, UC-ORG-001 | Test | APPROVED |
 | FR-ORG-002 | Một tổ chức cho mỗi người | PS §6.1 ACC-03; DEC-PRD-013 | §8.2 | BG-GEN-004, STR-SHARE-001, STR-SEC-001 | F-ORG-001, UC-ORG-001, UC-ORG-002 | F-ORG-001, UC-ORG-001, UC-ORG-002 | Test | DEPRECATED |
 | FR-ORG-003 | Gửi lời mời | PS §6.1 ACC-04 | §8.2 | BG-GEN-004, STR-SHARE-001, STR-SEC-001, US-ORG-002 | F-ORG-001, US-ORG-002, UC-ORG-002 | F-ORG-001, UC-ORG-002 | Test | APPROVED |
@@ -5966,6 +6026,7 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-ANA-015 | Kết quả cũ khi chạy lại | PRD US-ANA-002 (ghi chú: được làm rõ ở SRS) | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002 | F-ANA-001, UC-ANA-002 | F-ANA-001, UC-ANA-002 | Test | APPROVED |
 | FR-ANA-016 | Lưu thông tin truy vết | PS §4 (nguyên tắc 4), §8 (Truy vết) | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, STR-RISK-003, STR-RISK-004, STR-QUAL-011 | F-ANA-001, F-RISK-001, UC-ANA-001, STR-QUAL-011 | F-ANA-001, F-RISK-001, UC-ANA-001 | Inspection | APPROVED |
 | FR-ANA-017 | Correlation ID | PS §8 (Truy vết) | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, STR-QUAL-011 | F-ANA-001, UC-ANA-001, STR-QUAL-011 | F-ANA-001, UC-ANA-001 | Inspection | APPROVED |
+| FR-ANA-018 | Dừng phân tích | CR-ANA-001 | §8.2 | BG-GEN-001, STR-RISK-001 | F-ANA-001, UC-ANA-002 | F-ANA-001, UC-ANA-002 | Test | REVIEW |
 | FR-RISK-001 | Xác định nhóm áp dụng | PS §6.3 ANA-12, §7.1 (quy tắc 2) | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, STR-RISK-004, US-RISK-004 | F-RISK-001, US-RISK-004, UC-ANA-001 | F-RISK-001, UC-ANA-001 | Test | APPROVED |
 | FR-RISK-002 | Bật lại nhóm N/A | PS §6.3 ANA-12 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, STR-RISK-004, US-RISK-004 | F-RISK-001, US-RISK-004, UC-ANA-001 | F-RISK-001, UC-ANA-001 | Test | APPROVED |
 | FR-RISK-003 | Nhắc kiểm tra ngữ cảnh | PS §6.3 ANA-12 | §8.2 | BG-GEN-001, STR-RISK-001, STR-RISK-003, STR-RISK-004, US-RISK-004 | F-RISK-001, US-RISK-004, UC-ANA-001 | F-RISK-001, UC-ANA-001 | Test | APPROVED |

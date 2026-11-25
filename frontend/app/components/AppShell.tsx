@@ -185,14 +185,11 @@ export function AppShell({
         </nav>
 
         <div className="mt-auto border-t border-rule pt-3">
-          <div className={labelClass}>
-            <p className="truncate px-2.5 text-label font-medium text-ink" title={name}>
-              {name}
-            </p>
-            <p className="truncate px-2.5 pb-1 text-caption text-ink-secondary" title={email}>
-              {email}
-            </p>
-          </div>
+          {/* FR-AUTH-016: the name opens the profile page. */}
+          <NavLink to="/profile" title="Hồ sơ" onClick={closeDrawer} className={`${labelClass} block rounded-md pt-1 transition-colors duration-150 hover:bg-ink/5`}>
+            <p className="truncate px-2.5 text-label font-medium text-ink">{name}</p>
+            <p className="truncate px-2.5 pb-1 text-caption text-ink-secondary">{email}</p>
+          </NavLink>
           <Button variant="ghost" size="sm" title="Đăng xuất" className={`w-full px-2.5 ${open ? "justify-start" : "justify-center"}`} onClick={onLogout}>
             <LogoutIcon />
             <span className={labelClass}>Đăng xuất</span>

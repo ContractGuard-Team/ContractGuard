@@ -38,6 +38,7 @@ Không còn việc embedding: từ 2026-11-21 `extraction.v2` bỏ trường `em
 | `backend/src/ContractGuard.Application/Chat/WorkerChatResponder.cs` | Responder thật: gửi phiếu câu hỏi cho worker qua SQS và chờ `chat_answered` |
 | `backend/src/ContractGuard.Infrastructure/DependencyInjection.cs` | Chỗ đăng ký responder (`Chat:Responder` = `worker` hoặc `fake`) |
 | `backend/src/ContractGuard.Application/Contracts/ContractCommands.cs` | Xóa file `quarantine/` (việc #4) |
+| `backend/src/ContractGuard.Domain/Analysis/AnalysisRun.cs` | `Cancel`: người dùng dừng phân tích (CR-ANA-001); `ContractCommands.CancelAnalysisAsync` gửi `cancel_requested` cho worker (§3.5, `docs/07` §15) |
 
 ## 3. Cần thống nhất (AI + IA + SE)
 
@@ -95,9 +96,21 @@ FR-EXP-005 cho người dùng chọn tiếng Việt hoặc tiếng Anh. Backend 
 
 Chờ nhóm AI chọn.
 
+**Từ 2026-11-23 (CR-AUTH-001), `output_language = "en"` có thể tới worker thật.** Người dùng chọn "Ngôn ngữ kết quả phân tích và trợ lý AI" ở trang hồ sơ; backend gửi lựa chọn đó trong `output_language` của `analysis-request.v1` và `chat-request.v1`, schema không đổi. Trước đây giá trị luôn là `vi`, nên chưa ai thử `en`. Nhóm AI nên thử một lần phân tích và một câu chat bằng `en`.
+
 ### 3.4 Câu hỏi gợi ý (F-CHAT-002)
 
 Chưa làm vì cần model. Gợi ý: thêm `suggested_questions` vào `extraction.v2` để worker sinh một lần lúc phân tích. Khi đó backend chỉ cần lưu và hiển thị.
+
+### 3.5 Dừng phân tích (CR-ANA-001, 2026-11-23; nối với worker 2026-11-24)
+
+Người dùng dừng được một lần đang chạy (`POST /api/v1/jobs/{jobId}/cancel`). Backend đánh lần đó `cancelled`, bỏ qua mọi `progress`/`completed`/`failed` đến sau của job đó, rồi gửi `cancel_requested` lên queue riêng `analysis-cancels`. Worker dừng job (hoặc bỏ qua khi job còn trong queue) và trả `failed` + `ERR-AI-003`. Chi tiết, mã lỗi, quyền: `docs/07` §15.
+
+**Trạng thái (2026-11-24):** nhóm AI viết luồng hủy và chọn queue SQS riêng (repo AI `13785369`, `docs/partner_cancel_and_failure.md`); backend đã nối. Queue AWS dev đã tạo (2026-11-24). Còn chờ: nhóm AI cấp quyền và đặt `WORKER_CANCEL_QUEUE_URL`, rồi hai bên chạy nghiệm thu.
+
+Gửi lệnh hủy là best-effort: nếu SQS lỗi, run vẫn `cancelled` và worker chạy nốt job như trước. Vì vậy backend vẫn giữ bản chép riêng `quarantine/{owner}/{jobId}{ext}` cho lần chạy lại sau một lần bị dừng.
+
+Lần gọi model đang chạy dở vẫn tính token, vì không ngắt được một request HTTP đã gửi đi.
 
 ## 4. Phần SE đã làm (để đối chiếu)
 

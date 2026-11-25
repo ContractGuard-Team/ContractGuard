@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { apiFetch, type Schemas } from "~/lib/api";
+import { apiFetch, apiPost, type Schemas } from "~/lib/api";
+import { errorMessage } from "~/lib/errors";
 import { analysisSteps, workerActivityLabel, workerActivityStep } from "~/lib/labels";
+import { useAction } from "~/lib/useAction";
+
+import { Button } from "./Button";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { Notice } from "./Notice";
 
 const pollMs = 3000;
 
@@ -12,6 +18,8 @@ const pollMs = 3000;
 export function AnalysisProgress({ job, onFinished }: { job: Schemas["JobStatus"]; onFinished: () => void }) {
   const [step, setStep] = useState(job.step);
   const [activity, setActivity] = useState(job.activity ?? null);
+  const [confirming, setConfirming] = useState(false);
+  const cancel = useAction();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -36,18 +44,24 @@ export function AnalysisProgress({ job, onFinished }: { job: Schemas["JobStatus"
   const detail = activity ? workerActivityLabel(activity.stage) : null;
 
   return (
-    <section aria-labelledby="progress-title" className="max-w-xl rounded-md border border-rule bg-sheet p-6">
-      <div className="flex items-baseline justify-between gap-4">
+    <section aria-labelledby="progress-title" className="rounded-md border border-rule bg-sheet p-4">
+      <div className="flex items-center justify-between gap-4">
         <h2 id="progress-title" className="text-title">
           Đang phân tích hợp đồng
         </h2>
-        {percent !== null && <span className="text-title tabular-nums text-ink-secondary">{percent}%</span>}
+        <div className="flex items-center gap-3">
+          {percent !== null && <span className="text-title tabular-nums text-ink-secondary">{percent}%</span>}
+          {/* FR-ANA-018 (CR-ANA-001). "Dừng", not "Hủy": the dialog's own close button is already "Hủy". */}
+          <Button variant="secondary" size="sm" loading={cancel.pending} onClick={() => setConfirming(true)}>
+            Dừng phân tích
+          </Button>
+        </div>
       </div>
-      <p className="mt-1 text-ink-secondary">Bạn có thể rời trang này. Phân tích vẫn tiếp tục và kết quả sẽ có ở đây khi xong.</p>
+      <p className="text-caption text-ink-secondary">Có thể rời trang trong quá trình phân tích.</p>
 
       {/* Neutral ink, not review-ink: progress is not an action (Action-Only Rule). */}
       {percent !== null && (
-        <div role="progressbar" aria-label="Tiến độ phân tích" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} className="mt-4 h-1.5 overflow-hidden rounded-full bg-rule">
+        <div role="progressbar" aria-label="Tiến độ phân tích" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} className="mt-3 h-1.5 overflow-hidden rounded-full bg-rule">
           <div
             className="h-full rounded-full bg-ink-secondary transition-[width] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none"
             style={{ width: `${percent}%` }}
@@ -58,26 +72,43 @@ export function AnalysisProgress({ job, onFinished }: { job: Schemas["JobStatus"
       <p role="status" className="sr-only">
         Bước hiện tại: {currentLabel}
       </p>
-      <ol className="mt-5">
+      {/* A one-row stepper so the card stays short above the contract. */}
+      <ol className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
         {analysisSteps.map(({ step: item, label }, index) => {
           const state = index < current ? "done" : index === current ? "current" : "todo";
           const last = index === analysisSteps.length - 1;
           return (
-            <li key={item} className="flex gap-3" aria-current={state === "current" ? "step" : undefined}>
-              <div className="flex flex-col items-center" aria-hidden="true">
-                <span className="flex h-6 items-center">
-                  <StepIcon state={state} />
-                </span>
-                {!last && <span className={`w-px flex-1 ${state === "done" ? "bg-ink-secondary" : "bg-rule"}`} />}
-              </div>
-              <div className={last ? "" : "pb-3"}>
-                <p className={`flex h-6 items-center ${state === "todo" ? "text-ink-muted" : state === "current" ? "font-semibold text-ink" : "text-ink-secondary"}`}>{label}</p>
-                {state === "current" && detail && <p className="text-caption text-ink-secondary">{detail}</p>}
-              </div>
+            <li key={item} className={`flex items-center gap-2 ${last ? "" : "flex-1"}`} aria-current={state === "current" ? "step" : undefined}>
+              <StepIcon state={state} />
+              <span className={`whitespace-nowrap ${state === "todo" ? "text-ink-muted" : state === "current" ? "font-semibold text-ink" : "text-ink-secondary"}`}>{label}</span>
+              {!last && <span aria-hidden="true" className={`h-px min-w-4 flex-1 ${state === "done" ? "bg-ink-secondary" : "bg-rule"}`} />}
             </li>
           );
         })}
       </ol>
+      {detail && <p className="mt-1 text-caption text-ink-secondary">{detail}</p>}
+      {cancel.error !== null && (
+        <div className="mt-3">
+          <Notice tone="error">{errorMessage(cancel.error)}</Notice>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirming}
+        title="Dừng phân tích?"
+        confirmLabel="Dừng phân tích"
+        danger
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => {
+          setConfirming(false);
+          void cancel.run(async () => {
+            await apiPost(`/jobs/${job.jobId}/cancel`);
+            onFinished();
+          });
+        }}
+      >
+        Tiến độ của lần này sẽ bị bỏ. Bạn có thể chạy lại phân tích bất cứ lúc nào.
+      </ConfirmDialog>
     </section>
   );
 }

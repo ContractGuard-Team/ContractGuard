@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using ContractGuard.Application.Abstractions;
 using ContractGuard.Api.Http;
 using ContractGuard.Domain.Common;
@@ -35,6 +36,9 @@ internal static partial class AuthEndpoints
     {
         secured.MapPost("/auth/logout", Logout).WithTags("Auth");
         secured.MapGet("/me", GetMe).WithTags("Auth");
+        secured.MapPut("/me/profile", UpdateProfile).WithTags("Auth");
+        // Rate limited: a wrong current password does not count toward the account lockout.
+        secured.MapPost("/me/password", ChangePassword).WithTags("Auth").RequireRateLimiting(RateLimits.Login);
         return secured;
     }
 
@@ -47,12 +51,7 @@ internal static partial class AuthEndpoints
         AccountEmails emails,
         CancellationToken cancellationToken)
     {
-        var displayName = request.DisplayName.Trim();
-        if (displayName.Length is 0 or > AppUser.DisplayNameMaxLength)
-        {
-            throw new DomainException(ErrorCodes.Validation, $"The name is required, at most {AppUser.DisplayNameMaxLength} characters.");
-        }
-
+        var displayName = ValidDisplayName(request.DisplayName);
         var email = NormalizeEmail(request.Email);
         var user = new AppUser { Id = Guid.CreateVersion7(), DisplayName = displayName, UserName = email, Email = email };
         ThrowIfFailed(await users.CreateAsync(user, request.Password));
@@ -189,9 +188,78 @@ internal static partial class AuthEndpoints
             user.Id,
             user.DisplayName,
             user.Email!,
+            user.PhoneNumber,
             user.UiLanguage,
+            await users.HasPasswordAsync(user),
             [new WorkspaceResponse(null, null, null), .. organizations]));
     }
+
+    // FR-AUTH-016. The language is what analyses and the assistant answer in (FR-RISK-013); the UI stays Vietnamese.
+    private static async Task<NoContent> UpdateProfile(ProfileRequest request, ClaimsPrincipal principal, UserManager<AppUser> users)
+    {
+        var user = await users.GetUserAsync(principal)
+            ?? throw new DomainException(ErrorCodes.Unauthenticated, "The account no longer exists.");
+        if (!Enum.IsDefined(request.UiLanguage))
+        {
+            throw new DomainException(ErrorCodes.Validation, "Unknown language.");
+        }
+
+        user.DisplayName = ValidDisplayName(request.DisplayName);
+        user.PhoneNumber = ValidPhoneNumber(request.PhoneNumber);
+        user.UiLanguage = request.UiLanguage;
+        ThrowIfFailed(await users.UpdateAsync(user));
+        return TypedResults.NoContent();
+    }
+
+    // FR-AUTH-017. A new security stamp ends sessions elsewhere at their next check; this one is renewed.
+    private static async Task<NoContent> ChangePassword(
+        ChangePasswordRequest request,
+        ClaimsPrincipal principal,
+        UserManager<AppUser> users,
+        SignInManager<AppUser> signIn)
+    {
+        var user = await users.GetUserAsync(principal)
+            ?? throw new DomainException(ErrorCodes.Unauthenticated, "The account no longer exists.");
+        var result = await users.HasPasswordAsync(user)
+            ? await users.ChangePasswordAsync(user, request.CurrentPassword ?? string.Empty, request.NewPassword)
+            : await users.AddPasswordAsync(user, request.NewPassword);
+        if (result.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.PasswordMismatch)))
+        {
+            throw new DomainException(ErrorCodes.WrongCurrentPassword, "The current password is not correct.");
+        }
+
+        ThrowIfFailed(result);
+        await signIn.RefreshSignInAsync(user);
+        return TypedResults.NoContent();
+    }
+
+    private static string ValidDisplayName(string? name)
+    {
+        var trimmed = name?.Trim() ?? string.Empty;
+        return trimmed.Length is 0 or > AppUser.DisplayNameMaxLength
+            ? throw new DomainException(ErrorCodes.Validation, $"The name is required, at most {AppUser.DisplayNameMaxLength} characters.")
+            : trimmed;
+    }
+
+    // Kept as digits with an optional leading +, so "0912 345 678" and "0912.345.678" are the same number.
+    private static string? ValidPhoneNumber(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            return null;
+        }
+
+        var compact = PhoneSeparators().Replace(phone.Trim(), string.Empty);
+        return PhoneDigits().IsMatch(compact)
+            ? compact
+            : throw new DomainException(ErrorCodes.Validation, "The phone number needs 8 to 15 digits, optionally starting with +.");
+    }
+
+    [GeneratedRegex(@"[\s\-.()]")]
+    private static partial Regex PhoneSeparators();
+
+    [GeneratedRegex(@"^\+?\d{8,15}$")]
+    private static partial Regex PhoneDigits();
 
     private static string NormalizeEmail(string email)
     {

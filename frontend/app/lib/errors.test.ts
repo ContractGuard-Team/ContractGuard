@@ -19,6 +19,7 @@ describe("errorMessage", () => {
 describe("failureMessage", () => {
   it("translates a reason that starts with an error code", () => {
     expect(failureMessage("ERR-UPL-004: 120 pages")).toBe("File có nhiều hơn giới hạn 100 trang.");
+    expect(failureMessage("ERR-AI-002: Remote job failed: RemoteServiceError")).not.toContain("Remote");
   });
 
   it("hides schema details of a rejected result", () => {

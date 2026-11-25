@@ -504,9 +504,66 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
 
             using var second = JsonDocument.Parse(factory.Storage.GetText($"results/{secondJob}/request.json"));
             var input = second.RootElement.GetProperty("source_file_key").GetString()!;
-            Assert.Equal($"quarantine/{userId}/{versionId}.pdf", input);
+            Assert.Equal($"quarantine/{userId}/{secondJob}.pdf", input);
             Assert.Equal("%PDF-1.7 checked copy", factory.Storage.GetText(input));
             Assert.True(factory.Storage.Exists(cleanKey));
+        }
+    }
+
+    [Fact]
+    public async Task Cancel_stops_the_run_and_the_rerun_gets_its_own_input_file()
+    {
+        var (client, userId, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            var firstJob = await Scenario.StartAnalysisAsync(client, contractId, versionId);
+            using var request = JsonDocument.Parse(factory.Storage.GetText($"results/{firstJob}/request.json"));
+            var sharedUpload = request.RootElement.GetProperty("source_file_key").GetString()!;
+
+            ApiAssert.Status(await client.PostAsync($"/jobs/{firstJob}/cancel"), HttpStatusCode.NoContent);
+            ApiAssert.Status(await client.PostAsync($"/jobs/{firstJob}/cancel"), HttpStatusCode.NoContent); // already ended: no-op
+            Assert.Single(factory.Queue.Cancelled, firstJob); // the worker is told once
+
+            var detail = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
+            Assert.Equal("new", detail.GetProperty("approvalStatus").GetString());
+            Assert.Equal("cancelled", detail.GetProperty("latestJob").GetProperty("status").GetString());
+            var log = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}/audit"));
+            Assert.Contains("analysis_cancelled", log.EnumerateArray().Select(e => e.GetProperty("action").GetString()));
+
+            // The cancel message may be lost, so the worker may still finish the cancelled job, deleting the upload it read.
+            var secondJob = await Scenario.StartAnalysisAsync(client, contractId, versionId);
+            using var second = JsonDocument.Parse(factory.Storage.GetText($"results/{secondJob}/request.json"));
+            var input = second.RootElement.GetProperty("source_file_key").GetString()!;
+            Assert.Equal($"quarantine/{userId}/{secondJob}.pdf", input);
+            await factory.Storage.DeleteAsync(sharedUpload, Ct);
+            Assert.True(factory.Storage.Exists(input));
+
+            await using (var scope = factory.CreateSystemScope())
+            {
+                var late = await scope.ServiceProvider.GetRequiredService<AnalysisResultHandler>().HandleAsync(
+                    new AnalysisResultMessage(AnalysisEventTypes.Failed, firstJob, null, null, "Cancelled by user", "ERR-AI-003"), Ct);
+                Assert.Equal(ResultOutcome.Ignored, late);
+            }
+
+            await Scenario.CompleteJobAsync(factory, secondJob, contractId);
+        }
+    }
+
+    [Fact]
+    public async Task Cancelling_a_job_of_a_contract_the_user_cannot_see_is_not_found()
+    {
+        var (owner, _, _) = await Scenario.SignedInUserAsync(factory);
+        var (stranger, _, _) = await Scenario.SignedInUserAsync(factory);
+        using (owner)
+        using (stranger)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, owner);
+            var jobId = await Scenario.StartAnalysisAsync(owner, contractId, versionId);
+
+            await ApiAssert.ProblemAsync(await stranger.PostAsync($"/jobs/{jobId}/cancel"), HttpStatusCode.NotFound, "ERR-GEN-NOT-FOUND");
+            var job = await ApiAssert.JsonAsync(await owner.GetAsync($"/jobs/{jobId}"));
+            Assert.Equal("running", job.GetProperty("status").GetString());
         }
     }
 

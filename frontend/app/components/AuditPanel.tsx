@@ -20,6 +20,7 @@ export const auditActionLabels: Record<Schemas["AuditAction"], string> = {
   renamed: "Đổi tên hợp đồng",
   trashed: "Chuyển vào thùng rác",
   restored: "Khôi phục từ thùng rác",
+  analysis_cancelled: "Dừng phân tích",
 };
 
 // F-AUD-001: who did what and when, for the contract owner and organization owners (FR-AUD-002).

@@ -1,0 +1,84 @@
+name: "Deploy: Staging (Railway)"
+
+# Run by hand (Actions → this workflow → Run workflow, on main). Same order as by hand (infra/cdk/README.md):
+# database migrations, then `api`, then `web`. Code reaches main only through reviewed PRs whose CI passed,
+# so this workflow does not run the checks again.
+#
+# Needs two repository secrets (an org admin adds them; without them the run passes with a notice):
+# - RAILWAY_TOKEN: a Railway *project* token for project contractguard, environment staging.
+# - STAGING_DATABASE_URL: the API's Supabase connection string (pooler, session mode, port 5432).
+#
+# Do not run it while the AWS staging stack is up (docs/04 C9): the Railway `api` must stay off then,
+# because both APIs read the same queues.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a second run waits instead of cutting a deploy off halfway.
+concurrency:
+  group: deploy-staging-railway
+  cancel-in-progress: false
+
+env:
+  RAILWAY_CLI_VERSION: "5.75.0"
+
+jobs:
+  gate:
+    name: Secrets present
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - id: check
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          if [ -n "$RAILWAY_TOKEN" ] && [ -n "$STAGING_DATABASE_URL" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Deploy skipped, add the RAILWAY_TOKEN and STAGING_DATABASE_URL secrets to run it."
+          fi
+
+  migrate:
+    name: Database migrations
+    needs: gate
+    if: needs.gate.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      # The migrator image is the EF migrations bundle (backend/Dockerfile); it applies only pending ones.
+      - name: Build migrator
+        run: docker build -f backend/Dockerfile --target migrator -t contractguard-migrate .
+      - name: Apply migrations
+        env:
+          Database__ConnectionString: ${{ secrets.STAGING_DATABASE_URL }}
+        run: docker run --rm -e Database__ConnectionString contractguard-migrate
+
+  api:
+    name: Deploy api
+    needs: migrate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm install -g @railway/cli@${{ env.RAILWAY_CLI_VERSION }}
+      # Build context is the repository root (backend/Dockerfile needs contracts/).
+      - run: railway up --ci --service api
+
+  web:
+    name: Deploy web
+    needs: api
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm install -g @railway/cli@${{ env.RAILWAY_CLI_VERSION }}
+      - run: railway up frontend --path-as-root --ci --service web

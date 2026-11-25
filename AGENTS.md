@@ -15,6 +15,8 @@ Web app AI thẩm định rủi ro hợp đồng. Nhóm thực tập: 1 SE (C#/.
 - 2026-11-21: staging chạy trên Railway (`https://contractguardweb.up.railway.app`), dùng S3/SQS dev; production trên AWS (`infra/cdk/`) chỉ bật ~3 ngày quanh showcase, cần domain trước (`docs/04` C7).
 - 2026-11-23: staging AWS (demo) chạy bằng CDK, stack `ContractGuard-StagingAws` (`docs/04` C9): không domain (`*.cloudfront.net`), SES sandbox, dùng lại S3/SQS bộ dev và Supabase staging, khóa phiên trong DB; khi nó chạy phải tắt API trên Railway. **Không gọi là production**: production thật (domain, SES production access, DB riêng) chưa làm. Checklist ở `infra/cdk/README.md`.
 - 2026-11-21: chatbot qua worker (`docs/04` C6): handler phía AI viết trên nhánh `feat/chatbotAI` của repo AI, chờ nhóm AI review. Tiến độ chi tiết đọc từ DynamoDB của worker (C8). `extraction.v2` bỏ 4 trường thừa (`docs/07` §13).
+- 2026-11-23: dừng phân tích đang chạy rồi chạy lại (CR-ANA-001, DEC-GEN-031 chờ duyệt; SRS v1.6). 2026-11-24: nhóm AI làm xong luồng hủy, backend đã nối: gửi `cancel_requested` lên queue riêng `analysis-cancels`, worker trả `failed` + `ERR-AI-003`; mã lỗi worker `ERR-AI-001..003` (`docs/07` §15). Queue AWS dev đã tạo; chờ nhóm AI cấp quyền, đặt `WORKER_CANCEL_QUEUE_URL` và chạy nghiệm thu.
+- 2026-11-23: trang hồ sơ `/profile` (tên, số điện thoại, ngôn ngữ kết quả, đổi/đặt mật khẩu; CR-AUTH-001, DEC-GEN-032 chờ duyệt; SRS v1.7). Ngôn ngữ chỉ đổi kết quả phân tích và chat (`output_language`), giao diện vẫn tiếng Việt. Deploy staging chạy tay bằng GitHub Actions: `deploy-staging-railway.yml` (cần secret do admin tổ chức thêm), `deploy-staging-aws.yml` (OIDC, role từ stack `ContractGuard-GitHubDeploy`).
 
 ## Đọc gì, theo thứ tự
 

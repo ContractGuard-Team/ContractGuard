@@ -8,6 +8,7 @@ const messages: Record<string, string> = {
   "ERR-AUTH-004": "Liên kết không hợp lệ hoặc đã hết hạn.",
   "ERR-AUTH-005": "Email này tạm bị khóa đăng nhập vì nhập sai nhiều lần. Hãy thử lại sau 15 phút hoặc đặt lại mật khẩu.",
   "ERR-AUTH-006": "Bạn thao tác quá nhanh. Hãy thử lại sau 1 phút.",
+  "ERR-AUTH-007": "Mật khẩu hiện tại không đúng.",
   "ERR-UPL-001": "Chỉ nhận file PDF hoặc DOCX.",
   "ERR-UPL-002": "Nội dung file không khớp với phần mở rộng của tên file.",
   "ERR-UPL-003": "File lớn hơn giới hạn 20 MB.",
@@ -23,6 +24,10 @@ const messages: Record<string, string> = {
   "ERR-CTR-002": "Hãy điền đủ các trường bắt buộc.",
   "ERR-CTR-003": "Hợp đồng đang được phân tích. Hãy chờ phân tích xong rồi thử lại.",
   "ERR-ANA-001": "Chưa bắt đầu được phân tích. Vui lòng thử lại.",
+  // Sent by the analysis worker in `failed` (docs/07 §15), not in SRS §14.1.
+  "ERR-AI-001": "File hoặc yêu cầu phân tích không hợp lệ. Hãy kiểm tra file rồi tải lên lại.",
+  "ERR-AI-002": "Hệ thống chưa phân tích được hợp đồng này sau nhiều lần thử. Vui lòng thử lại sau.",
+  "ERR-AI-003": "Phân tích đã bị dừng.",
   "ERR-EXP-001": "Tạo báo cáo thất bại. Vui lòng thử lại.",
   "ERR-CHAT-001": "Trợ lý AI chưa trả lời được. Vui lòng thử lại.",
   "ERR-INTG-001": "Email chưa gửi được. Vui lòng gửi lại.",

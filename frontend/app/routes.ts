@@ -18,6 +18,7 @@ export default [
     route("contracts/:contractId", "routes/contract-detail.tsx"),
     route("organization", "routes/organization.tsx"),
     route("organizations/new", "routes/organization-new.tsx"),
+    route("profile", "routes/profile.tsx"),
   ]),
   route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;

@@ -1,20 +1,24 @@
 using ContractGuard.Application.Abstractions;
+using ContractGuard.Application.Analysis;
 using ContractGuard.Domain.Analysis;
 using ContractGuard.Domain.Common;
 using ContractGuard.Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ContractGuard.Application.Contracts;
 
 // User edits on a contract the user can see. Owner and Member of a contract may do the first three
 // (SRS §12.3), and the query filters already hide contracts the user has no role on. Rename, delete,
 // restore are Owner only.
-public sealed class ContractCommands(
+public sealed partial class ContractCommands(
     IApplicationDbContext db,
     ICurrentWorkspace workspace,
     ContractPurger purger,
     AuditLog audit,
-    TimeProvider clock)
+    IAnalysisJobQueue queue,
+    TimeProvider clock,
+    ILogger<ContractCommands> logger)
 {
     // FR-CTR-007
     public async Task EditMetadataAsync(Guid contractId, Guid contractVersionId, ContractMetadata metadata, CancellationToken cancellationToken)
@@ -37,6 +41,43 @@ public sealed class ContractCommands(
         audit.Record(contractId, AuditAction.StatusChanged, $"{from} -> {target}");
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    // FR-ANA-018 (CR-ANA-001): Owner and Member, like starting an analysis. A run that ended before the click is
+    // left as it is; the page then shows its real outcome.
+    public async Task CancelAnalysisAsync(Guid jobId, CancellationToken cancellationToken)
+    {
+        var run = await db.AnalysisRuns.SingleOrDefaultAsync(r => r.AnalysisRunId == jobId, cancellationToken)
+            ?? throw new DomainException(ErrorCodes.NotFound, "Job not found.");
+        var now = clock.GetUtcNow();
+        if (!run.Cancel(now))
+        {
+            return;
+        }
+
+        var contract = await db.Contracts.SingleAsync(c => c.ContractId == run.ContractId, cancellationToken);
+        contract.MarkAnalysisFailed(now); // TR-CTR-003: back to the status before the analysis, as after a failure.
+        var versionNumber = await db.ContractVersions
+            .Where(v => v.ContractVersionId == run.ContractVersionId)
+            .Select(v => v.VersionNumber)
+            .SingleAsync(cancellationToken);
+        audit.Record(run.ContractId, AuditAction.AnalysisCancelled, $"V{versionNumber}");
+        await db.SaveChangesAsync(cancellationToken);
+
+        // Best effort: the run is already cancelled here, and whatever the worker sends later is ignored.
+        // Without the message the worker only finishes the job for nothing (docs/07 §15). Not tied to the request's
+        // token: the cancel is saved, so the worker is told even if the user has closed the page.
+        try
+        {
+            await queue.PublishAsync(new AnalysisRequestMessage(AnalysisEventTypes.CancelRequested, run.AnalysisRunId, null), CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            LogCancelNotSent(ex, run.AnalysisRunId);
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Job {JobId} cancelled, but the worker could not be told")]
+    private partial void LogCancelNotSent(Exception ex, Guid jobId);
 
     // FR-VIEW-013, FR-VIEW-014
     public async Task SetFindingHandlingAsync(Guid findingId, HandlingStatus status, string? note, CancellationToken cancellationToken)

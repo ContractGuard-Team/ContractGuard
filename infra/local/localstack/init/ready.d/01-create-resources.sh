@@ -37,3 +37,5 @@ awslocal s3api put-bucket-cors --bucket "$BUCKET" --cors-configuration \
 create_queue_with_dlq analysis-requests 900
 create_queue_with_dlq analysis-results 60
 create_queue_with_dlq chat-requests 300
+# CR-ANA-001: the worker reads it while a job runs and sets its own 30 s visibility.
+create_queue_with_dlq analysis-cancels 30
