@@ -36,6 +36,10 @@ public sealed class WorkspaceIsolationTests(ApiFactory factory)
                 await bob.PutAsync($"/contracts/{contractId}/versions/{versionId}/context", Scenario.Context),
                 HttpStatusCode.NotFound,
                 "ERR-GEN-NOT-FOUND");
+            await ApiAssert.ProblemAsync(
+                await bob.PostAsync($"/contracts/{contractId}/versions/{versionId}/analyses"),
+                HttpStatusCode.NotFound,
+                "ERR-GEN-NOT-FOUND");
         }
     }
 

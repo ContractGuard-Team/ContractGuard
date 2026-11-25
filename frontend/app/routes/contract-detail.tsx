@@ -20,7 +20,7 @@ import { ResultOverview } from "~/components/ResultOverview";
 import { ShareDialog } from "~/components/ShareDialog";
 import { Tabs } from "~/components/Tabs";
 import { VersionsPanel } from "~/components/VersionsPanel";
-import { ApiError, apiFetch, apiLoad, apiPut, type Schemas } from "~/lib/api";
+import { ApiError, apiFetch, apiLoad, apiPost, apiPut, type Schemas } from "~/lib/api";
 import { errorMessage, failureMessage } from "~/lib/errors";
 import { approvalStatusLabels, severityOrder } from "~/lib/labels";
 import { useAction } from "~/lib/useAction";
@@ -106,7 +106,10 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
   const job = contract.latestJob;
   const { revalidate } = useRevalidator();
   const contextDialog = useRef<HTMLDialogElement>(null);
-  const rerun = useAction();
+  // Bumped when the dialog closes, so "Hủy" drops what was typed and the next opening shows the saved context.
+  const [contextFormKey, setContextFormKey] = useState(0);
+  const start = useAction();
+  const [needsContext, setNeedsContext] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
   const [focus, setFocus] = useState<{ clauseKey: string } | null>(null);
@@ -153,9 +156,15 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
     }
   }, [asksForContext]);
 
-  function runAgain() {
-    void rerun.run(async () => {
-      await apiPut(`/contracts/${contract.contractId}/versions/${version.contractVersionId}/context`, version.context);
+  // CR-ANA-002: the analysis starts only from here, and only with a saved context.
+  function startAnalysis() {
+    setNeedsContext(!hasContext);
+    if (!hasContext) {
+      return;
+    }
+
+    void start.run(async () => {
+      await apiPost(`/contracts/${contract.contractId}/versions/${version.contractVersionId}/analyses`);
       await revalidate();
     });
   }
@@ -237,9 +246,9 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
             <Button variant={hasContext ? "secondary" : "primary"} size="sm" disabled={running} onClick={() => contextDialog.current?.showModal()}>
               {hasContext ? "Ngữ cảnh" : "Khai báo ngữ cảnh"}
             </Button>
-            {hasContext && !running && contract.analysisAvailable && (
-              <Button variant="secondary" size="sm" loading={rerun.pending} onClick={runAgain}>
-                {job ? "Chạy lại phân tích" : "Bắt đầu phân tích"}
+            {!running && contract.analysisAvailable && (
+              <Button variant={hasContext && !contract.completedJobId ? "primary" : "secondary"} size="sm" loading={start.pending} onClick={startAnalysis}>
+                {contract.completedJobId ? "Chạy lại phân tích" : "Bắt đầu phân tích"}
               </Button>
             )}
           </>
@@ -262,7 +271,8 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
                 </Notice>
               )}
 
-              {rerun.error !== null && <Notice tone="error">{errorMessage(rerun.error)}</Notice>}
+              {needsContext && !hasContext && <Notice tone="error">Cần khai báo ngữ cảnh trước khi chạy phân tích. Bấm “Khai báo ngữ cảnh” ở trên.</Notice>}
+              {start.error !== null && <Notice tone="error">{errorMessage(start.error)}</Notice>}
 
               {running && <AnalysisProgress key={job.jobId} job={job} onFinished={refresh} />}
 
@@ -276,14 +286,6 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
                 </Notice>
               )}
 
-              {job?.status === "cancelled" && (
-                <Notice tone="info">
-                  <p className="font-semibold">Đã dừng phân tích</p>
-                  <p className="text-ink-secondary">
-                    {contract.completedJobId ? "Bên dưới là kết quả của lần phân tích thành công trước đó." : "Bấm “Chạy lại phân tích” khi bạn muốn phân tích lại."}
-                  </p>
-                </Notice>
-              )}
             </div>
 
             {/* The tabs are always there: versions and the log exist before any analysis result. */}
@@ -354,16 +356,17 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
       <dialog
         ref={contextDialog}
         aria-labelledby="context-title"
+        onClose={(e) => e.target === e.currentTarget && setContextFormKey((n) => n + 1)}
         className="m-auto max-h-[calc(100vh-2rem)] w-[min(34rem,calc(100vw-2rem))] rounded-md border border-rule bg-sheet p-6 text-ink backdrop:bg-ink/30"
       >
         <h2 id="context-title" className="mb-3 text-title">
           Khai báo ngữ cảnh hợp đồng
         </h2>
         <ContextForm
+          key={`${version.contractVersionId}-${contextFormKey}`}
           contractId={contract.contractId}
           versionId={version.contractVersionId}
           initial={version.context ?? contract.suggestedContext}
-          analysisAvailable={contract.analysisAvailable}
           onSaved={() => {
             contextDialog.current?.close();
             refresh();
