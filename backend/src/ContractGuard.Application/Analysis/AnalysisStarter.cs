@@ -10,8 +10,8 @@ using Microsoft.Extensions.Options;
 
 namespace ContractGuard.Application.Analysis;
 
-// FR-CTR-005 + FR-ANA-001: saving the context starts the analysis. Sending the current context again
-// is also how a user re-runs an analysis (FR-ANA-014).
+// FR-CTR-005: saving the context only saves it. FR-ANA-001 with CR-ANA-002: the analysis starts when the user
+// asks for it, the first time as for a re-run (FR-ANA-014), always with the saved context.
 public sealed partial class AnalysisStarter(
     IApplicationDbContext db,
     IObjectStorage storage,
@@ -21,29 +21,24 @@ public sealed partial class AnalysisStarter(
     TimeProvider clock,
     ILogger<AnalysisStarter> logger)
 {
-    // The job id, or null when no worker is deployed and only the context was saved.
-    public async Task<Guid?> ConfirmContextAndStartAsync(
-        Guid contractId,
-        Guid contractVersionId,
-        ContextDetails details,
-        UiLanguage outputLanguage,
-        CancellationToken cancellationToken)
+    public async Task SaveContextAsync(Guid contractId, Guid contractVersionId, ContextDetails details, CancellationToken cancellationToken)
     {
-        var contract = await db.Contracts
-            .Include(c => c.Versions)
-            .ThenInclude(v => v.Context)
-            .SingleOrDefaultAsync(c => c.ContractId == contractId, cancellationToken)
-            ?? throw new DomainException(ErrorCodes.NotFound, "Contract not found.");
-
-        var now = clock.GetUtcNow();
-        contract.ConfirmContext(contractVersionId, details, now); // ERR-CTR-003 if one is running.
+        var contract = await LoadAsync(contractId, cancellationToken);
+        contract.ConfirmContext(contractVersionId, details, clock.GetUtcNow()); // ERR-CTR-003 if one is running.
         audit.Record(contract.ContractId, AuditAction.ContextConfirmed, $"V{contract.GetVersion(contractVersionId).VersionNumber}");
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    // Returns the job id. ERR-CTR-002 without a saved context, ERR-CTR-003 if one is running.
+    public async Task<Guid> StartAsync(Guid contractId, Guid contractVersionId, UiLanguage outputLanguage, CancellationToken cancellationToken)
+    {
         if (!options.Value.WorkerEnabled)
         {
-            await db.SaveChangesAsync(cancellationToken);
-            return null;
+            throw new DomainException(ErrorCodes.AnalysisFailed, "The analysis service is not available.");
         }
 
+        var contract = await LoadAsync(contractId, cancellationToken);
+        var now = clock.GetUtcNow();
         contract.MarkAnalysisStarted(contractVersionId, now);
         var version = contract.GetVersion(contractVersionId);
         var run = AnalysisRun.Start(contract.ContractId, contractVersionId, now);
@@ -79,6 +74,13 @@ public sealed partial class AnalysisStarter(
         LogStarted(run.AnalysisRunId);
         return run.AnalysisRunId;
     }
+
+    private async Task<Contract> LoadAsync(Guid contractId, CancellationToken cancellationToken) =>
+        await db.Contracts
+            .Include(c => c.Versions)
+            .ThenInclude(v => v.Context)
+            .SingleOrDefaultAsync(c => c.ContractId == contractId, cancellationToken)
+        ?? throw new DomainException(ErrorCodes.NotFound, "Contract not found.");
 
     // Two requests can pass the status check at the same moment. The unique index on running
     // analyses (EDGE-ANA-003) then refuses the second one.

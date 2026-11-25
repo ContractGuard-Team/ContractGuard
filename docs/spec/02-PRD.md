@@ -75,6 +75,7 @@ PRD này theo thực tiễn quản lý sản phẩm (SVPG, Aha!, Atlassian), n�
 | 1.1 | 2026-10-27 | Agent | §7, §8, §14 | Bỏ MFA khỏi MVP. F-AUTH-003 Should → Won't, US-AUTH-004 DEPRECATED; thêm DEC-PRD-022 | REVIEW |
 | 1.2 | 2026-11-17 | Agent | §6, §7, §8, §10, §11, §14 | CR-GEN-001: bỏ đọc bản scan và OCR, chỉ nhận PDF có lớp chữ và DOCX. US-ANA-003, STR-QUAL-002, DEP-GEN-002 DEPRECATED; F-CTR-001, F-ANA-002, US-CTR-001 sửa và về REVIEW; thêm DEC-PRD-023 | REVIEW |
 | 1.3 | 2026-11-17 | Agent | §11, §12 | CR-GEN-003 (DEC-GEN-029): model AI tự host bằng Docker trên Amazon EC2 thay Amazon Bedrock. CON-PRJ-003, DEP-GEN-001, RISK-GEN-001, RISK-GEN-002 sửa và về REVIEW | REVIEW |
+| 1.5 | 2026-11-25 | Agent | §7 | CR-ANA-002 (DEC-GEN-033): lưu ngữ cảnh không còn tự chạy phân tích, người dùng bấm chạy. US-ANA-001 sửa và về REVIEW | REVIEW |
 
 ### 0.1 Tài liệu nguồn
 
@@ -1068,15 +1069,15 @@ Mẫu story và từ khóa tiêu chí nghiệm thu theo DEC-GEN-013. Story chỉ
 
 #### US-ANA-001 Phân tích tự động và theo dõi tiến trình
 
-- **Story**: Là nhân viên nhận hợp đồng, tôi muốn hệ thống tự phân tích ngay sau khi tôi xác nhận ngữ cảnh và cho tôi thấy tiến trình, để biết còn phải chờ bao lâu.
+- **Story**: Là nhân viên nhận hợp đồng, tôi muốn hệ thống phân tích khi tôi bấm chạy (sau khi đã lưu ngữ cảnh) và cho tôi thấy tiến trình, để biết còn phải chờ bao lâu. `[CHANGE]` CR-ANA-002: trước đây phân tích tự chạy ngay khi xác nhận ngữ cảnh.
 - **Persona**: UCL-GEN-002
 - **Feature**: F-ANA-001
 - **Need**: STR-RISK-002
 - **Priority**: Must
-- **Status**: APPROVED
-- **Source**: PS §6.3 ANA-01, ANA-02; §8 (Độ tin cậy)
+- **Status**: REVIEW
+- **Source**: PS §6.3 ANA-01, ANA-02; §8 (Độ tin cậy); CR-ANA-002
 - **Acceptance Criteria**:
-  1. Given người dùng vừa xác nhận ngữ cảnh, when xác nhận xong, then phân tích bắt đầu mà không cần thao tác thêm.
+  1. Given người dùng đã lưu ngữ cảnh, when người dùng bấm chạy phân tích, then phân tích bắt đầu; lưu ngữ cảnh mà không bấm chạy thì không có phân tích nào bắt đầu.
   2. Given phân tích đang chạy, when người dùng xem hợp đồng, then người dùng thấy bước hiện tại trong chuỗi: đọc file → tách điều khoản → đánh giá → chấm điểm → hoàn tất.
   3. Given phân tích thất bại sau khi hệ thống đã tự thử lại, when người dùng xem hợp đồng, then người dùng thấy thông báo lỗi kèm lý do và không thấy kết quả dở dang.
 - **Notes**: Mục tiêu thời gian theo SC-GEN-003, SC-GEN-004.

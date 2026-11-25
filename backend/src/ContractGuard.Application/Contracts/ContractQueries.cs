@@ -105,7 +105,8 @@ public sealed class ContractQueries(
             ?? throw NotFound("Contract");
 
         var version = contractVersionId is { } id ? contract.GetVersion(id) : contract.LatestVersion;
-        var runs = db.AnalysisRuns.Where(r => r.ContractVersionId == version.ContractVersionId);
+        // CR-ANA-002: a stopped run is as if it never started; the page goes back to how it was before it.
+        var runs = db.AnalysisRuns.Where(r => r.ContractVersionId == version.ContractVersionId && r.RunStatus != RunStatus.Cancelled);
         var latestJob = await runs
             .OrderByDescending(r => r.StartedAt)
             .Select(r => ToJobStatus(r))
@@ -118,7 +119,7 @@ public sealed class ContractQueries(
 
         var versionIds = contract.Versions.Select(v => v.ContractVersionId).ToList();
         var allRuns = await db.AnalysisRuns
-            .Where(r => versionIds.Contains(r.ContractVersionId))
+            .Where(r => versionIds.Contains(r.ContractVersionId) && r.RunStatus != RunStatus.Cancelled)
             .Select(r => new { r.ContractVersionId, r.RunStatus, r.OverallScore, r.OverallRiskLevel, r.StartedAt })
             .ToListAsync(cancellationToken);
         var versions = contract.Versions

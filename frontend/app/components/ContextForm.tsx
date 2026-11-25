@@ -12,20 +12,18 @@ import { Notice } from "./Notice";
 
 type Errors = Partial<Record<"ownParty" | "contractType" | "hasPersonalData", string>>;
 
-// FR-CTR-005: confirm or correct what the contract is about. When an analysis service is deployed,
-// confirming also starts the analysis (FR-ANA-001).
+// FR-CTR-005: confirm or correct what the contract is about. Saving does not start the analysis; the user
+// starts it from the top bar (CR-ANA-002).
 export function ContextForm({
   contractId,
   versionId,
   initial,
-  analysisAvailable,
   onSaved,
   onCancel,
 }: {
   contractId: string;
   versionId: string;
   initial: Schemas["ContextDetails"] | null;
-  analysisAvailable: boolean;
   onSaved: () => void;
   onCancel: () => void;
 }) {
@@ -127,10 +125,10 @@ export function ContextForm({
 
       <div className="flex flex-wrap gap-2">
         <Button type="submit" loading={submit.pending}>
-          {analysisAvailable ? "Xác nhận và bắt đầu phân tích" : "Lưu ngữ cảnh"}
+          Lưu ngữ cảnh
         </Button>
         <Button variant="ghost" onClick={onCancel}>
-          Đóng
+          Hủy
         </Button>
       </div>
     </form>

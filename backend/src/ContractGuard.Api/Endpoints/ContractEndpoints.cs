@@ -25,6 +25,7 @@ internal static class ContractEndpoints
         contracts.MapPost("/", CreateContract);
         contracts.MapGet("/{contractId:guid}", GetContract);
         contracts.MapPut("/{contractId:guid}/versions/{versionId:guid}/context", ConfirmContext);
+        contracts.MapPost("/{contractId:guid}/versions/{versionId:guid}/analyses", StartAnalysis);
         contracts.MapGet("/{contractId:guid}/versions/{versionId:guid}/file", GetFileLink);
         contracts.MapPut("/{contractId:guid}/versions/{versionId:guid}/metadata", EditMetadata);
         contracts.MapPut("/{contractId:guid}/approval-status", ChangeApprovalStatus);
@@ -155,10 +156,15 @@ internal static class ContractEndpoints
     private static async Task<Ok<ContractFileLink>> GetFileLink(Guid contractId, Guid versionId, ContractQueries queries, CancellationToken cancellationToken) =>
         TypedResults.Ok(await queries.GetFileLinkAsync(contractId, versionId, cancellationToken));
 
-    private static async Task<Results<Accepted<JobStarted>, NoContent>> ConfirmContext(
+    private static async Task<NoContent> ConfirmContext(Guid contractId, Guid versionId, ContextRequest request, AnalysisStarter starter, CancellationToken cancellationToken)
+    {
+        await starter.SaveContextAsync(contractId, versionId, request.ToDetails(), cancellationToken);
+        return TypedResults.NoContent();
+    }
+
+    private static async Task<Accepted<JobStarted>> StartAnalysis(
         Guid contractId,
         Guid versionId,
-        ContextRequest request,
         ClaimsPrincipal principal,
         UserManager<AppUser> users,
         AnalysisStarter starter,
@@ -166,13 +172,8 @@ internal static class ContractEndpoints
     {
         var user = await users.GetUserAsync(principal)
             ?? throw new DomainException(ErrorCodes.Unauthenticated, "The account no longer exists.");
-        var jobId = await starter.ConfirmContextAndStartAsync(contractId, versionId, request.ToDetails(), user.UiLanguage, cancellationToken);
-        if (jobId is null)
-        {
-            return TypedResults.NoContent();
-        }
-
-        return TypedResults.Accepted($"/api/v1/jobs/{jobId}", new JobStarted(jobId.Value));
+        var jobId = await starter.StartAsync(contractId, versionId, user.UiLanguage, cancellationToken);
+        return TypedResults.Accepted($"/api/v1/jobs/{jobId}", new JobStarted(jobId));
     }
 
     private static async Task<Ok<JobStatus>> GetJob(Guid jobId, ContractQueries queries, CancellationToken cancellationToken) =>

@@ -199,7 +199,31 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Confirming_the_context_starts_the_analysis()
+    public async Task Saving_the_context_starts_nothing_and_starting_needs_a_saved_context()
+    {
+        // CR-ANA-002: the context is saved alone; the user starts the analysis.
+        var (client, _, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            await ApiAssert.ProblemAsync(
+                await client.PostAsync($"/contracts/{contractId}/versions/{versionId}/analyses"),
+                HttpStatusCode.BadRequest,
+                "ERR-CTR-002");
+
+            await Scenario.SaveContextAsync(client, contractId, versionId);
+
+            var detail = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
+            Assert.Equal("new", detail.GetProperty("approvalStatus").GetString());
+            Assert.Equal("buyer", detail.GetProperty("version").GetProperty("context").GetProperty("ownParty").GetString());
+            Assert.Equal(JsonValueKind.Null, detail.GetProperty("latestJob").ValueKind);
+            await using var scope = factory.CreateSystemScope();
+            Assert.False(await scope.ServiceProvider.GetRequiredService<AppDbContext>().AnalysisRuns.AnyAsync(r => r.ContractId == contractId, Ct));
+        }
+    }
+
+    [Fact]
+    public async Task Starting_the_analysis_puts_a_job_on_the_queue()
     {
         var (client, _, _) = await Scenario.SignedInUserAsync(factory);
         using (client)
@@ -266,6 +290,10 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
                     $"/contracts/{contractId}/versions/{versionId}/context",
                     new { ownParty = "seller", contractType = "msa", hasPersonalData = false }),
                 HttpStatusCode.NoContent);
+            await ApiAssert.ProblemAsync(
+                await client.PostAsync($"/contracts/{contractId}/versions/{versionId}/analyses"),
+                HttpStatusCode.ServiceUnavailable,
+                "ERR-ANA-001");
 
             var detail = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
             Assert.False(detail.GetProperty("analysisAvailable").GetBoolean());
@@ -369,6 +397,10 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
 
             await ApiAssert.ProblemAsync(
                 await client.PutAsync($"/contracts/{contractId}/versions/{versionId}/context", Scenario.Context),
+                HttpStatusCode.Conflict,
+                "ERR-CTR-003");
+            await ApiAssert.ProblemAsync(
+                await client.PostAsync($"/contracts/{contractId}/versions/{versionId}/analyses"),
                 HttpStatusCode.Conflict,
                 "ERR-CTR-003");
         }
@@ -527,7 +559,9 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
 
             var detail = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
             Assert.Equal("new", detail.GetProperty("approvalStatus").GetString());
-            Assert.Equal("cancelled", detail.GetProperty("latestJob").GetProperty("status").GetString());
+            // CR-ANA-002: the page goes back to how it was before the run, as if it never started.
+            Assert.Equal(JsonValueKind.Null, detail.GetProperty("latestJob").ValueKind);
+            Assert.Equal(JsonValueKind.Null, detail.GetProperty("versions")[0].GetProperty("latestRunStatus").ValueKind);
             var log = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}/audit"));
             Assert.Contains("analysis_cancelled", log.EnumerateArray().Select(e => e.GetProperty("action").GetString()));
 
@@ -547,6 +581,21 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
             }
 
             await Scenario.CompleteJobAsync(factory, secondJob, contractId);
+
+            // Stopping a re-run keeps showing the result of the run before it. The stand-in worker wrote no
+            // checked copy, so put one where the version now points.
+            await using (var scope = factory.CreateSystemScope())
+            {
+                var sourceKey = await scope.ServiceProvider.GetRequiredService<AppDbContext>().ContractVersions
+                    .Where(v => v.ContractVersionId == versionId).Select(v => v.SourceFileKey).SingleAsync(Ct);
+                factory.Storage.PutBytes(sourceKey, Scenario.PdfBytes);
+            }
+
+            var thirdJob = await Scenario.StartAnalysisAsync(client, contractId, versionId);
+            ApiAssert.Status(await client.PostAsync($"/jobs/{thirdJob}/cancel"), HttpStatusCode.NoContent);
+            var after = await ApiAssert.JsonAsync(await client.GetAsync($"/contracts/{contractId}"));
+            Assert.Equal(secondJob, after.GetProperty("latestJob").GetProperty("jobId").GetGuid());
+            Assert.Equal(secondJob, after.GetProperty("completedJobId").GetGuid());
         }
     }
 
@@ -586,7 +635,7 @@ public sealed class UploadAndAnalysisTests(ApiFactory factory)
 
             var published = factory.Queue.Published.Count;
             await ApiAssert.ProblemAsync(
-                await client.PutAsync($"/contracts/{contractId}/versions/{versionId}/context", Scenario.Context),
+                await client.PostAsync($"/contracts/{contractId}/versions/{versionId}/analyses"),
                 HttpStatusCode.Conflict,
                 "ERR-GEN-FILE-MISSING");
             Assert.Equal(published, factory.Queue.Published.Count);

@@ -75,7 +75,7 @@ public sealed record ContractDetail(
     ContextDetails? SuggestedContext,
     List<VersionItem> Versions,
 
-    // The newest run of the shown version, whatever its status. Null until context is confirmed.
+    // The newest run of the shown version that was not stopped (CR-ANA-002). Null until an analysis is started.
     JobStatus? LatestJob,
 
     // The run whose results to show. Can differ from LatestJob: a failed re-run keeps the old result (FR-ANA-015).

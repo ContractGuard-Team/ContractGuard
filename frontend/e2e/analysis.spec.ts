@@ -72,7 +72,7 @@ test("a contract goes from upload to report, chat, new version and deletion", as
   const context = page.getByRole("dialog", { name: "Khai báo ngữ cảnh hợp đồng" });
   await expect(context).toBeVisible();
   await expect(context.getByRole("textbox", { name: "Tên đối tác (không bắt buộc)" })).toHaveValue("Example Cloud Pte. Ltd.");
-  await context.getByRole("button", { name: "Đóng" }).click();
+  await context.getByRole("button", { name: "Hủy" }).click();
   await page.getByRole("tab", { name: "Phiên bản" }).click();
   await expect(page.getByRole("region", { name: "Lịch sử phiên bản" }).getByRole("listitem")).toHaveCount(2);
 
@@ -83,7 +83,7 @@ test("a contract goes from upload to report, chat, new version and deletion", as
 
   // F-CTR-006 with CR-CTR-001: to the trash, then the contract is gone from the library.
   await page.goto(`/contracts/${contractId}?view=versions`);
-  await context.getByRole("button", { name: "Đóng" }).click(); // V2 still asks for its context on arrival.
+  await context.getByRole("button", { name: "Hủy" }).click(); // V2 still asks for its context on arrival.
   await page.getByRole("button", { name: "Chuyển vào thùng rác" }).click();
   await page.getByRole("dialog", { name: "Chuyển hợp đồng vào thùng rác?" }).getByRole("button", { name: "Chuyển vào thùng rác" }).click();
   await expect(page).toHaveURL(/\/contracts$/);

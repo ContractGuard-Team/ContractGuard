@@ -14,12 +14,13 @@ public sealed class QueueFailureTests(ApiFactory factory)
         using (client)
         {
             var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            await Scenario.SaveContextAsync(client, contractId, versionId);
 
             factory.Queue.FailEverything = true;
             try
             {
                 await ApiAssert.ProblemAsync(
-                    await client.PutAsync($"/contracts/{contractId}/versions/{versionId}/context", Scenario.Context),
+                    await client.PostAsync($"/contracts/{contractId}/versions/{versionId}/analyses"),
                     HttpStatusCode.ServiceUnavailable,
                     "ERR-ANA-001");
             }

@@ -21,7 +21,7 @@ const messages: Record<string, string> = {
   "ERR-SHARE-002": "Email này chưa có tài khoản ContractGuard.",
   "ERR-SHARE-003": "Người này là quản trị viên của tổ chức, đã có toàn quyền trên hợp đồng.",
   "ERR-CTR-001": "Không thể chuyển sang trạng thái này.",
-  "ERR-CTR-002": "Hãy điền đủ các trường bắt buộc.",
+  "ERR-CTR-002": "Cần khai báo đủ ngữ cảnh (các trường bắt buộc) trước khi chạy phân tích.",
   "ERR-CTR-003": "Hợp đồng đang được phân tích. Hãy chờ phân tích xong rồi thử lại.",
   "ERR-ANA-001": "Chưa bắt đầu được phân tích. Vui lòng thử lại.",
   // Sent by the analysis worker in `failed` (docs/07 §15), not in SRS §14.1.

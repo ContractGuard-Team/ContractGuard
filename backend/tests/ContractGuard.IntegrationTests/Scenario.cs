@@ -48,9 +48,14 @@ internal static class Scenario
         return ticket.GetProperty("uploadId").GetGuid();
     }
 
+    public static async Task SaveContextAsync(ApiClient client, Guid contractId, Guid versionId, Guid? workspace = null) =>
+        ApiAssert.Status(await client.PutAsync($"/contracts/{contractId}/versions/{versionId}/context", Context, workspace), HttpStatusCode.NoContent);
+
+    // Save the context, then press "start analysis" (CR-ANA-002: saving alone does not start it).
     public static async Task<Guid> StartAnalysisAsync(ApiClient client, Guid contractId, Guid versionId, Guid? workspace = null)
     {
-        var response = await client.PutAsync($"/contracts/{contractId}/versions/{versionId}/context", Context, workspace);
+        await SaveContextAsync(client, contractId, versionId, workspace);
+        var response = await client.PostAsync($"/contracts/{contractId}/versions/{versionId}/analyses", workspace: workspace);
         ApiAssert.Status(response, HttpStatusCode.Accepted);
         return (await ApiAssert.JsonAsync(response)).GetProperty("jobId").GetGuid();
     }

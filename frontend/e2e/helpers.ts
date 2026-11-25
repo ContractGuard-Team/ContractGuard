@@ -79,7 +79,8 @@ export async function uploadSample(page: Page): Promise<string> {
   return page.url().split("/contracts/")[1]!.split(/[?#]/)[0]!;
 }
 
-// Fill the context dialog that opens on a contract without context and start the analysis.
+// Fill the context dialog that opens on a contract without context, save it, then start the analysis
+// (CR-ANA-002: saving alone does not start it).
 export async function confirmContext(page: Page) {
   const dialog = page.getByRole("dialog", { name: "Khai báo ngữ cảnh hợp đồng" });
   await expect(dialog).toBeVisible();
@@ -87,8 +88,9 @@ export async function confirmContext(page: Page) {
   await dialog.getByLabel("Loại hợp đồng").selectOption({ label: "Hợp đồng dịch vụ" });
   await dialog.getByRole("radio", { name: "Có" }).check();
   await dialog.getByRole("textbox", { name: "Tên đối tác (không bắt buộc)" }).fill("Example Cloud Pte. Ltd.");
-  await dialog.getByRole("button", { name: "Xác nhận và bắt đầu phân tích" }).click();
+  await dialog.getByRole("button", { name: "Lưu ngữ cảnh" }).click();
   await expect(dialog).toBeHidden();
+  await page.getByRole("button", { name: "Bắt đầu phân tích" }).click();
 }
 
 // Plays the AI worker for the newest job of the contract: the example extraction result goes to

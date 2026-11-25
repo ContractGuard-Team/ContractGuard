@@ -199,6 +199,7 @@ tags:
 | 1.4 | 2026-11-17 | Agent | §1.1, §1.2, §2.1, §2.4, §2.5, §2.6, §3.4, §10, §17 | CR-GEN-003 (DEC-GEN-029): model AI tự host bằng Docker trên Amazon EC2 thay Amazon Bedrock. CON-GEN-001, EXT-INTG-001, IF-INTG-001, RISK-SRS-003 sửa và về REVIEW | REVIEW |
 | 1.6 | 2026-11-23 | Agent | §5, §8, §13, §16 | CR-ANA-001 (DEC-GEN-031): người dùng dừng được phân tích đang chạy và chạy lại ngay. Thêm FR-ANA-018, STATE-ANA-004, TR-ANA-004 (REVIEW); STATE-ANA-001, STATE-CTR-002, TR-CTR-003 và bảng F-ANA-001 có ghi chú `[CHANGE]` | REVIEW |
 | 1.7 | 2026-11-23 | Agent | §6, §8, §9, §14, §16 | CR-AUTH-001 (DEC-GEN-032): trang hồ sơ (tên hiển thị, số điện thoại, ngôn ngữ kết quả) và đổi hoặc đặt mật khẩu khi đã đăng nhập. Thêm FR-AUTH-016, FR-AUTH-017, ERR-AUTH-007, ATTR-DATA-047, ATTR-DATA-048 (REVIEW); FR-VIEW-015 và bảng F-AUTH-001 có ghi chú `[CHANGE]` | REVIEW |
+| 1.8 | 2026-11-25 | Agent | §8, §16 | CR-ANA-002 (DEC-GEN-033): lưu ngữ cảnh không tự chạy phân tích; người dùng bấm chạy, chưa có ngữ cảnh thì báo ERR-CTR-002; dừng phân tích thì trang về như trước lần chạy. FR-ANA-001 sửa và về REVIEW; FR-CTR-005, FR-ANA-018 có ghi chú `[CHANGE]` | REVIEW |
 
 ### 0.3 Review And Approval
 
@@ -2321,7 +2322,7 @@ Các yêu cầu chức năng (`FR`) chuyển từ feature, user story (PRD §7, 
 | FR-UPL-010 | Cảnh báo prompt injection | Khi phát hiện đoạn có dấu hiệu prompt injection, hệ thống phải hiển thị cảnh báo chỉ ra vị trí của đoạn đó trong hợp đồng. | PS §6.3 ANA-11; PRD US-SEC-002 | Must | Test | APPROVED |
 | FR-UPL-011 | Nội dung hợp đồng chỉ là dữ liệu | Hệ thống phải truyền nội dung hợp đồng tới model AI chỉ dưới dạng dữ liệu, tách biệt với phần chỉ dẫn (prompt). | DEC-PRD-016; PS §4 (nguyên tắc 5) | Must | Inspection | APPROVED |
 | FR-UPL-012 | Kết quả không bị thao túng | Nếu hợp đồng chứa đoạn có dấu hiệu prompt injection, thì hệ thống phải vẫn sinh đầy đủ finding về các điều khoản còn lại như khi hợp đồng không có đoạn đó. | PRD US-SEC-002; DEC-PRD-016 | Must | Test | APPROVED |
-| FR-ANA-001 | Tự động bắt đầu phân tích | Khi ngữ cảnh của một phiên bản được xác nhận, hệ thống phải bắt đầu phân tích phiên bản đó mà không cần thao tác thêm. | PS §6.3 ANA-01 | Must | Test | APPROVED |
+| FR-ANA-001 | Bắt đầu phân tích | Khi Owner hoặc Member hợp đồng chọn chạy phân tích cho một phiên bản đã lưu ngữ cảnh, hệ thống phải bắt đầu phân tích phiên bản đó; lưu ngữ cảnh không tự bắt đầu phân tích. | PS §6.3 ANA-01; CR-ANA-002 | Must | Test | REVIEW |
 | FR-ANA-002 | Hiển thị tiến trình | Trong khi phân tích đang chạy, hệ thống phải hiển thị bước hiện tại trong chuỗi: đọc file, tách điều khoản, đánh giá, chấm điểm, hoàn tất. | PS §6.3 ANA-02 | Must | Test | APPROVED |
 | FR-ANA-003 | Tự thử lại | Nếu một bước phân tích lỗi, thì hệ thống phải tự thử lại bước đó ít nhất một lần trước khi kết luận phân tích thất bại. | PS §8 (Độ tin cậy) | Must | Test | APPROVED |
 | FR-ANA-004 | Báo phân tích thất bại | Nếu phân tích vẫn lỗi sau khi thử lại, thì hệ thống phải hiển thị thông báo phân tích thất bại kèm lý do. | PS §6.3 ANA-02, §8 | Must | Test | REVIEW |
@@ -3080,7 +3081,7 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
   1. Given đang ở bước khai báo, when Owner hợp đồng nhập đủ 6 trường và xác nhận, then hệ thống phải lưu đủ 6 giá trị cho phiên bản.
   2. Given chưa nhập trường bên mình, when xác nhận ngữ cảnh, then hệ thống phải không cho xác nhận và chỉ ra trường còn thiếu.
 - **Dependencies**: BR-RISK-011
-- **Notes**: Trường bắt buộc: bên mình, loại hợp đồng, có xử lý dữ liệu cá nhân hoặc nhạy cảm không; các trường còn lại tùy chọn (OQ-CTR-003). Member hợp đồng được sửa; mỗi lần sửa được ghi vào nhật ký hoạt động (OQ-SHARE-002).
+- **Notes**: Trường bắt buộc: bên mình, loại hợp đồng, có xử lý dữ liệu cá nhân hoặc nhạy cảm không; các trường còn lại tùy chọn (OQ-CTR-003). Member hợp đồng được sửa; mỗi lần sửa được ghi vào nhật ký hoạt động (OQ-SHARE-002). `[CHANGE]` CR-ANA-002: lưu ngữ cảnh chỉ lưu, không bắt đầu phân tích (FR-ANA-001).
 
 #### FR-CTR-006 Hiển thị metadata
 
@@ -3504,19 +3505,21 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 
 **Domain `ANA`: pipeline phân tích**
 
-#### FR-ANA-001 Tự động bắt đầu phân tích
+#### FR-ANA-001 Bắt đầu phân tích
 
-- **Statement**: Khi ngữ cảnh của một phiên bản được xác nhận, hệ thống phải bắt đầu phân tích phiên bản đó mà không cần thao tác thêm.
+- **Statement**: Khi Owner hoặc Member hợp đồng chọn chạy phân tích cho một phiên bản đã lưu ngữ cảnh, hệ thống phải bắt đầu phân tích phiên bản đó; lưu ngữ cảnh không tự bắt đầu phân tích.
 - **Priority**: Must
-- **Status**: APPROVED
-- **Source**: PS §6.3 ANA-01
-- **Rationale**: Người dùng không phải làm thêm bước.
+- **Status**: REVIEW
+- **Source**: PS §6.3 ANA-01; CR-ANA-002
+- **Rationale**: Người dùng lưu ngữ cảnh, đọc lại hợp đồng rồi mới quyết định chạy.
 - **Parent**: F-ANA-001, US-ANA-001, UC-CTR-001, UC-ANA-001
 - **Verification Method**: Test
 - **Acceptance Criteria**:
-  1. Given người dùng vừa xác nhận ngữ cảnh, when xác nhận xong, then phân tích phải bắt đầu mà người dùng không cần bấm thêm nút nào.
+  1. Given người dùng vừa lưu ngữ cảnh, when lưu xong, then không có phân tích nào bắt đầu.
+  2. Given phiên bản đã lưu ngữ cảnh, when người dùng chọn chạy phân tích, then phân tích phải bắt đầu.
+  3. Given phiên bản chưa có ngữ cảnh, when người dùng chọn chạy phân tích, then hệ thống phải không bắt đầu và báo cần khai báo ngữ cảnh (ERR-CTR-002).
 - **Dependencies**: FR-CTR-005
-- **Notes**: None
+- **Notes**: `[CHANGE]` CR-ANA-002 (2026-11-25): trước đây phân tích tự chạy ngay khi xác nhận ngữ cảnh. Bấm Hủy trên hộp ngữ cảnh thì không lưu gì; hợp đồng vẫn được lưu.
 
 #### FR-ANA-002 Hiển thị tiến trình
 
@@ -3756,8 +3759,9 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
   1. Given H đang phân tích ở bước Đánh giá, when Owner hợp đồng dừng phân tích, then lần phân tích chuyển sang `Đã dừng`, H về trạng thái ngay trước khi phân tích, nhật ký của H có dòng dừng phân tích, và Owner chạy lại phân tích được ngay.
   2. Given một lần phân tích đã dừng, when worker gửi kết quả hoặc lỗi của lần đó, then hệ thống phải bỏ qua và giữ trạng thái `Đã dừng`.
   3. Given g@x.vn không có vai trò trên H, when g@x.vn dừng phân tích của H, then hệ thống phải từ chối như với hợp đồng không tồn tại.
+  4. Given H chưa có kết quả nào, when người dùng dừng lần phân tích đầu tiên, then trang hợp đồng trở về như trước khi bấm chạy: không có tab kết quả (Tổng quan, Văn bản, Checklist), không có thông báo đã dừng. Nếu H đã có kết quả trước đó thì vẫn hiện kết quả đó.
 - **Dependencies**: FR-ANA-014, FR-AUD-001
-- **Notes**: Worker AI chưa được báo dừng và có thể chạy nốt lần đã dừng (`docs/06-ai-integration-points.md`). Lần đã kết thúc trước khi người dùng bấm dừng thì giữ nguyên kết quả.
+- **Notes**: Lần đã kết thúc trước khi người dùng bấm dừng thì giữ nguyên kết quả. `[CHANGE]` CR-ANA-002: lần đã dừng không hiện trên trang hợp đồng và danh sách phiên bản; chỉ còn dòng "Dừng phân tích" trong nhật ký hoạt động.
 
 **Domain `RISK`: đánh giá và chấm điểm rủi ro**
 
@@ -6009,7 +6013,7 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-UPL-010 | Cảnh báo prompt injection | PS §6.3 ANA-11; PRD US-SEC-002 | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001, US-SEC-002 | F-SEC-001, US-SEC-002, UC-ANA-001, UC-VIEW-001 | F-SEC-001, UC-ANA-001, UC-VIEW-001 | Test | APPROVED |
 | FR-UPL-011 | Nội dung hợp đồng chỉ là dữ liệu | DEC-PRD-016; PS §4 (nguyên tắc 5) | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001 | F-SEC-001, UC-ANA-001, UC-CHAT-001 | F-SEC-001, UC-ANA-001, UC-CHAT-001 | Inspection | APPROVED |
 | FR-UPL-012 | Kết quả không bị thao túng | PRD US-SEC-002; DEC-PRD-016 | §8.2 | BG-GEN-001, STR-RISK-001, STR-SEC-001, US-SEC-002 | F-SEC-001, US-SEC-002, UC-ANA-001 | F-SEC-001, UC-ANA-001 | Test | APPROVED |
-| FR-ANA-001 | Tự động bắt đầu phân tích | PS §6.3 ANA-01 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001 | F-ANA-001, US-ANA-001, UC-CTR-001, UC-ANA-001 | F-ANA-001, UC-CTR-001, UC-ANA-001 | Test | APPROVED |
+| FR-ANA-001 | Bắt đầu phân tích | PS §6.3 ANA-01; CR-ANA-002 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001 | F-ANA-001, US-ANA-001, UC-CTR-001, UC-ANA-001 | F-ANA-001, UC-CTR-001, UC-ANA-001 | Test | REVIEW |
 | FR-ANA-002 | Hiển thị tiến trình | PS §6.3 ANA-02 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001 | F-ANA-001, US-ANA-001, UC-ANA-001 | F-ANA-001, UC-ANA-001 | Test | APPROVED |
 | FR-ANA-003 | Tự thử lại | PS §8 (Độ tin cậy) | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, STR-QUAL-012 | F-ANA-001, UC-ANA-001, STR-QUAL-012 | F-ANA-001, UC-ANA-001 | Test | APPROVED |
 | FR-ANA-004 | Báo phân tích thất bại | PS §6.3 ANA-02, §8 | §8.2 | BG-GEN-001, BG-GEN-002, STR-RISK-001, STR-RISK-002, US-ANA-001, STR-QUAL-012 | F-ANA-001, US-ANA-001, UC-ANA-001, STR-QUAL-012 | F-ANA-001, UC-ANA-001 | Test | REVIEW |
