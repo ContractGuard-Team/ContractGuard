@@ -15,4 +15,8 @@ public sealed class QueueOptions
     // minutes, so a question behind it would time out. Answers come back on AnalysisResults.
     [Required]
     public string ChatRequests { get; init; } = string.Empty;
+
+    // Cancels get their own queue too: the worker reads AnalysisRequests only between two contracts (CR-ANA-001).
+    [Required]
+    public string AnalysisCancels { get; init; } = string.Empty;
 }

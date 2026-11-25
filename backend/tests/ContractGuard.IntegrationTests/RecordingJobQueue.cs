@@ -12,6 +12,11 @@ public sealed class RecordingJobQueue : IAnalysisJobQueue
 
     public IReadOnlyList<AnalysisRequestMessage> Published => [.. _published.Values];
 
+    // cancel_requested reuses the job id of its analysis_requested, so it is kept apart instead of replacing it.
+    private readonly ConcurrentQueue<Guid> _cancelled = new();
+
+    public IReadOnlyList<Guid> Cancelled => [.. _cancelled];
+
     // Only for QueueFailureTests. Test classes of one collection never run at the same time.
     public bool FailEverything { get; set; }
 
@@ -22,7 +27,15 @@ public sealed class RecordingJobQueue : IAnalysisJobQueue
             throw new InvalidOperationException("Queue is down.");
         }
 
-        _published[message.JobId] = message;
+        if (message.EventType == AnalysisEventTypes.CancelRequested)
+        {
+            _cancelled.Enqueue(message.JobId);
+        }
+        else
+        {
+            _published[message.JobId] = message;
+        }
+
         return Task.CompletedTask;
     }
 }

@@ -44,6 +44,7 @@ internal static class ContractEndpoints
         jobs.MapGet("/{jobId:guid}/clauses", GetClauses);
         jobs.MapGet("/{jobId:guid}/result", GetResult);
         jobs.MapGet("/{jobId:guid}/report", ExportReport);
+        jobs.MapPost("/{jobId:guid}/cancel", CancelJob);
 
         secured.MapPut("/findings/{findingId:guid}/handling", SetFindingHandling).WithTags("Findings");
         return secured;
@@ -176,6 +177,12 @@ internal static class ContractEndpoints
 
     private static async Task<Ok<JobStatus>> GetJob(Guid jobId, ContractQueries queries, CancellationToken cancellationToken) =>
         TypedResults.Ok(await queries.GetJobAsync(jobId, cancellationToken));
+
+    private static async Task<NoContent> CancelJob(Guid jobId, ContractCommands commands, CancellationToken cancellationToken)
+    {
+        await commands.CancelAnalysisAsync(jobId, cancellationToken);
+        return TypedResults.NoContent();
+    }
 
     private static async Task<Ok<List<ClauseItem>>> GetClauses(Guid jobId, ContractQueries queries, CancellationToken cancellationToken) =>
         TypedResults.Ok(await queries.GetClausesAsync(jobId, cancellationToken));

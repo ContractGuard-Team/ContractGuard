@@ -35,4 +35,28 @@ public sealed class QueueFailureTests(ApiFactory factory)
             await Scenario.StartAnalysisAsync(client, contractId, versionId);
         }
     }
+
+    [Fact]
+    public async Task Queue_down_does_not_stop_a_cancel()
+    {
+        var (client, _, _) = await Scenario.SignedInUserAsync(factory);
+        using (client)
+        {
+            var (contractId, versionId) = await Scenario.UploadContractAsync(factory, client);
+            var jobId = await Scenario.StartAnalysisAsync(client, contractId, versionId);
+
+            factory.Queue.FailEverything = true;
+            try
+            {
+                ApiAssert.Status(await client.PostAsync($"/jobs/{jobId}/cancel"), HttpStatusCode.NoContent);
+            }
+            finally
+            {
+                factory.Queue.FailEverything = false;
+            }
+
+            var job = await ApiAssert.JsonAsync(await client.GetAsync($"/jobs/{jobId}"));
+            Assert.Equal("cancelled", job.GetProperty("status").GetString());
+        }
+    }
 }

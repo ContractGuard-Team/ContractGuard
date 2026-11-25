@@ -1692,7 +1692,7 @@ export interface components {
             contractVersionId?: null | string;
         };
         /** @enum {unknown} */
-        AuditAction: "uploaded" | "viewed" | "version_uploaded" | "context_confirmed" | "metadata_edited" | "status_changed" | "finding_handled" | "shared" | "share_revoked" | "owner_transferred" | "report_exported" | "renamed" | "trashed" | "restored";
+        AuditAction: "uploaded" | "viewed" | "version_uploaded" | "context_confirmed" | "metadata_edited" | "status_changed" | "finding_handled" | "shared" | "share_revoked" | "owner_transferred" | "report_exported" | "renamed" | "trashed" | "restored" | "analysis_cancelled";
         AuditEntry: {
             /** Format: uuid */
             auditEventId: string;
@@ -1987,8 +1987,19 @@ export interface components {
             userId: string;
             displayName: string;
             email: string;
+            phoneNumber: null | string;
             uiLanguage: components["schemas"]["UiLanguage"];
+            hasPassword: boolean;
             workspaces: components["schemas"]["WorkspaceResponse"][];
+        };
+        ProfileRequest: {
+            displayName: string;
+            phoneNumber: null | string;
+            uiLanguage: components["schemas"]["UiLanguage"];
+        };
+        ChangePasswordRequest: {
+            currentPassword: null | string;
+            newPassword: string;
         };
         MetadataRequest: {
             parties?: null | string[];
@@ -2063,7 +2074,7 @@ export interface components {
             role: components["schemas"]["OrgRole"];
         };
         /** @enum {unknown} */
-        RunStatus: "running" | "completed" | "failed" | null;
+        RunStatus: "running" | "completed" | "failed" | "cancelled" | null;
         /** @enum {unknown} */
         ServiceCriticality: "low" | "medium" | "high" | null;
         /** @enum {unknown} */

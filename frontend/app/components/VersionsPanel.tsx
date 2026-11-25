@@ -7,7 +7,7 @@ import { ContractDropzone } from "./ContractDropzone";
 import { SeverityTag } from "./SeverityTag";
 
 const dateFormat = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" });
-const runLabels: Record<NonNullable<Schemas["RunStatus"]>, string> = { running: "Đang phân tích", completed: "Đã phân tích", failed: "Phân tích thất bại" };
+const runLabels: Record<NonNullable<Schemas["RunStatus"]>, string> = { running: "Đang phân tích", completed: "Đã phân tích", failed: "Phân tích thất bại", cancelled: "Đã dừng phân tích" };
 
 // F-CTR-005: every version with its own result (FR-CTR-016, FR-CTR-017), and the upload of the next one
 // (FR-CTR-014). A new version starts without analysis; its context form is prefilled (FR-CTR-015).

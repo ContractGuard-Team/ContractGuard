@@ -16,5 +16,6 @@ public enum AuditAction
     ReportExported,
     Renamed,
     Trashed,
-    Restored
+    Restored,
+    AnalysisCancelled
 }

@@ -1,0 +1,70 @@
+name: "Deploy: Staging (AWS)"
+
+# Run by hand (Actions → this workflow → Run workflow, on main). Deploys the demo stack ContractGuard-StagingAws
+# (infra/cdk/README.md, docs/04 C9): database migrations, SPA build, then `cdk deploy`.
+#
+# Signs in with GitHub OIDC as the role from the ContractGuard-GitHubDeploy stack, so no AWS key is stored here.
+# That stack is deployed once by hand first (README). The database string comes from Secrets Manager.
+#
+# Before the first run: the README checklist (secrets, bootstrap). After it: stop the Railway `api`,
+# add AppUrl to the dev bucket CORS and to the Google OAuth client (README steps 9–11).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-staging-aws
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-southeast-1
+  CDK_VERSION: "2.1149.0"
+
+jobs:
+  deploy:
+    name: Migrate and cdk deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::699061129385:role/contractguard-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # infra/cdk is a .NET 10 project, same SDK as the backend.
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: backend/global.json
+
+      # Same database as the Railway staging (C9). The migrator image applies only pending migrations.
+      - name: Apply migrations
+        run: |
+          docker build -f backend/Dockerfile --target migrator -t contractguard-migrate .
+          Database__ConnectionString=$(aws secretsmanager get-secret-value --secret-id contractguard/staging-aws/database --query SecretString --output text)
+          echo "::add-mask::$Database__ConnectionString"
+          export Database__ConnectionString
+          docker run --rm -e Database__ConnectionString contractguard-migrate
+
+      # BucketDeployment uploads frontend/build/client.
+      - name: Build SPA
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      # The API image is ARM64; backend/Dockerfile cross-compiles and its ARM64 stage only copies files,
+      # so the x64 runner needs no emulation.
+      - name: cdk deploy
+        working-directory: infra/cdk
+        run: npx --yes aws-cdk@${{ env.CDK_VERSION }} deploy ContractGuard-StagingAws --require-approval never

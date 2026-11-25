@@ -71,7 +71,7 @@ export function ContractWorkspace({
             id="side"
             panelRef={panelRef}
             collapsible
-            defaultSize="400px"
+            defaultSize="320px"
             minSize="320px"
             maxSize="55%"
             onResize={() => setHidden(panelRef.current?.isCollapsed() ?? false)}

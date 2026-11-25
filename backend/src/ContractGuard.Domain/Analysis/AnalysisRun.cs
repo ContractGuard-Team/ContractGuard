@@ -131,6 +131,21 @@ public sealed class AnalysisRun
         return true;
     }
 
+    // TR-ANA-004 (CR-ANA-001): the user stops a running analysis. A running run holds no clauses or findings yet.
+    // AI-HOOKUP: the worker is not told (docs/06 §3.5); whatever it sends later is ignored because the run is terminal.
+    public bool Cancel(DateTimeOffset now)
+    {
+        if (IsTerminal)
+        {
+            return false;
+        }
+
+        RunStatus = RunStatus.Cancelled;
+        LastEventAt = now;
+        FinishedAt = now;
+        return true;
+    }
+
     private static string? Limit(string? value) =>
         value is null ? null : value.Length <= VersionTextMaxLength ? value : value[..VersionTextMaxLength];
 }

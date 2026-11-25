@@ -34,7 +34,13 @@ Worker AI (tài khoản 333596350642) ──► S3/SQS bộ dev, như staging (d
 ```bash
 npx aws-cdk@2.1149.0 bootstrap aws://699061129385/ap-southeast-1   # lần đầu
 (cd frontend && npm ci && npm run build)                             # BucketDeployment đọc frontend/build/client
-cd infra/cdk && npx aws-cdk@2.1149.0 deploy
+cd infra/cdk && npx aws-cdk@2.1149.0 deploy ContractGuard-StagingAws
+```
+
+Hoặc chạy tay workflow **Deploy: Staging (AWS)** (`.github/workflows/deploy-staging-aws.yml`, nhánh `main`): migration, build SPA, `cdk deploy`. Workflow đăng nhập AWS bằng GitHub OIDC với role `contractguard-github-deploy`, không cần secret trên GitHub. Role này tạo **một lần** từ máy, sau bootstrap (stack riêng, `cdk destroy` stack demo không xóa nó):
+
+```bash
+cd infra/cdk && npx aws-cdk@2.1149.0 deploy ContractGuard-GitHubDeploy
 ```
 
 **Sau deploy** (domain CloudFront đổi sau mỗi lần destroy rồi deploy lại, nên làm lại bước 10–11)
@@ -43,7 +49,7 @@ cd infra/cdk && npx aws-cdk@2.1149.0 deploy
 10. CORS của bucket dev: `aws s3api get-bucket-cors --bucket contractguard-dev-documents-699061129385` → thêm `AppUrl` vào `AllowedOrigins` của rule hiện có → `put-bucket-cors`. Không ghi đè các origin cũ (Railway, localhost).
 11. Google OAuth client: thêm redirect URI `<AppUrl>/api/v1/auth/google/callback`. Nếu client còn ở chế độ Testing thì thêm test user.
 
-Tắt API mà vẫn giữ stack: `deploy -c apiTasks=0`. Không gửi job cho worker: `-c workerEnabled=false`. Sau showcase: `cdk destroy`, rồi bật lại Railway `api`.
+Tắt API mà vẫn giữ stack: `deploy ContractGuard-StagingAws -c apiTasks=0`. Không gửi job cho worker: `-c workerEnabled=false`. Xem hướng dẫn chi tiết và script tắt/bật nhanh tại [OPERATIONS.md](OPERATIONS.md). Sau showcase: `cdk destroy ContractGuard-StagingAws` (giữ `ContractGuard-GitHubDeploy`), rồi bật lại Railway `api`.
 
 ## Staging trên Railway
 
@@ -54,7 +60,9 @@ Project `contractguard`, environment `staging`, region Singapore:
 | `web` | `frontend/Dockerfile` (nginx + SPA) | Domain `https://contractguardweb.up.railway.app`; `API_UPSTREAM=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:8080` |
 | `api` | `backend/Dockerfile`, context là gốc repo | Không có domain public. Biến: `ASPNETCORE_ENVIRONMENT=Production`, bucket/queue `contractguard-dev-*`, SES, `Database__ConnectionString` và access key AWS (secret) |
 
-Deploy từ máy (repo của org chưa nối GitHub với Railway):
+GitHub Actions: chạy tay workflow **Deploy: Staging (Railway)** (`.github/workflows/deploy-staging-railway.yml`, chọn nhánh `main`). Workflow chạy migration rồi deploy `api`, sau đó `web`. Cần secret `RAILWAY_TOKEN` (project token của env staging) và `STAGING_DATABASE_URL`; thiếu thì workflow bỏ qua và chỉ để lại thông báo. Không chạy khi staging AWS đang bật.
+
+Deploy từ máy (khi workflow chưa có secret):
 
 ```bash
 railway up --ci -p <project> -e staging -s api                       # ở gốc repo

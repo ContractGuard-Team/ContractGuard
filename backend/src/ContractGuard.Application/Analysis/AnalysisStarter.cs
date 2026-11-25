@@ -56,7 +56,7 @@ public sealed partial class AnalysisStarter(
         var workspace = AnalysisStorageKeys.WorkspaceSegment(contract.OrganizationId, contract.OwnerUserAccountId);
         var extension = Path.GetExtension(version.OriginalFileName).ToLowerInvariant();
         var cleanKey = AnalysisStorageKeys.CleanKey(workspace, contract.ContractId, version.VersionNumber, extension);
-        var inputKey = await PrepareWorkerInputAsync(contract, version, cleanKey, extension, cancellationToken);
+        var inputKey = await PrepareWorkerInputAsync(contract, version, run.AnalysisRunId, cleanKey, extension, cancellationToken);
         var requestKey = AnalysisStorageKeys.RequestKey(run.AnalysisRunId);
         await storage.PutJsonAsync(requestKey, BuildRequest(contract, version, run, inputKey, cleanKey, outputLanguage), cancellationToken);
         await SaveOrThrowBusyAsync(contract.ContractId, cancellationToken);
@@ -105,12 +105,16 @@ public sealed partial class AnalysisStarter(
     // - the worker deletes the quarantine file once it has sent `completed`, before this service has accepted
     //   the result, so a rejected result leaves the version pointing at a file that is gone;
     // - after an accepted result the version points at its checked copy under clean/.
-    // In both cases a copy of the checked file is put under quarantine/ for this run.
-    private async Task<string> PrepareWorkerInputAsync(Contract contract, ContractVersion version, string cleanKey, string extension, CancellationToken cancellationToken)
+    // - after a cancel (CR-ANA-001) the cancelled job may still be on the worker, which deletes the shared upload
+    //   when it ends, maybe before this run reads it.
+    // In these cases a copy of the checked file is put under quarantine/ for this run only.
+    private async Task<string> PrepareWorkerInputAsync(Contract contract, ContractVersion version, Guid jobId, string cleanKey, string extension, CancellationToken cancellationToken)
     {
         var inQuarantine = version.SourceFileKey.StartsWith("quarantine/", StringComparison.Ordinal);
         var sourceExists = await storage.GetSizeAsync(version.SourceFileKey, cancellationToken) is not null;
-        if (inQuarantine && sourceExists)
+        var cancelledBefore = await db.AnalysisRuns.AnyAsync(
+            r => r.ContractVersionId == version.ContractVersionId && r.RunStatus == RunStatus.Cancelled, cancellationToken);
+        if (inQuarantine && sourceExists && !cancelledBefore)
         {
             return version.SourceFileKey;
         }
@@ -118,7 +122,7 @@ public sealed partial class AnalysisStarter(
         var copyFrom = sourceExists ? version.SourceFileKey
             : await storage.GetSizeAsync(cleanKey, cancellationToken) is not null ? cleanKey
             : throw new DomainException(ErrorCodes.SourceFileMissing, "The contract file is no longer stored. Upload it again as a new version.");
-        var inputKey = inQuarantine ? version.SourceFileKey : AnalysisStorageKeys.RetryInputKey(contract.OwnerUserAccountId, version.ContractVersionId, extension);
+        var inputKey = inQuarantine && !cancelledBefore ? version.SourceFileKey : AnalysisStorageKeys.RetryInputKey(contract.OwnerUserAccountId, jobId, extension);
 
         await using var source = await storage.OpenReadAsync(copyFrom, cancellationToken);
         using var copy = new MemoryStream();

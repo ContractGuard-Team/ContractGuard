@@ -152,6 +152,7 @@ public sealed class AppStack : Stack
         var requests = Queue.FromQueueArn(this, "AnalysisRequests", DevQueuePrefix + "analysis-requests");
         var results = Queue.FromQueueArn(this, "AnalysisResults", DevQueuePrefix + "analysis-results");
         var chatRequests = Queue.FromQueueArn(this, "ChatRequests", DevQueuePrefix + "chat-requests");
+        var cancels = Queue.FromQueueArn(this, "AnalysisCancels", DevQueuePrefix + "analysis-cancels");
 
         // Created by hand once, so passwords never pass through CloudFormation (infra/cdk/README.md).
         var database = SmSecret.FromSecretNameV2(this, "Database", $"contractguard/{stage}/database");
@@ -199,6 +200,7 @@ public sealed class AppStack : Stack
                 ["Queues__AnalysisRequests"] = requests.QueueName,
                 ["Queues__AnalysisResults"] = results.QueueName,
                 ["Queues__ChatRequests"] = chatRequests.QueueName,
+                ["Queues__AnalysisCancels"] = cancels.QueueName,
                 ["Chat__Responder"] = "worker",
                 // No WorkerActivity__TableArn (docs/04 C9): the page shows the steps from the worker's SQS
                 // progress messages, without the percent bar read from the worker's DynamoDB (C8).
@@ -219,6 +221,7 @@ public sealed class AppStack : Stack
         documents.GrantReadWrite(taskRole);
         requests.GrantSendMessages(taskRole);
         chatRequests.GrantSendMessages(taskRole);
+        cancels.GrantSendMessages(taskRole);
         results.GrantConsumeMessages(taskRole);
         taskRole.AddToPrincipalPolicy(new PolicyStatement(new PolicyStatementProps
         {

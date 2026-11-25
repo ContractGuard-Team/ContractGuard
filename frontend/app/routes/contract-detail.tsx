@@ -275,6 +275,15 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
                   </p>
                 </Notice>
               )}
+
+              {job?.status === "cancelled" && (
+                <Notice tone="info">
+                  <p className="font-semibold">Đã dừng phân tích</p>
+                  <p className="text-ink-secondary">
+                    {contract.completedJobId ? "Bên dưới là kết quả của lần phân tích thành công trước đó." : "Bấm “Chạy lại phân tích” khi bạn muốn phân tích lại."}
+                  </p>
+                </Notice>
+              )}
             </div>
 
             {/* The tabs are always there: versions and the log exist before any analysis result. */}

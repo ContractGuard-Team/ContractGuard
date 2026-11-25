@@ -18,10 +18,11 @@ public static class AnalysisStorageKeys
     // The user id in the key ties an upload to its uploader.
     public static string QuarantineKey(Guid userId, Guid uploadId, string extension) => $"quarantine/{userId}/{uploadId}{extension}";
 
-    // The worker may read only quarantine/ (docs/07 §2). When the version's own file is not there, a copy of
-    // it goes here for one run; the worker deletes it after "completed", and a reuse overwrites it.
-    public static string RetryInputKey(Guid ownerUserAccountId, Guid contractVersionId, string extension) =>
-        $"quarantine/{ownerUserAccountId}/{contractVersionId}{extension}";
+    // The worker may read only quarantine/ (docs/07 §2). When the version's own file cannot be used, a copy of it
+    // goes here for one run; the worker deletes it after "completed". One key per job (CR-ANA-001): a cancelled job
+    // still on the worker deletes its own copy, never the next run's. Copies made before that used the version id.
+    public static string RetryInputKey(Guid ownerUserAccountId, Guid jobOrLegacyVersionId, string extension) =>
+        $"quarantine/{ownerUserAccountId}/{jobOrLegacyVersionId}{extension}";
 
     public static string CleanKey(string workspace, Guid contractId, int versionNumber, string extension) =>
         $"clean/{workspace}/{contractId}/v{versionNumber}/source{extension}";

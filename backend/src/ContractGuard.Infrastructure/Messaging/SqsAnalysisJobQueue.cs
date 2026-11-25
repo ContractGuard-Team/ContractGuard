@@ -16,7 +16,12 @@ internal sealed partial class SqsAnalysisJobQueue(
 {
     public async Task PublishAsync(AnalysisRequestMessage message, CancellationToken cancellationToken)
     {
-        var queueName = message.EventType == AnalysisEventTypes.ChatRequested ? queues.Value.ChatRequests : queues.Value.AnalysisRequests;
+        var queueName = message.EventType switch
+        {
+            AnalysisEventTypes.ChatRequested => queues.Value.ChatRequests,
+            AnalysisEventTypes.CancelRequested => queues.Value.AnalysisCancels,
+            _ => queues.Value.AnalysisRequests,
+        };
         var queueUrl = await queueUrls.GetAsync(queueName, cancellationToken);
         var body = JsonSerializer.Serialize(
             new

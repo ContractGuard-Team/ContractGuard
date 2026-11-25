@@ -11,7 +11,8 @@
     { "$ref": "#/$defs/failed" },
     { "$ref": "#/$defs/pong" },
     { "$ref": "#/$defs/chatRequested" },
-    { "$ref": "#/$defs/chatAnswered" }
+    { "$ref": "#/$defs/chatAnswered" },
+    { "$ref": "#/$defs/cancelRequested" }
   ],
   "$defs": {
     "jobId": { "type": "string", "format": "uuid" },
@@ -63,7 +64,7 @@
       }
     },
     "failed": {
-      "description": "Queue analysis-results, worker -> backend, after the worker's own retries (FR-ANA-003). error_code uses SRS ERR-* codes when the cause is known, e.g. ERR-UPL-004 for more than 100 pages.",
+      "description": "Queue analysis-results, worker -> backend, after the worker's own retries (FR-ANA-003). error_code uses SRS ERR-* codes when the cause is known, e.g. ERR-UPL-004 for more than 100 pages. Worker codes (docs/07 §15): ERR-AI-001 invalid request or file, ERR-AI-002 still failing after the retries, ERR-AI-003 cancelled by the user (cancel_requested). On failure the worker may leave an error file at result_key; it is never read.",
       "type": "object",
       "additionalProperties": false,
       "required": ["message_version", "event_type", "job_id", "failure_reason"],
@@ -109,6 +110,17 @@
         "job_id": { "$ref": "#/$defs/jobId" },
         "answer_text": { "type": "string", "minLength": 1, "maxLength": 8000 },
         "cited_clause_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "cancelRequested": {
+      "description": "Queue analysis-cancels, backend -> worker (CR-ANA-001, docs/07 §15). The user stopped the job. The worker stops it, or skips it when it comes off analysis-requests, and answers failed with error_code ERR-AI-003 on analysis-results. No answer when the job had already ended.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_version", "event_type", "job_id"],
+      "properties": {
+        "message_version": { "const": "1" },
+        "event_type": { "const": "cancel_requested" },
+        "job_id": { "$ref": "#/$defs/jobId" }
       }
     }
   }
