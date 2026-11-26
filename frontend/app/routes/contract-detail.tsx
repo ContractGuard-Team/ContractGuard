@@ -1,11 +1,11 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useRevalidator, useSearchParams } from "react-router";
 
 import { AnalysisProgress } from "~/components/AnalysisProgress";
 import { ApprovalControl } from "~/components/ApprovalControl";
 import { AuditPanel } from "~/components/AuditPanel";
 import { Button } from "~/components/Button";
-import { ChatPanel } from "~/components/ChatPanel";
+import { ChatPanel, suggestedQuestions } from "~/components/ChatPanel";
 import { Checklist } from "~/components/Checklist";
 import { ContextForm } from "~/components/ContextForm";
 import { ContractSheet } from "~/components/ContractSheet";
@@ -14,6 +14,7 @@ import { TextField } from "~/components/Field";
 import { FileViewer } from "~/components/FileViewer";
 import { MetadataPanel } from "~/components/MetadataPanel";
 import { Notice } from "~/components/Notice";
+import type { DocxClause } from "~/components/DocxViewer";
 import type { PdfHighlight } from "~/components/PdfViewer";
 import { ReportExport } from "~/components/ReportExport";
 import { ResultOverview } from "~/components/ResultOverview";
@@ -197,13 +198,18 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
     .filter(Boolean)
     .join(" · ");
 
-  const findings = result?.findings ?? [];
+  const findings = useMemo(() => result?.findings ?? [], [result]);
   const highlights = pdfHighlights(clauses, findings, clauseName);
-  const openClauseFinding = (clauseKey: string) => {
-    const worst = findings.filter((f) => f.clauseKey === clauseKey).sort((a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity))[0];
-    setSelectedFindingId(worst?.findingId ?? null);
-    goToClause(clauseKey);
-  };
+  // Memoized: the viewer restyles the DOCX frame whenever this list changes.
+  const docxClauses = useMemo(() => docxHighlights(clauses, findings, clauseName), [clauses, findings, clauseName]);
+  const openClauseFinding = useCallback(
+    (clauseKey: string) => {
+      const worst = findings.filter((f) => f.clauseKey === clauseKey).sort((a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity))[0];
+      setSelectedFindingId(worst?.findingId ?? null);
+      goToClause(clauseKey);
+    },
+    [findings, goToClause],
+  );
 
   const fileViewer = (
     <FileViewer
@@ -212,6 +218,7 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
       versionId={version.contractVersionId}
       fileType={version.fileType}
       highlights={highlights}
+      docxClauses={docxClauses}
       onSelectClause={openClauseFinding}
     />
   );
@@ -221,7 +228,15 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
       <ContractWorkspace
         title={contract.contractName}
         subtitle={subtitle}
-        chat={<ChatPanel contractId={contract.contractId} hasResult={hasResult} clauseName={clauseName} onCitation={goToClause} />}
+        chat={
+          <ChatPanel
+            contractId={contract.contractId}
+            hasResult={hasResult}
+            clauseName={clauseName}
+            onCitation={goToClause}
+            suggestions={suggestedQuestions(findings, clauseName)}
+          />
+        }
         actions={
           <>
             <ApprovalControl contractId={contract.contractId} status={contract.approvalStatus} onChanged={refresh} />
@@ -440,6 +455,15 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
 }
 
 // Every region of every clause that has findings, washed in the clause's worst severity.
+function docxHighlights(clauses: Schemas["ClauseItem"][], findings: Schemas["FindingItem"][], clauseName: (key: string) => string): DocxClause[] {
+  return clauses.map((clause) => ({
+    clauseKey: clause.clauseKey,
+    text: clause.clauseText,
+    severity: severityOrder.find((s) => findings.some((f) => f.clauseKey === clause.clauseKey && f.severity === s)) ?? null,
+    label: clauseName(clause.clauseKey),
+  }));
+}
+
 function pdfHighlights(clauses: Schemas["ClauseItem"][], findings: Schemas["FindingItem"][], clauseName: (key: string) => string): PdfHighlight[] {
   return clauses.flatMap((clause) => {
     const worst = severityOrder.find((s) => findings.some((f) => f.clauseKey === clause.clauseKey && f.severity === s));

@@ -199,16 +199,57 @@ public sealed class AnalysisResultHandlerTests(ApiFactory factory)
     {
         var clock = new FakeTimeProvider(DateTimeOffset.UtcNow);
         var (contract, run) = await SeedAsync(clock.GetUtcNow());
+        clock.Advance(TimeSpan.FromMinutes(1));
+        await ReportProgressAsync(run.AnalysisRunId, clock.GetUtcNow());
         clock.Advance(TimeSpan.FromMinutes(21));
 
-        await using (var scope = factory.CreateSystemScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var sweeper = new StaleRunSweeper(db, clock, NullLogger<StaleRunSweeper>.Instance);
-            Assert.True(await sweeper.SweepAsync(Ct) >= 1);
-        }
+        Assert.True(await SweepAsync(clock) >= 1);
 
         await AssertFailedAsync(run.AnalysisRunId, contract.ContractId, "20 minutes");
+    }
+
+    [Fact]
+    public async Task Sweeper_fails_jobs_no_worker_picked_up_within_10_minutes()
+    {
+        var clock = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var (contract, run) = await SeedAsync(clock.GetUtcNow());
+        clock.Advance(TimeSpan.FromMinutes(11));
+
+        Assert.True(await SweepAsync(clock) >= 1);
+
+        await AssertFailedAsync(run.AnalysisRunId, contract.ContractId, "did not pick up the job within 10 minutes");
+    }
+
+    [Fact]
+    public async Task Sweeper_leaves_picked_up_jobs_running_until_20_minutes_of_silence()
+    {
+        var clock = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var (_, run) = await SeedAsync(clock.GetUtcNow());
+        clock.Advance(TimeSpan.FromMinutes(1));
+        await ReportProgressAsync(run.AnalysisRunId, clock.GetUtcNow());
+        clock.Advance(TimeSpan.FromMinutes(11));
+
+        await SweepAsync(clock);
+
+        await using var scope = factory.CreateSystemScope();
+        var stored = await scope.ServiceProvider.GetRequiredService<AppDbContext>().AnalysisRuns.SingleAsync(r => r.AnalysisRunId == run.AnalysisRunId, Ct);
+        Assert.Equal(RunStatus.Running, stored.RunStatus);
+    }
+
+    private async Task<int> SweepAsync(TimeProvider clock)
+    {
+        await using var scope = factory.CreateSystemScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await new StaleRunSweeper(db, clock, NullLogger<StaleRunSweeper>.Instance).SweepAsync(Ct);
+    }
+
+    private async Task ReportProgressAsync(Guid runId, DateTimeOffset now)
+    {
+        await using var scope = factory.CreateSystemScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var run = await db.AnalysisRuns.SingleAsync(r => r.AnalysisRunId == runId, Ct);
+        run.ReportProgress(AnalysisStep.SplittingClauses, now);
+        await db.SaveChangesAsync(Ct);
     }
 
     private async Task<(Contract Contract, AnalysisRun Run)> SeedAsync(DateTimeOffset? now = null)

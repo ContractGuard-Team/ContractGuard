@@ -116,7 +116,25 @@ Khi chạy worker trong Docker trên EC2:
   ```bash
   aws ec2 modify-instance-metadata-options --instance-id <i-...> --http-endpoint enabled --http-tokens required --http-put-response-hop-limit 2
   ```
-- Security group không cần mở cổng vào nào, vì worker chỉ gọi ra ngoài. Chỉ cần máy có đường ra internet.
+- Security group không cần mở cổng vào nào, vì worker chỉ gọi ra ngoài.
+
+### Mạng của worker (từ 2026-11-25, đã đối chiếu AWS 2026-11-26)
+
+Nhóm AI chuyển worker vào VPC riêng (`ContractGuard-ArchitectureByTeamAIv2.drawio` của nhóm AI, sơ đồ chung ở `docs/architecture/`):
+
+| Thứ | Giá trị |
+|---|---|
+| VPC | `ContractRisk-VPC` 10.20.0.0/16, `ap-southeast-1` |
+| Worker | EC2 `ContractRisk-AI-Worker` (`m7i-flex.large`, không GPU) ở subnet isolated 10.20.10.0/24, không IP public, không route ra Internet; 9 container Docker Compose; IMDSv2, hop limit 2 |
+| Ra Internet | Qua Squid `:3128` trên EC2 `ContractRisk-Proxy` (t3.micro, subnet public 10.20.1.0/24), chỉ hostname trong allowlist (model Gemini, Qdrant Cloud `:6333`, Langfuse, Tavily, Supabase, vanban.chinhphu.vn) |
+| Tới AWS | VPC endpoint: S3 và DynamoDB (gateway), SQS, Secrets Manager, SSM, ssmmessages, STS (interface, private DNS) |
+| Quản trị | SSM Session Manager, không mở SSH |
+
+Bucket và queue của ContractGuard đi qua endpoint S3 gateway và SQS interface cùng region, nên truy cập chéo tài khoản vẫn chạy như cũ. Cả 5 endpoint đang dùng policy mặc định (cho phép mọi thứ). **Nếu nhóm AI siết endpoint policy, phải để lại bucket `contractguard-dev-documents-699061129385` và 4 queue `contractguard-dev-*` ở trên**, nếu không worker mất đường tới ContractGuard mà không báo lỗi IAM.
+
+Hai EC2 này **chỉ bật khi web bật** (Approver 2026-11-26): `infra/cdk/manage-aws-staging.* start|stop` bật/tắt kèm, bằng profile `se-cli`. Web bật mà worker tắt thì lần phân tích báo lỗi sau 10 phút (`StaleRunSweeper.PickupLimit`), câu hỏi chat báo lỗi sau 3 phút.
+
+Từ 2026-11-26 `se-cli` chỉ còn đọc EC2/VPC/SQS/DynamoDB và bật/tắt EC2; không đọc hay sửa IAM được. Đổi policy `ContractGuard-Partner` thì nhờ nhóm AI.
 - Không đặt `AWS_ACCESS_KEY_ID`, không mount `~/.aws/credentials`, không đưa key vào image.
 
 
@@ -175,7 +193,7 @@ Không upload hợp đồng thật lên môi trường dev.
 | # | Câu hỏi |
 |---|---|
 | 1 | ~~EC2 chạy ở tài khoản nào?~~ Đã rõ: tài khoản AI `333596350642`, role `ContractRisk-EC2-Role` |
-| 2 | ~~Bedrock: dùng trong tài khoản AI.~~ Đổi 2026-11-17: model tự host trên EC2 (DEC-GEN-029). Nhóm AI chọn model, loại máy GPU, xin quota GPU; trả lời 3 câu hỏi ở `docs/04` mục C3 |
+| 2 | ~~Bedrock: dùng trong tài khoản AI.~~ Đổi 2026-11-17: AI chạy bằng Docker trên EC2 (DEC-GEN-029). Từ 2026-11-26 (DEC-GEN-034): cách chạy model và model do nhóm AI quyết; hiện gọi Google Gemini API qua proxy |
 | 3 | Nhóm AI có cần quyền đọc bucket, queue và log để gỡ lỗi không? Policy `contractguard-dev-ai-developer-access` đã có nhưng chưa gắn cho ai, và cũng phải sửa prefix theo §2 |
 
 ## 10. Chatbot qua worker (2026-11-20, `docs/04` C6)
@@ -205,7 +223,7 @@ Quyền thêm cho role `ContractRisk-EC2-Role`. Phiếu câu hỏi khớp `resul
 | Phía | Việc | Trạng thái |
 |---|---|---|
 | ContractGuard `699061129385` | Tạo queue và DLQ; queue policy cho role (Receive, Delete, ChangeMessageVisibility, GetQueueAttributes, GetQueueUrl); thêm `sqs:SendMessage`, `sqs:GetQueueUrl` cho user của API | ✅ Đã có, đã kiểm (2026-11-21) |
-| AI `333596350642` | ✅ Có trong `ContractGuard-Partner` (§5). Gốc: `{ "Sid": "ConsumeChat", "Effect": "Allow", "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-chat-requests" }` | ⏳ Nhóm AI làm |
+| AI `333596350642` | ✅ Có trong `ContractGuard-Partner` (§5). Gốc: `{ "Sid": "ConsumeChat", "Effect": "Allow", "Action": ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:ChangeMessageVisibility", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"], "Resource": "arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-chat-requests" }` | ✅ Gộp vào `ContractGuard-Partner` (2026-11-25) |
 | AI | Thêm `ChatRequested` vào `common/schemas/business/inbound.py`, `ChatAnswered` vào `outbound.py`, viết handler | ✅ SE viết hộ ngày 2026-11-21 trên nhánh `feat/chatbotAI` của repo AI, chờ nhóm AI review |
 
 Cách SE viết (nhánh `feat/chatbotAI`): process thứ 3 `chat-worker` trong `workers/main.py` chạy `workers/chat.py` khi có `WORKER_CHAT_QUEUE_URL`. Worker không giữ khóa model, nên chuyển câu hỏi tới agent-3 (`POST /v1/chat`, `agents/chat.py`, xác thực bằng `INTERNAL_API_TOKEN`). Agent-3 gọi model một lần với điều khoản, finding và lịch sử của phiếu. Lỗi nào cũng trả `failed` ngay và xóa message, vì backend chỉ chờ 3 phút. Trên EC2 cần thêm vào `.env`: `WORKER_CHAT_QUEUE_URL=https://sqs.ap-southeast-1.amazonaws.com/699061129385/contractguard-dev-chat-requests` (`WORKER_CHAT_URL` đã đặt sẵn trong `docker-compose.yml`).
@@ -305,6 +323,6 @@ Quyền:
 | Phía | Việc | Trạng thái |
 |---|---|---|
 | ContractGuard `699061129385` | Tạo queue + DLQ; queue policy cho `ContractRisk-EC2-Role` (`sqs:ReceiveMessage`, `sqs:DeleteMessage`); `sqs:SendMessage`, `sqs:GetQueueUrl`, `sqs:GetQueueAttributes` cho user API (Railway). Staging AWS: CDK cấp cho role `contractguard-staging-api-task` | ✅ Đã tạo, đã kiểm (2026-11-24): queue + DLQ (SSE SQS), queue policy, inline policy `contractguard-dev-cancel-queue` của `contractguard-dev-api-local` (gửi thử được) |
-| AI `333596350642` | Thêm `sqs:ReceiveMessage`, `sqs:DeleteMessage` trên `arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-cancels`: ✅ đã có trong `ContractGuard-Partner` (2026-11-25, kiểm bằng IAM policy simulator). Còn đặt `WORKER_CANCEL_QUEUE_URL=https://sqs.ap-southeast-1.amazonaws.com/699061129385/contractguard-dev-analysis-cancels` rồi deploy | ⏳ Nhóm AI làm |
+| AI `333596350642` | Thêm `sqs:ReceiveMessage`, `sqs:DeleteMessage` trên `arn:aws:sqs:ap-southeast-1:699061129385:contractguard-dev-analysis-cancels`: ✅ đã có trong `ContractGuard-Partner` (2026-11-25, kiểm bằng IAM policy simulator). Đặt `WORKER_CANCEL_QUEUE_URL=https://sqs.ap-southeast-1.amazonaws.com/699061129385/contractguard-dev-analysis-cancels`: ✅ đã có trong `.env` của worker (Approver xác nhận 2026-11-26). Sơ đồ của nhóm AI còn ghi "tên queue chờ đối tác chốt": tên đã chốt như trên | ✅ Còn nghiệm thu |
 
 Nghiệm thu: chạy bảng §4 của tài liệu nhóm AI (hủy khi đang chạy, hủy khi còn trong queue, hủy job đã xong, hủy hai lần, các mã lỗi).

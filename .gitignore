@@ -86,6 +86,10 @@ CLAUDE.md
 
 # Architecture
 docs/architecture
+ContractGuard-Architecture*.drawio
+
+# Personal Obsidian vault: a git repo of its own, never part of this repo
+Obsidian-Vault/
 
 # Secrets of one environment on a developer machine (backend Program.cs), e.g. Supabase for "Cloud"
 appsettings.*.local.json

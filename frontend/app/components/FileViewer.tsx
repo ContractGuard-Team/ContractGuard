@@ -6,6 +6,7 @@ import { useAction } from "~/lib/useAction";
 
 import { Button } from "./Button";
 import { Notice } from "./Notice";
+import type { DocxClause } from "./DocxViewer";
 import type { PdfHighlight } from "./PdfViewer";
 import { ViewerSkeleton } from "./ViewerParts";
 
@@ -19,19 +20,22 @@ function fileError(error: unknown) {
     : errorMessage(error);
 }
 
-// The original file of a version, readable in the page and downloadable (F-VIEW-002). Highlights are
-// drawn on PDFs only: DOCX and images have no page coordinates in the browser renderer.
+// The original file of a version, readable in the page and downloadable (F-VIEW-002). Clauses with findings
+// are washed in their severity (FR-VIEW-009): on a PDF by the page regions of the result, on a DOCX by
+// matching paragraphs to the verbatim clause text, since the browser renderer has no page coordinates.
 export function FileViewer({
   contractId,
   versionId,
   fileType,
   highlights,
+  docxClauses,
   onSelectClause,
 }: {
   contractId: string;
   versionId: string;
   fileType: Schemas["FileType"];
   highlights?: PdfHighlight[];
+  docxClauses?: DocxClause[];
   onSelectClause?: (clauseKey: string) => void;
 }) {
   const path = `/contracts/${contractId}/versions/${versionId}/file`;
@@ -87,7 +91,7 @@ export function FileViewer({
       {url !== null && (
         <Suspense fallback={<ViewerSkeleton />}>
           {fileType === "pdf" && <PdfViewer url={url} highlights={highlights} onSelectClause={onSelectClause} />}
-          {fileType === "docx" && <DocxViewer url={url} />}
+          {fileType === "docx" && <DocxViewer url={url} clauses={docxClauses} onSelectClause={onSelectClause} />}
         </Suspense>
       )}
     </section>

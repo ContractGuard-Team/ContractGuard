@@ -60,6 +60,10 @@ export function failureMessage(reason: string | null): string {
     return "Kết quả phân tích không hợp lệ nên đã bị loại bỏ.";
   }
 
+  if (reason.startsWith("The analysis worker did not pick up the job")) {
+    return "Dịch vụ phân tích AI đang tắt hoặc chưa nhận việc. Vui lòng thử lại sau.";
+  }
+
   if (reason.startsWith("No answer from the analysis worker")) {
     return "Hệ thống phân tích không phản hồi trong 20 phút.";
   }

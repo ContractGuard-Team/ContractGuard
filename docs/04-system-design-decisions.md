@@ -423,6 +423,8 @@ Approver đổi ba điểm khi chuẩn bị Phase 7 (C1–C3), thêm C4–C5 ng�
 
 **Quyết định:** Tự host trên EC2 (Approver chốt 2026-11-17, DEC-GEN-029).
 
+**Cập nhật 2026-11-26 (CR-GEN-004, DEC-GEN-034 chờ duyệt):** spec chỉ ràng buộc AI chạy bằng Docker trên EC2 ở `ap-southeast-1`; chạy model trên máy hay gọi qua API, và model nào, do nhóm AI quyết. Ba câu hỏi ở trên hết là việc của SE: chat đi qua worker (C6), API không gọi model, không có bảng embedding phía SE. Chi phí GPU và quota GPU chỉ còn áp dụng nếu nhóm AI chọn máy GPU; hiện EC2 của worker là `m7i-flex.large` và chỉ bật khi web bật (`docs/07` §5).
+
 ### C4 Database dùng chung với nhóm AI: schema `app` (đổi quy tắc "chỉ C# ghi DB", liên quan SD-06, X2)
 
 **Bối cảnh:** project Supabase (do nhóm AI tạo, Tokyo, PostgreSQL 17.11) đã có kho văn bản pháp luật của nhóm AI trước khi backend migrate. Đọc ngày 2026-11-18, nguồn là `data_pipeline/migrations/001_legal_schema.sql`, `postgres_writer.py` và `mcp_server/supabase_reader.py` trong repo `contract-risk-management`:

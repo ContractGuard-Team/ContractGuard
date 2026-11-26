@@ -10,7 +10,7 @@ tier: 2
 output_language: vi
 upstream:
   - "02-PRD.md"
-version: "1.7"
+version: "1.9"
 status: REVIEW
 authors:
   - "Agent"
@@ -200,6 +200,7 @@ tags:
 | 1.6 | 2026-11-23 | Agent | §5, §8, §13, §16 | CR-ANA-001 (DEC-GEN-031): người dùng dừng được phân tích đang chạy và chạy lại ngay. Thêm FR-ANA-018, STATE-ANA-004, TR-ANA-004 (REVIEW); STATE-ANA-001, STATE-CTR-002, TR-CTR-003 và bảng F-ANA-001 có ghi chú `[CHANGE]` | REVIEW |
 | 1.7 | 2026-11-23 | Agent | §6, §8, §9, §14, §16 | CR-AUTH-001 (DEC-GEN-032): trang hồ sơ (tên hiển thị, số điện thoại, ngôn ngữ kết quả) và đổi hoặc đặt mật khẩu khi đã đăng nhập. Thêm FR-AUTH-016, FR-AUTH-017, ERR-AUTH-007, ATTR-DATA-047, ATTR-DATA-048 (REVIEW); FR-VIEW-015 và bảng F-AUTH-001 có ghi chú `[CHANGE]` | REVIEW |
 | 1.8 | 2026-11-25 | Agent | §8, §16 | CR-ANA-002 (DEC-GEN-033): lưu ngữ cảnh không tự chạy phân tích; người dùng bấm chạy, chưa có ngữ cảnh thì báo ERR-CTR-002; dừng phân tích thì trang về như trước lần chạy. FR-ANA-001 sửa và về REVIEW; FR-CTR-005, FR-ANA-018 có ghi chú `[CHANGE]` | REVIEW |
+| 1.9 | 2026-11-26 | Agent | §1.1, §1.2, §2.1, §2.4, §2.5, §2.6, §8, §10, §11, §16, §17, §21 | CR-GEN-004 (DEC-GEN-034): AI chạy bằng Docker trên Amazon EC2, hình thức host và model do nhóm AI quyết; CON-GEN-001, EXT-INTG-001, IF-INTG-001, RISK-SRS-003 có ghi chú `[CHANGE]`. CR-VIEW-001 (DEC-GEN-035): FR-VIEW-015 thu hẹp về ngôn ngữ kết quả, UI-GEN-008 sửa, cả hai về REVIEW; NFR-USAB-001 DEPRECATED | REVIEW |
 
 ### 0.3 Review And Approval
 
@@ -223,15 +224,15 @@ SRS chuyển các feature, user story và yêu cầu chất lượng trong `02-P
 
 Tài liệu được dùng để:
 - làm đầu vào cho thiết kế hệ thống (`docs/02-system-design.md`);
-- làm căn cứ cho việc xây dựng phần nền tảng (C#/.NET, React) và phần AI (Python, model tự host trên Amazon EC2);
+- làm căn cứ cho việc xây dựng phần nền tảng (C#/.NET, React) và phần AI (Python, chạy bằng Docker trên Amazon EC2);
 - làm căn cứ kiểm thử, nghiệm thu và kiểm tra release criteria (PRD §12);
 - làm cơ sở kiểm soát thay đổi sau khi được baseline.
 
 ### 1.2 Scope
 
-ContractGuard nhận file hợp đồng do người dùng upload, phân tích bằng model AI tự host trên Amazon EC2, trình bày kết quả trên giao diện web và cho phép xuất báo cáo. Hệ thống quản lý tài khoản, tổ chức, quyền truy cập theo email, thư viện và phiên bản hợp đồng.
+ContractGuard nhận file hợp đồng do người dùng upload, phân tích bằng dịch vụ AI chạy bằng Docker trên Amazon EC2, trình bày kết quả trên giao diện web và cho phép xuất báo cáo. Hệ thống quản lý tài khoản, tổ chức, quyền truy cập theo email, thư viện và phiên bản hợp đồng.
 
-Ranh giới hệ thống: ứng dụng web và các dịch vụ phía sau thuộc hệ thống. Dịch vụ model AI (tự host bằng Docker trên Amazon EC2, do nhóm AI vận hành), dịch vụ gửi email và nhà cung cấp đăng nhập Google là hệ thống bên ngoài.
+Ranh giới hệ thống: ứng dụng web và các dịch vụ phía sau thuộc hệ thống. Dịch vụ AI (chạy bằng Docker trên Amazon EC2, do nhóm AI vận hành; model chạy trên máy hay qua API do nhóm AI quyết), dịch vụ gửi email và nhà cung cấp đăng nhập Google là hệ thống bên ngoài.
 
 #### 1.2.1 In Scope
 
@@ -392,7 +393,7 @@ Người dùng truy cập hệ thống qua trình duyệt web. Hệ thống dùn
 | Bên trong hệ thống | Bên ngoài hệ thống |
 |---|---|
 | Giao diện web: thư viện, upload, dashboard, document viewer, chatbot, quản lý tổ chức | Trình duyệt của người dùng |
-| Xác thực, tổ chức, phân quyền và chia sẻ | Dịch vụ model AI tự host trên Amazon EC2 |
+| Xác thực, tổ chức, phân quyền và chia sẻ | Dịch vụ AI chạy bằng Docker trên Amazon EC2 |
 | Lưu trữ hợp đồng, phiên bản, ngữ cảnh, metadata, kết quả phân tích, lịch sử chat, nhật ký | Dịch vụ gửi email |
 | Kiểm tra và làm sạch file upload, phát hiện prompt injection | Nhà cung cấp đăng nhập Google (OIDC) |
 | Pipeline phân tích: đọc file, tách và phân loại điều khoản, đánh giá rủi ro, chạy bộ check, chấm điểm | |
@@ -405,7 +406,7 @@ DIA-GEN-001 - Sơ đồ ngữ cảnh:
 
 ```text
                  +-------------------------------+
-  Người dùng --> |          ContractGuard        | --> Model AI tự host (EC2)
+  Người dùng --> |          ContractGuard        | --> Dịch vụ AI (Docker trên EC2)
   (trình duyệt)  |  Web UI, quản lý, phân tích,  | --> Dịch vụ gửi email
                  |  chatbot, báo cáo, lưu trữ    | <-> Đăng nhập Google (OIDC)
                  +-------------------------------+
@@ -444,7 +445,7 @@ Dùng lại các `UCL` của PRD §5.
 | Network Environment | Kết nối Internet; mọi dữ liệu truyền đi được mã hóa (STR-QUAL-006) |
 | Runtime Environment | Service nền tảng viết bằng C#/.NET; phần AI viết bằng Python (CON-PRJ-002). Phiên bản runtime do thiết kế hệ thống quyết định. |
 | Data Platform | Không ràng buộc ở mức yêu cầu; do thiết kế hệ thống quyết định |
-| AI Platform | Model tự host trong Docker trên Amazon EC2, `ap-southeast-1` (CON-GEN-001) |
+| AI Platform | Dịch vụ AI trong Docker trên Amazon EC2, `ap-southeast-1`; hình thức gọi model do nhóm AI quyết (CON-GEN-001) |
 | Other | Giao diện tiếng Việt và tiếng Anh (STR-QUAL-013) |
 
 ### 2.5 Design And Implementation Constraints
@@ -453,16 +454,16 @@ Các ràng buộc dự án CON-PRJ-001..006 (nhân sự, ngôn ngữ C# và Pyth
 
 | Constraint ID | Constraint | Source | Rationale | Scope | Verification Method | Status |
 |---|---|---|---|---|---|---|
-| CON-GEN-001 | Mọi lời gọi model AI (phân tích, embedding và chatbot) phải tới model tự host trong container Docker trên Amazon EC2, region `ap-southeast-1` | DEC-GEN-029 (thay DEC-GEN-016); DEP-GEN-001 | Hướng triển khai AI do Approver chốt. [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock bằng model tự host trên EC2 | PF-GEN-003, PF-GEN-004, PF-GEN-006 | Inspection | REVIEW |
+| CON-GEN-001 | Mọi phần AI (phân tích, embedding và chatbot) phải chạy trong container Docker trên Amazon EC2, region `ap-southeast-1`; chạy model trên máy hay gọi qua API, và model nào, do nhóm AI quyết | DEC-GEN-029 (thay DEC-GEN-016); DEP-GEN-001 | Hướng triển khai AI do Approver chốt. [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock bằng model tự host trên EC2. [CHANGE] Changed by CR-GEN-004 (2026-11-26): chỉ ràng buộc nơi chạy, hình thức host do nhóm AI quyết | PF-GEN-003, PF-GEN-004, PF-GEN-006 | Inspection | REVIEW |
 | CON-GEN-002 | Model AI dùng cho từng bước xử lý phải được chọn bằng cấu hình, không gắn cứng trong mã nguồn | DEC-GEN-010; SD §2.4 | Việc chọn model được hoãn và quyết định bằng eval; đổi model không được đòi hỏi sửa mã nguồn | PF-GEN-003, PF-GEN-004, PF-GEN-006 | Inspection | APPROVED |
 | CON-GEN-003 | Trọng số và công thức chấm điểm phải được khai báo trong file cấu hình có version, không gắn cứng trong mã nguồn | PS §7.6 | Công thức sẽ được hiệu chỉnh bằng eval | F-RISK-003 | Inspection | APPROVED |
 | CON-GEN-004 | Nội dung bộ rule rủi ro, bộ check và cơ sở tri thức phải được quản lý tách khỏi mã nguồn và có version | PS §4 (nguyên tắc 4), §7.7; `Idea/Phạm vi công việc.md` (P4: rule do IA viết nội dung, SE định nghĩa định dạng và chạy) | Mỗi kết quả phải truy vết được tới phiên bản rule đã tạo ra nó; thành viên IA cập nhật nội dung rule mà không cần sửa mã nguồn | F-RISK-001, F-RISK-002 | Inspection | APPROVED |
 
 ### 2.6 Assumptions And Dependencies
 
-Không có giả định nào do Agent tự ghi (Assumption Policy `ask`, DEC-GEN-003). Các yêu cầu liên quan tới AI được viết theo hướng AI hoạt động ổn định và chạy trên model tự host trên Amazon EC2, theo quyết định của Approver (DEC-GEN-029, thay DEC-GEN-016 theo CR-GEN-003).
+Không có giả định nào do Agent tự ghi (Assumption Policy `ask`, DEC-GEN-003). Các yêu cầu liên quan tới AI được viết theo hướng AI hoạt động ổn định và chạy bằng Docker trên Amazon EC2, theo quyết định của Approver (DEC-GEN-029, thay DEC-GEN-016 theo CR-GEN-003; DEC-GEN-034 theo CR-GEN-004).
 
-Các phụ thuộc DEP-GEN-001..006 được định nghĩa tại PRD §11: model AI tự host trên EC2, OCR (DEP-GEN-002, DEPRECATED theo CR-GEN-001), bộ eval 20 hợp đồng, bộ căn cứ pháp lý đã xác minh, dịch vụ gửi email, hợp đồng demo mẫu. Bảng dưới là phụ thuộc bổ sung ở mức SRS.
+Các phụ thuộc DEP-GEN-001..006 được định nghĩa tại PRD §11: AI chạy bằng Docker trên EC2, OCR (DEP-GEN-002, DEPRECATED theo CR-GEN-001), bộ eval 20 hợp đồng, bộ căn cứ pháp lý đã xác minh, dịch vụ gửi email, hợp đồng demo mẫu. Bảng dưới là phụ thuộc bổ sung ở mức SRS.
 
 | ID | Type | Statement | Source | Impact If False Or Unavailable | Owner | Status |
 |---|---|---|---|---|---|---|
@@ -525,7 +526,7 @@ Ghi chú:
 
 | External System ID | System | Owner | Integration Purpose | Data Sent | Data Received | Interface | Availability Dependency |
 |---|---|---|---|---|---|---|---|
-| EXT-INTG-001 | Model AI tự host (Docker trên Amazon EC2) | Nhóm AI của dự án | Model AI cho phân tích hợp đồng, embedding và chatbot (CON-GEN-001). [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock | Nội dung điều khoản, ngữ cảnh hợp đồng, câu hỏi chat | Kết quả phân loại, đánh giá rủi ro, câu trả lời chat | §10.2 | Không có thì không phân tích và không chat được |
+| EXT-INTG-001 | Dịch vụ AI (Docker trên Amazon EC2) | Nhóm AI của dự án | Model AI cho phân tích hợp đồng, embedding và chatbot (CON-GEN-001). [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock. [CHANGE] Changed by CR-GEN-004 (2026-11-26): không còn ghi "tự host" | Nội dung điều khoản, ngữ cảnh hợp đồng, câu hỏi chat | Kết quả phân loại, đánh giá rủi ro, câu trả lời chat | §10.2 | Không có thì không phân tích và không chat được |
 | EXT-INTG-002 | Dịch vụ OCR (DEPRECATED, CR-GEN-001) | Chọn ở thiết kế hệ thống; gợi ý Amazon Textract (OQ-GEN-013) | Nhận dạng văn bản trên PDF scan và ảnh | Ảnh trang hợp đồng | Văn bản kèm vị trí trên trang | §10.2 | [DEPRECATED] Bỏ theo CR-GEN-001 (DEC-PRD-023): hệ thống không đọc bản scan và ảnh. Giữ lại để lưu vết |
 | EXT-INTG-003 | Dịch vụ gửi email | Chọn ở thiết kế hệ thống; gợi ý Amazon SES (OQ-GEN-013) | Gửi email xác thực, đặt lại mật khẩu, lời mời tham gia tổ chức | Địa chỉ email, nội dung email | Kết quả gửi | §10.2 | Không có thì không đăng ký và mời thành viên được (DEP-GEN-005) |
 | EXT-INTG-004 | Google (OIDC) | Google | Đăng nhập bằng tài khoản Google (F-AUTH-002) | Yêu cầu xác thực | Danh tính người dùng (email) | §10.2 | Không có thì chỉ đăng nhập được bằng email và mật khẩu (DEP-GEN-007) |
@@ -2381,7 +2382,7 @@ Các yêu cầu chức năng (`FR`) chuyển từ feature, user story (PRD §7, 
 | FR-VIEW-012 | Checklist 20 check | Hệ thống phải hiển thị bảng 20 check của phiên bản kèm trạng thái và liên kết tới điều khoản liên quan nếu có. | PS §6.4 VIEW-04 | Must | Test | APPROVED |
 | FR-VIEW-013 | Đổi trạng thái xử lý finding | Khi Owner hoặc Member hợp đồng chọn trạng thái `Chấp nhận rủi ro`, `Cần đàm phán`, `Không đúng` hoặc `Đã xử lý` cho một finding, hệ thống phải lưu trạng thái đó và hiển thị cho mọi người có quyền xem hợp đồng. | PS §6.4 VIEW-06, §7.5 | Should | Test | APPROVED |
 | FR-VIEW-014 | Ghi chú finding | Hệ thống phải cho phép Owner hoặc Member hợp đồng lưu ghi chú kèm trạng thái xử lý của một finding. | PS §6.4 VIEW-06 | Should | Test | APPROVED |
-| FR-VIEW-015 | Chọn ngôn ngữ giao diện | Hệ thống phải cho phép người dùng chọn ngôn ngữ giao diện tiếng Việt hoặc tiếng Anh. | PS §5; PRD STR-QUAL-013 | Must | Test | APPROVED |
+| FR-VIEW-015 | Chọn ngôn ngữ kết quả | Hệ thống phải cho phép người dùng chọn tiếng Việt hoặc tiếng Anh cho kết quả phân tích và câu trả lời của trợ lý; giao diện dùng tiếng Việt. | PS §5; PRD STR-QUAL-013 | Must | Test | REVIEW |
 | FR-CHAT-001 | Gửi câu hỏi | Hệ thống phải cho phép người có quyền xem hợp đồng gửi câu hỏi dạng văn bản bằng tiếng Việt hoặc tiếng Anh về hợp đồng và phiên bản đang mở. | PS §6.5 CHAT-01; DEC-PRD-012 | Must | Test | APPROVED |
 | FR-CHAT-002 | Nguồn của câu trả lời | Hệ thống phải tạo câu trả lời chỉ từ nội dung hợp đồng và phiên bản đang mở, kết quả phân tích của phiên bản đó và cơ sở tri thức. | PS §6.5 CHAT-02 | Must | Test | APPROVED |
 | FR-CHAT-003 | Trích dẫn trong câu trả lời | Hệ thống phải kèm ít nhất một trích dẫn điều khoản trong mỗi câu trả lời về nội dung hợp đồng. | PS §6.5 CHAT-02 | Must | Test | APPROVED |
@@ -4344,19 +4345,19 @@ Các yêu cầu được sắp theo domain. Mỗi yêu cầu có đúng một ng
 - **Dependencies**: FR-VIEW-013
 - **Notes**: None
 
-#### FR-VIEW-015 Chọn ngôn ngữ giao diện
+#### FR-VIEW-015 Chọn ngôn ngữ kết quả
 
-- **Statement**: Hệ thống phải cho phép người dùng chọn ngôn ngữ giao diện tiếng Việt hoặc tiếng Anh.
+- **Statement**: Hệ thống phải cho phép người dùng chọn tiếng Việt hoặc tiếng Anh cho kết quả phân tích và câu trả lời của trợ lý; giao diện dùng tiếng Việt.
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: REVIEW
 - **Source**: PS §5; PRD STR-QUAL-013
 - **Rationale**: Người dùng làm việc bằng ngôn ngữ của mình.
 - **Parent**: F-VIEW-001, UC-VIEW-001
 - **Verification Method**: Test
 - **Acceptance Criteria**:
-  1. Given giao diện đang tiếng Việt, when chọn tiếng Anh, then mọi nhãn và thông báo của giao diện phải chuyển sang tiếng Anh.
+  1. Given người dùng chọn tiếng Anh ở trang hồ sơ, when bắt đầu một lần phân tích hoặc hỏi trợ lý, then yêu cầu gửi dịch vụ AI phải mang ngôn ngữ `en` và kết quả hiển thị đúng như dịch vụ AI trả về.
 - **Dependencies**: None
-- **Notes**: [CHANGE] CR-AUTH-001 (2026-11-23): người dùng chọn ngôn ngữ ở trang hồ sơ (FR-AUTH-016). Hiện lựa chọn này chỉ đổi ngôn ngữ kết quả phân tích và câu trả lời của trợ lý (FR-RISK-013); giao diện chưa có bản tiếng Anh nên AC1 chưa đạt.
+- **Notes**: [CHANGE] CR-AUTH-001 (2026-11-23): người dùng chọn ngôn ngữ ở trang hồ sơ (FR-AUTH-016). Hiện lựa chọn này chỉ đổi ngôn ngữ kết quả phân tích và câu trả lời của trợ lý (FR-RISK-013); giao diện chưa có bản tiếng Anh nên AC1 chưa đạt. [CHANGE] Changed by CR-VIEW-001 (2026-11-26): thu hẹp về ngôn ngữ kết quả theo DEC-GEN-032; giao diện song ngữ để sau MVP (NFR-USAB-001 DEPRECATED).
 
 **Domain `CHAT`: chatbot theo hợp đồng**
 
@@ -5057,14 +5058,14 @@ Không áp dụng. ContractGuard là hệ thống mới, không có dữ liệu 
 | UI-GEN-005 | Mọi màn hình | Hệ thống phải dùng màu chủ đạo chỉ cho hành động (PD Design Principles 3) | Mọi actor | Mọi feature có giao diện | Inspection | APPROVED |
 | UI-GEN-006 | Mọi màn hình có kết luận rủi ro | Hệ thống phải diễn đạt kết quả theo BR-RISK-012, không dùng từ ngữ hay thiết kế mang tính đe dọa (PD Design Principles 4) | Mọi actor | F-RISK-001, F-VIEW-001, F-CHAT-001 | Inspection | APPROVED |
 | UI-GEN-007 | Mọi màn hình | Hệ thống phải không dùng các mẫu giao diện liệt kê ở PD Anti-references (donut gauge điểm số, hero metric kèm gradient, lưới card giống hệt nhau, gradient tím xanh, glassmorphism, nền kem mặc định, chatbot làm trung tâm, giao diện "legal tech" navy và vàng kim) | Mọi actor | Mọi feature có giao diện | Inspection | APPROVED |
-| UI-GEN-008 | Mọi màn hình | Hệ thống phải có giao diện tiếng Việt và tiếng Anh (FR-VIEW-015, NFR-USAB-001) | Mọi actor | F-VIEW-001 | Test | APPROVED |
+| UI-GEN-008 | Mọi màn hình | Hệ thống phải có giao diện tiếng Việt; kết quả phân tích, trợ lý và báo cáo theo ngôn ngữ người dùng chọn (FR-VIEW-015). [CHANGE] Changed by CR-VIEW-001 (2026-11-26): bỏ giao diện tiếng Anh khỏi MVP | Mọi actor | F-VIEW-001 | Test | REVIEW |
 | UI-GEN-009 | Mọi màn hình | Hệ thống phải dùng được đầy đủ trên laptop màn hình 14–15 inch và xem được trên tablet (NFR-USAB-002) | Mọi actor | Mọi feature có giao diện | Demonstration | APPROVED |
 
 ### 10.2 Software Interface Requirements
 
 | Interface ID | External System | Purpose | Data Sent | Data Received | Protocol/Format | Authentication | Timeout | Retry | Error Handling | Version |
 |---|---|---|---|---|---|---|---|---|---|---|
-| IF-INTG-001 | EXT-INTG-001 (model AI tự host) | Model AI cho phân tích và chatbot (CON-GEN-001) | Nội dung điều khoản ở phần dữ liệu (FR-UPL-011), ngữ cảnh, câu hỏi chat | Kết quả phân loại, đánh giá, câu trả lời | API HTTP của model tự host qua kênh mã hóa (NFR-SEC-002) | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Tự thử lại (FR-ANA-003) | Phân tích thất bại sau khi thử lại (FR-ANA-004); lỗi chatbot theo ERR-CHAT-001 | Model chọn theo cấu hình (CON-GEN-002); chưa chọn model (DEC-GEN-010). [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock bằng endpoint tự host |
+| IF-INTG-001 | EXT-INTG-001 (dịch vụ AI trên EC2) | Model AI cho phân tích và chatbot (CON-GEN-001) | Nội dung điều khoản ở phần dữ liệu (FR-UPL-011), ngữ cảnh, câu hỏi chat | Kết quả phân loại, đánh giá, câu trả lời | Hàng đợi SQS và S3 giữa hệ thống và dịch vụ AI; dịch vụ AI gọi model qua kênh mã hóa (NFR-SEC-002). [CHANGE] Changed by CR-GEN-004 (2026-11-26) | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Tự thử lại (FR-ANA-003) | Phân tích thất bại sau khi thử lại (FR-ANA-004); lỗi chatbot theo ERR-CHAT-001 | Model chọn theo cấu hình (CON-GEN-002); chưa chọn model (DEC-GEN-010). [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock bằng endpoint tự host |
 | IF-INTG-002 | EXT-INTG-002 (Dịch vụ OCR, DEPRECATED theo CR-GEN-001) | Nhận dạng văn bản bản scan và ảnh (FR-ANA-007) | Ảnh trang hợp đồng đã làm sạch | Văn bản kèm vị trí | Do thiết kế hệ thống quyết định (OQ-GEN-013) | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Tự thử lại (FR-ANA-003) | Phân tích thất bại sau khi thử lại (FR-ANA-004) | [DEPRECATED] Bỏ theo CR-GEN-001 (DEC-PRD-023). Giữ lại để lưu vết |
 | IF-INTG-003 | EXT-INTG-003 (Dịch vụ gửi email) | Email xác thực, đặt lại mật khẩu, lời mời (FR-AUTH-003, FR-AUTH-009, FR-ORG-003) | Địa chỉ email, nội dung email, liên kết | Kết quả gửi | Do thiết kế hệ thống quyết định (OQ-GEN-013) | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Do thiết kế hệ thống quyết định | Báo người vừa thao tác rằng email chưa gửi được và cho gửi lại (ERR-INTG-001) | Chọn ở thiết kế hệ thống; gợi ý Amazon SES (OQ-GEN-013) |
 | IF-INTG-004 | EXT-INTG-004 (Google) | Đăng nhập bằng tài khoản Google (FR-AUTH-011) | Yêu cầu xác thực | Danh tính người dùng (email) | OpenID Connect | OpenID Connect | Do thiết kế hệ thống quyết định | Không tự thử lại; người dùng đăng nhập lại | Đăng nhập thất bại (FR-AUTH-007) | OpenID Connect |
@@ -5110,7 +5111,7 @@ Các yêu cầu phi chức năng (`NFR`) tinh chỉnh STR-QUAL-001..015 của PR
 | NFR-SEC-008 | Security | Security | Hệ thống phải không gửi dữ liệu khách hàng tới bất kỳ quá trình huấn luyện model nào. | PS §8 (An toàn AI); PRD STR-QUAL-009 | 0 luồng dữ liệu tới huấn luyện model | Inspection | Must | APPROVED |
 | NFR-PRIV-001 | Privacy | Security | Hệ thống phải không còn lưu dữ liệu nào của hợp đồng sau 24 giờ kể từ khi hợp đồng bị xóa vĩnh viễn (Owner xóa từ thùng rác, hoặc hết 30 ngày ở thùng rác). | PS §8 (Riêng tư); PRD STR-QUAL-010; CR-CTR-001 | 0 bản ghi, file, vector hay tin nhắn còn lại | Test | Must | REVIEW |
 | NFR-PRIV-002 | Privacy | Security | Hệ thống phải chỉ xử lý dữ liệu hợp đồng cho các chức năng được đặc tả trong SRS này. | PS §8 (Riêng tư); PRD STR-QUAL-010 | 0 luồng xử lý dữ liệu hợp đồng ngoài các chức năng đã đặc tả | Inspection | Must | APPROVED |
-| NFR-USAB-001 | Usability | Interaction Capability | Hệ thống phải cung cấp mọi nhãn và thông báo giao diện bằng cả tiếng Việt và tiếng Anh. | PS §5, §8; PRD STR-QUAL-013 | 100% chuỗi giao diện có bản tiếng Việt và tiếng Anh | Test | Must | APPROVED |
+| NFR-USAB-001 | Usability | Interaction Capability | Hệ thống phải cung cấp mọi nhãn và thông báo giao diện bằng cả tiếng Việt và tiếng Anh. [CHANGE] Changed by CR-VIEW-001 (2026-11-26): DEPRECATED, thay bằng FR-VIEW-015 đã sửa; giao diện song ngữ để sau MVP | PS §5, §8; PRD STR-QUAL-013 | 100% chuỗi giao diện có bản tiếng Việt và tiếng Anh | Test | Must | DEPRECATED |
 | NFR-USAB-002 | Usability | Interaction Capability | Hệ thống phải cho dùng đầy đủ chức năng trên laptop màn hình 14–15 inch và cho xem dashboard, document viewer, chatbot trên tablet. | PS §8; PD Users; PRD STR-QUAL-013 | Kịch bản demo chạy trọn trên laptop 14–15 inch; xem được kết quả trên tablet | Demonstration | Must | APPROVED |
 | NFR-ACC-001 | Accessibility | Interaction Capability | Hệ thống phải đáp ứng WCAG 2.2 mức AA. | PD Accessibility & Inclusion; PRD STR-QUAL-014 | 0 lỗi mức A và AA trong đánh giá khả năng tiếp cận | Inspection | Must | APPROVED |
 | NFR-ACC-002 | Accessibility | Interaction Capability | Hệ thống phải hiển thị chữ, kể cả placeholder, với độ tương phản ≥ 4.5:1 so với nền. | PD Accessibility & Inclusion | Tương phản ≥ 4.5:1 | Test | Must | APPROVED |
@@ -5406,7 +5407,8 @@ Các yêu cầu phi chức năng (`NFR`) tinh chỉnh STR-QUAL-001..015 của PR
 - **Statement**: Hệ thống phải cung cấp mọi nhãn và thông báo giao diện bằng cả tiếng Việt và tiếng Anh.
 - **Target/Measure**: 100% chuỗi giao diện có bản tiếng Việt và tiếng Anh
 - **Priority**: Must
-- **Status**: APPROVED
+- **Status**: DEPRECATED
+- **Change**: [CHANGE] Changed by CR-VIEW-001 (2026-11-26): thay bằng FR-VIEW-015 đã sửa (ngôn ngữ kết quả); giao diện song ngữ để sau MVP
 - **Source**: PS §5, §8; PRD STR-QUAL-013
 - **Rationale**: Người dùng làm việc bằng ngôn ngữ của mình.
 - **Parent**: STR-QUAL-013
@@ -6072,7 +6074,7 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | FR-VIEW-012 | Checklist 20 check | PS §6.4 VIEW-04 | §8.2 | BG-GEN-001, STR-RISK-005, US-RISK-006 | F-RISK-002, US-RISK-006, UC-VIEW-001 | F-RISK-002, UC-VIEW-001 | Test | APPROVED |
 | FR-VIEW-013 | Đổi trạng thái xử lý finding | PS §6.4 VIEW-06, §7.5 | §8.2 | BG-GEN-002, STR-RISK-004, US-VIEW-004 | F-VIEW-003, US-VIEW-004, UC-VIEW-002 | F-VIEW-003, UC-VIEW-002 | Test | APPROVED |
 | FR-VIEW-014 | Ghi chú finding | PS §6.4 VIEW-06 | §8.2 | BG-GEN-002, STR-RISK-004, US-VIEW-004 | F-VIEW-003, US-VIEW-004, UC-VIEW-002 | F-VIEW-003, UC-VIEW-002 | Test | APPROVED |
-| FR-VIEW-015 | Chọn ngôn ngữ giao diện | PS §5; PRD STR-QUAL-013 | §8.2 | BG-GEN-002, BG-GEN-003, STR-RISK-002, STR-RISK-004 | F-VIEW-001, UC-VIEW-001 | F-VIEW-001, UC-VIEW-001 | Test | APPROVED |
+| FR-VIEW-015 | Chọn ngôn ngữ kết quả | PS §5; PRD STR-QUAL-013 | §8.2 | BG-GEN-002, BG-GEN-003, STR-RISK-002, STR-RISK-004 | F-VIEW-001, UC-VIEW-001 | F-VIEW-001, UC-VIEW-001 | Test | REVIEW |
 | FR-CHAT-001 | Gửi câu hỏi | PS §6.5 CHAT-01; DEC-PRD-012 | §8.2 | BG-GEN-002, BG-GEN-003, STR-CHAT-001, US-CHAT-001 | F-CHAT-001, US-CHAT-001, UC-CHAT-001 | F-CHAT-001, UC-CHAT-001 | Test | APPROVED |
 | FR-CHAT-002 | Nguồn của câu trả lời | PS §6.5 CHAT-02 | §8.2 | BG-GEN-002, BG-GEN-003, STR-CHAT-001, US-CHAT-003 | F-CHAT-001, US-CHAT-003, UC-CHAT-001 | F-CHAT-001, UC-CHAT-001 | Test | APPROVED |
 | FR-CHAT-003 | Trích dẫn trong câu trả lời | PS §6.5 CHAT-02 | §8.2 | BG-GEN-002, BG-GEN-003, STR-CHAT-001, US-CHAT-001 | F-CHAT-001, US-CHAT-001, UC-CHAT-001 | F-CHAT-001, UC-CHAT-001 | Test | APPROVED |
@@ -6108,7 +6110,7 @@ Ma trận được tạo từ các trường Source, Parent, Verification Method
 | NFR-SEC-008 | Không dùng dữ liệu khách hàng để huấn luyện | PS §8 (An toàn AI); PRD STR-QUAL-009 | §11.2 | STR-QUAL-009 | STR-QUAL-009 | - | Inspection | APPROVED |
 | NFR-PRIV-001 | Xóa đầy đủ dữ liệu hợp đồng | PS §8 (Riêng tư); PRD STR-QUAL-010 | §11.2 | STR-QUAL-010 | STR-QUAL-010 | - | Test | APPROVED |
 | NFR-PRIV-002 | Giới hạn mục đích xử lý | PS §8 (Riêng tư); PRD STR-QUAL-010 | §11.2 | STR-QUAL-010 | STR-QUAL-010 | - | Inspection | APPROVED |
-| NFR-USAB-001 | Giao diện song ngữ | PS §5, §8; PRD STR-QUAL-013 | §11.2 | STR-QUAL-013 | STR-QUAL-013 | - | Test | APPROVED |
+| NFR-USAB-001 | Giao diện song ngữ | PS §5, §8; PRD STR-QUAL-013 | §11.2 | STR-QUAL-013 | STR-QUAL-013 | - | Test | DEPRECATED |
 | NFR-USAB-002 | Thiết bị sử dụng | PS §8; PD Users; PRD STR-QUAL-013 | §11.2 | STR-QUAL-013 | STR-QUAL-013 | - | Demonstration | APPROVED |
 | NFR-ACC-001 | Chuẩn WCAG 2.2 AA | PD Accessibility & Inclusion; PRD STR-QUAL-014 | §11.2 | STR-QUAL-014 | STR-QUAL-014 | - | Inspection | APPROVED |
 | NFR-ACC-002 | Độ tương phản chữ | PD Accessibility & Inclusion | §11.2 | STR-QUAL-014 | STR-QUAL-014 | - | Test | APPROVED |
@@ -6292,7 +6294,7 @@ Priority: `Must` nghĩa là OQ chặn ít nhất một yêu cầu Must.
 ### 17.2 Decisions
 
 SRS không có quyết định riêng. Quyết định cho từng OQ của SRS nằm ở cột Resolution §17.1. Các quyết định áp dụng:
-- Quyết định cấp dự án DEC-GEN-001..023 ở `00-Project-State.md` §6, trong đó có DEC-GEN-010 (hoãn chọn model), DEC-GEN-016 (AI chạy qua Bedrock, đã được DEC-GEN-029 thay: model tự host trên EC2), DEC-GEN-018 (cắt gọt SRS), DEC-GEN-020 (mã NFR), DEC-GEN-022 (mục tiêu hiệu năng, thay DEC-GEN-008).
+- Quyết định cấp dự án DEC-GEN-001..023 ở `00-Project-State.md` §6, trong đó có DEC-GEN-010 (hoãn chọn model), DEC-GEN-016 (AI chạy qua Bedrock, đã được DEC-GEN-029 thay: AI chạy bằng Docker trên EC2, làm rõ ở DEC-GEN-034), DEC-GEN-018 (cắt gọt SRS), DEC-GEN-020 (mã NFR), DEC-GEN-022 (mục tiêu hiệu năng, thay DEC-GEN-008).
 - Quyết định sản phẩm DEC-PRD-001..019 ở PRD §14.2, trong đó có DEC-PRD-013 và DEC-PRD-017 (quyền của Owner tổ chức), DEC-PRD-014 (giới hạn upload), DEC-PRD-016 (chống prompt injection), DEC-PRD-018 (bỏ chia sẻ cho toàn tổ chức), DEC-PRD-019 (nghĩa vụ dữ liệu cá nhân ngoài phạm vi bản demo).
 
 ### 17.3 Requirement-Related Risks
@@ -6303,7 +6305,7 @@ Các rủi ro sản phẩm RISK-GEN-001..008 ở PRD §14.3 vẫn áp dụng. B�
 |---|---|---|---|---|---|---|---|---|---|
 | RISK-SRS-001 | Nhiều OQ chặn yêu cầu Must về tài khoản, phân quyền và trạng thái | Các chi tiết PRD để "làm rõ ở SRS" chưa có quyết định | Phải sửa lại khi cài đặt; ma trận quyền §12.3 chưa đủ để kiểm thử | Low | High | §12.3, §13.2, domain `AUTH`, `ORG`, `SHARE`, `CTR` | Đã trả lời mọi OQ ngày 2026-10-26 (phiếu `OQ-Answers.md`) | Nhóm dự án | APPROVED |
 | RISK-SRS-002 | Không đạt NFR-PERF-001 khi worker phải khởi động từ trạng thái tắt | Thời gian khởi động worker có thể thêm 30–120 giây (SD §2.6) | Job đầu tiên sau thời gian nghỉ vượt mục tiêu | Medium | Medium | NFR-PERF-001, NFR-PERF-002 | NFR chỉ đo khi worker đã chạy sẵn; giữ worker chạy sẵn trong buổi demo | Nhóm dự án | APPROVED |
-| RISK-SRS-003 | Loại instance GPU cần dùng không có hoặc hết capacity ở region Singapore | Mỗi region có danh sách và capacity instance GPU khác nhau | Phải đổi loại máy, chạy model nhỏ hơn, hoặc chậm hơn NFR-PERF-001 | Medium | Medium | CON-GEN-001, IF-INTG-001 | Kiểm tra loại máy và xin quota GPU ngay khi chọn model. [CHANGE] Changed by CR-GEN-003 (2026-11-17): rủi ro của Bedrock đổi sang rủi ro của EC2 GPU | Nhóm dự án | REVIEW |
+| RISK-SRS-003 | Loại instance GPU cần dùng không có hoặc hết capacity ở region Singapore (chỉ khi nhóm AI chọn chạy model trên máy GPU) | Mỗi region có danh sách và capacity instance GPU khác nhau | Phải đổi loại máy, chạy model nhỏ hơn, hoặc chậm hơn NFR-PERF-001 | Medium | Medium | CON-GEN-001, IF-INTG-001 | Kiểm tra loại máy và xin quota GPU ngay khi chọn model. [CHANGE] Changed by CR-GEN-003 (2026-11-17): rủi ro của Bedrock đổi sang rủi ro của EC2 GPU. [CHANGE] Changed by CR-GEN-004 (2026-11-26): chỉ áp dụng khi dùng GPU | Nhóm dự án | REVIEW |
 
 ## 18. Appendices
 

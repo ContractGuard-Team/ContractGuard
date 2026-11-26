@@ -34,6 +34,13 @@ cd infra/cdk
 ```
 *(Nếu dùng Git Bash thì thay bằng `./manage-aws-staging.sh stop|start|status`)*
 
+Script bật/tắt luôn **2 EC2 của nhóm AI** (tài khoản `333596350642`, tìm theo tag `Name`): `start` bật `ContractRisk-Proxy` rồi `ContractRisk-AI-Worker`, chờ cả hai chạy, sau đó bật API; `stop` tắt API rồi tắt hai máy; `status` in thêm trạng thái hai máy. Máy AI chỉ chạy khi web chạy để tiết kiệm chi phí (Approver 2026-11-26).
+
+- Cần profile `se-cli` (đặt biến `AI_PROFILE` nếu dùng tên khác). Worker cần thêm 1–2 phút sau khi EC2 chạy để các container lên.
+- Bỏ qua máy AI: `-NoAi` (PowerShell) hoặc `--no-ai` (Git Bash), ví dụ khi nhóm AI đang tự chạy máy để thử.
+- Web bật mà worker tắt: lần phân tích báo lỗi "Dịch vụ phân tích AI đang tắt hoặc chưa nhận việc" sau 10 phút, câu hỏi chat báo lỗi sau 3 phút.
+- Dùng Railway thay AWS: bật máy AI bằng tay, ví dụ `aws ec2 start-instances --profile se-cli --region ap-southeast-1 --instance-ids <proxy> <worker>` (bật proxy trước).
+
 ---
 
 ## Cách 1: Tắt / Bật Nhanh Bằng Lệnh Trực Tiếp (Scale ECS Fargate về 0 task)

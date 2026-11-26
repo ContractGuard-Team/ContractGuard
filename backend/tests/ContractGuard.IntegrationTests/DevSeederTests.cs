@@ -27,7 +27,14 @@ public sealed class DevSeederTests(ApiFactory factory)
 
         var runs = await db.AnalysisRuns.Where(r => contracts.Contains(r.ContractId)).ToListAsync(Ct);
         Assert.All(runs, r => Assert.Equal(RunStatus.Completed, r.RunStatus));
-        Assert.Equal(8, await db.Findings.CountAsync(f => runs.Select(r => r.AnalysisRunId).Contains(f.AnalysisRunId), Ct));
+        Assert.Equal(3, runs.Count);
+        Assert.Equal(12, await db.Findings.CountAsync(f => runs.Select(r => r.AnalysisRunId).Contains(f.AnalysisRunId), Ct));
+
+        // F-CMP-001: the SaaS contract has V1 and V2, and V2 scores worse.
+        var saas = await db.Contracts.Include(c => c.Versions).SingleAsync(c => c.OwnerUserAccountId == owner.Id && c.ContractName == "Hợp đồng nhà cung cấp SaaS", Ct);
+        Assert.Equal(2, saas.Versions.Count);
+        var scores = runs.Where(r => r.ContractId == saas.ContractId).OrderBy(r => r.StartedAt).Select(r => r.OverallScore).ToList();
+        Assert.Equal([58, 72], scores);
         Assert.Single(await db.ContractShares.Where(s => contracts.Contains(s.ContractId)).ToListAsync(Ct));
         Assert.True(await db.Organizations.AnyAsync(o => o.OrganizationName == "Công ty Demo", Ct));
     }

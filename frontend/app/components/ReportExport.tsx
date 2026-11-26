@@ -64,6 +64,8 @@ export function ReportExport({ jobId }: { jobId: string }) {
               <option value="vi">Tiếng Việt</option>
               <option value="en">English</option>
             </select>
+            {/* docs/06 §3.3: only the report's own wording is translated. */}
+            <span className="text-caption font-normal text-ink-secondary">Nội dung finding giữ ngôn ngữ lúc phân tích.</span>
           </label>
           <label className="flex flex-col gap-1 text-label">
             Phạm vi rủi ro

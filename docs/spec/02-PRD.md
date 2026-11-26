@@ -11,7 +11,7 @@ prd_scope: Whole Product
 output_language: vi
 role_in_layer: Primary
 upstream: []
-version: "1.4"
+version: "1.6"
 status: REVIEW
 authors:
   - "Agent"
@@ -76,6 +76,7 @@ PRD này theo thực tiễn quản lý sản phẩm (SVPG, Aha!, Atlassian), n�
 | 1.2 | 2026-11-17 | Agent | §6, §7, §8, §10, §11, §14 | CR-GEN-001: bỏ đọc bản scan và OCR, chỉ nhận PDF có lớp chữ và DOCX. US-ANA-003, STR-QUAL-002, DEP-GEN-002 DEPRECATED; F-CTR-001, F-ANA-002, US-CTR-001 sửa và về REVIEW; thêm DEC-PRD-023 | REVIEW |
 | 1.3 | 2026-11-17 | Agent | §11, §12 | CR-GEN-003 (DEC-GEN-029): model AI tự host bằng Docker trên Amazon EC2 thay Amazon Bedrock. CON-PRJ-003, DEP-GEN-001, RISK-GEN-001, RISK-GEN-002 sửa và về REVIEW | REVIEW |
 | 1.5 | 2026-11-25 | Agent | §7 | CR-ANA-002 (DEC-GEN-033): lưu ngữ cảnh không còn tự chạy phân tích, người dùng bấm chạy. US-ANA-001 sửa và về REVIEW | REVIEW |
+| 1.6 | 2026-11-26 | Agent | §10, §11, §12 | CR-GEN-004 (DEC-GEN-034): AI chạy bằng Docker trên EC2, hình thức host và model do nhóm AI quyết; CON-PRJ-003, DEP-GEN-001, RISK-GEN-001, RISK-GEN-002 sửa và về REVIEW. CR-VIEW-001 (DEC-GEN-035): giao diện tiếng Việt trong MVP; STR-QUAL-013 ghi chú và về REVIEW | REVIEW |
 
 ### 0.1 Tài liệu nguồn
 
@@ -1467,7 +1468,7 @@ Các yêu cầu dưới đây được SRS §11 tinh chỉnh thành `NFR` đo đ
 | STR-QUAL-010 | Security | Riêng tư: xóa hợp đồng là xóa toàn bộ dữ liệu liên quan; dữ liệu chỉ được xử lý trong phạm vi cung cấp dịch vụ | Mọi dữ liệu liên quan tới hợp đồng bị xóa | UCL-GEN-004 | PS §8 | APPROVED |
 | STR-QUAL-011 | Maintainability | Truy vết: mỗi kết quả lưu phiên bản rule, prompt, model và schema; mỗi lần phân tích có một mã tương quan (correlation ID) xuyên suốt | Mọi finding và mọi lần phân tích | Nhóm phát triển | PS §4 (nguyên tắc 4), §8 | APPROVED |
 | STR-QUAL-012 | Reliability | Phân tích lỗi thì tự thử lại; lỗi hẳn thì báo lý do và không lưu kết quả dở dang. MVP không yêu cầu high availability, chấp nhận downtime khi bảo trì. | Không có kết quả dở dang được hiển thị | UCL-GEN-002 | PS §8 | APPROVED |
-| STR-QUAL-013 | Interaction Capability | Giao diện và kết quả bằng tiếng Việt và tiếng Anh; trích dẫn điều khoản giữ nguyên văn gốc. Ưu tiên desktop, xem được trên tablet. | Người dùng chọn được ngôn ngữ giao diện | UCL-GEN-001, UCL-GEN-002, UCL-GEN-003, UCL-GEN-004 | PS §5, §8; Idea/Project.md (đa ngôn ngữ) | APPROVED |
+| STR-QUAL-013 | Interaction Capability | Giao diện và kết quả bằng tiếng Việt và tiếng Anh; trích dẫn điều khoản giữ nguyên văn gốc. Ưu tiên desktop, xem được trên tablet. | Người dùng chọn được ngôn ngữ giao diện | UCL-GEN-001, UCL-GEN-002, UCL-GEN-003, UCL-GEN-004 | PS §5, §8; Idea/Project.md (đa ngôn ngữ). [CHANGE] Changed by CR-VIEW-001 (2026-11-26): trong MVP giao diện tiếng Việt; ngôn ngữ chọn được áp dụng cho kết quả phân tích, trợ lý và báo cáo | REVIEW |
 | STR-QUAL-014 | Interaction Capability | Khả năng tiếp cận: độ tương phản chữ ≥ 4.5:1, focus nhìn thấy được, dùng được hoàn toàn bằng bàn phím, severity không phụ thuộc màu, có biến thể giảm chuyển động, font hỗ trợ đầy đủ dấu tiếng Việt | WCAG 2.2 AA | UCL-GEN-001, UCL-GEN-002, UCL-GEN-003, UCL-GEN-004 | PD Accessibility & Inclusion | APPROVED |
 | STR-QUAL-015 | Performance Efficiency | Chi phí LLM trên mỗi hợp đồng được đo ngay từ đầu; ngân sách được đặt sau khi có baseline | Đo chi phí của 100% lần phân tích; MVP không đặt ngân sách cứng, ngưỡng được đặt sau khi chọn model (OQ-GEN-007) | Nhóm phát triển | PS §8; SD §2.4 | APPROVED |
 
@@ -1500,11 +1501,11 @@ Không có giả định nào do Agent tự ghi, vì Assumption Policy là `ask`
 |---|---|---|---|---|---|
 | CON-PRJ-001 | Constraint | Nhóm gồm 1 SE (fullstack), 3 thành viên AI, 1 thành viên IA | SD §1 | Phạm vi phải cắt nếu thiếu người | APPROVED |
 | CON-PRJ-002 | Constraint | Service nền tảng viết bằng C#/.NET; phần AI viết bằng Python | DI 2026-10-21 | Thay đổi ngôn ngữ ảnh hưởng thiết kế và phân chia ranh giới hệ thống | APPROVED |
-| CON-PRJ-003 | Constraint | Hạ tầng triển khai trên AWS (chương trình FCAJ), region Singapore (`ap-southeast-1`) | DI 2026-10-21; DI 2026-10-24, OQ-GEN-008 | Loại instance GPU để chạy model AI tự host phải có ở region này. [CHANGE] Changed by CR-GEN-003 (2026-11-17): bỏ cross-region inference của Bedrock | REVIEW |
+| CON-PRJ-003 | Constraint | Hạ tầng triển khai trên AWS (chương trình FCAJ), region Singapore (`ap-southeast-1`) | DI 2026-10-21; DI 2026-10-24, OQ-GEN-008 | Loại máy EC2 chạy AI phải có ở region này. [CHANGE] Changed by CR-GEN-004 (2026-11-26): bỏ ràng buộc máy GPU. [CHANGE] Changed by CR-GEN-003 (2026-11-17): bỏ cross-region inference của Bedrock | REVIEW |
 | CON-PRJ-004 | Constraint | Ngân sách hạ tầng là credit AWS của chương trình FCAJ, khoảng $200 cho mỗi thành viên | DI 2026-10-21 | Vượt credit thì phải trả tiền thật hoặc cắt môi trường | APPROVED |
 | CON-PRJ-005 | Constraint | Thời gian tới hạn demo hoặc nộp MVP: hơn 4 tháng | DI 2026-10-21 | - | APPROVED |
 | CON-PRJ-006 | Constraint | Ứng dụng web, không cần cài đặt; ưu tiên desktop | PS §2.2, §8 | - | APPROVED |
-| DEP-GEN-001 | Dependency | Model AI tự host bằng Docker trên Amazon EC2, do nhóm AI vận hành; model cụ thể chưa chọn (DEC-GEN-010) | SD §2.4; DI 2026-10-21; DEC-GEN-029 | Không có model thì không có phân tích và chatbot. [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock | REVIEW |
+| DEP-GEN-001 | Dependency | AI chạy bằng Docker trên Amazon EC2, do nhóm AI vận hành; chạy model trên máy hay gọi qua API, và model nào, do nhóm AI chọn (DEC-GEN-010, DEC-GEN-034) | SD §2.4; DI 2026-10-21; DEC-GEN-029 | Không có model thì không có phân tích và chatbot. [CHANGE] Changed by CR-GEN-003 (2026-11-17): thay Amazon Bedrock. [CHANGE] Changed by CR-GEN-004 (2026-11-26): hình thức host do nhóm AI quyết | REVIEW |
 | DEP-GEN-002 | Dependency | Dịch vụ nhận dạng ký tự (OCR) cho bản scan | PS §6.3 ANA-03 | Không đọc được bản scan và ảnh. [DEPRECATED] Bỏ theo DEC-PRD-023 (CR-GEN-001): không còn OCR | DEPRECATED |
 | DEP-GEN-003 | Dependency | Bộ eval 20 hợp đồng có nhãn do nhóm soạn và gán nhãn | DI 2026-10-21; PS §11 (P0) | Không đo được SC-GEN-001, SC-GEN-002 | APPROVED |
 | DEP-GEN-004 | Dependency | Bộ căn cứ pháp lý chọn lọc (luật Việt Nam và chuẩn quốc tế) đã được nhóm xác minh | PS §7.7 | Căn cứ tham khảo sai hoặc hết hiệu lực (OQ-RISK-001) | APPROVED |
@@ -1590,8 +1591,8 @@ Các quyết định cấp dự án (profile, bộ tài liệu, độ trễ, ưu
 
 | Risk ID | Risk | Cause | Impact | Probability | Severity | Mitigation | Owner | Status |
 |---|---|---|---|---|---|---|---|---|
-| RISK-GEN-001 | Credit FCAJ không đủ cho máy EC2 GPU chạy model | EC2 tính tiền theo giờ máy bật, kể cả khi không có job; máy GPU đắt hơn nhiều so với máy thường | Hết credit trước buổi demo, phải trả tiền thật | Medium | Medium | Chỉ bật máy GPU trong giờ test và demo; chọn instance nhỏ nhất đạt eval; AWS Budgets cảnh báo 50%, 80%. [CHANGE] Changed by CR-GEN-003 (2026-11-17): rủi ro của Bedrock đổi sang EC2 GPU | Nhóm dự án | REVIEW |
-| RISK-GEN-002 | Quota vCPU cho instance GPU của account mới thấp hoặc bằng 0 | AWS giới hạn số vCPU của họ instance G và VT cho account mới | Không bật được máy GPU, chặn Phase 7 và buổi demo | High | High | Xin tăng quota (Service Quotas) ngay khi nhóm AI chọn loại máy; giới hạn số phân tích đồng thời. [CHANGE] Changed by CR-GEN-003 (2026-11-17): quota Bedrock đổi sang quota GPU | Nhóm dự án | REVIEW |
+| RISK-GEN-001 | Credit FCAJ không đủ cho EC2 chạy AI và phí gọi model | EC2 tính tiền theo giờ máy bật, kể cả khi không có job; nếu nhóm AI gọi model qua API thì có thêm phí theo lượt | Hết credit trước buổi demo, phải trả tiền thật | Medium | Medium | Chỉ bật EC2 của nhóm AI khi web bật (script `infra/cdk/manage-aws-staging.*`); chọn cách chạy model rẻ nhất đạt eval; AWS Budgets cảnh báo 50%, 80%. [CHANGE] Changed by CR-GEN-003 (2026-11-17): rủi ro của Bedrock đổi sang EC2 GPU. [CHANGE] Changed by CR-GEN-004 (2026-11-26): không còn giả định GPU | Nhóm dự án | REVIEW |
+| RISK-GEN-002 | Quota vCPU cho instance GPU của account mới thấp hoặc bằng 0 (chỉ khi nhóm AI chọn máy GPU) | AWS giới hạn số vCPU của họ instance G và VT cho account mới | Không bật được máy GPU, chặn Phase 7 và buổi demo | High | High | Xin tăng quota (Service Quotas) ngay khi nhóm AI chọn loại máy; giới hạn số phân tích đồng thời. [CHANGE] Changed by CR-GEN-003 (2026-11-17): quota Bedrock đổi sang quota GPU. [CHANGE] Changed by CR-GEN-004 (2026-11-26): chỉ áp dụng khi dùng GPU | Nhóm dự án | REVIEW |
 | RISK-GEN-003 | Chi phí hạ tầng cố định vượt credit | Các thành phần luôn bật (load balancer, database, IPv4) tính tiền theo giờ | Hết credit trước buổi demo | Low | Low | Dev local phần lớn thời gian; chỉ dựng môi trường AWS ở giai đoạn cuối (SD §2.7) | Nhóm dự án | APPROVED |
 | RISK-GEN-004 | Chất lượng AI không đạt SC-GEN-001, SC-GEN-002 | Model hoặc prompt chưa đủ tốt với hợp đồng tiếng Việt | Không đạt RC-GEN-002; người dùng nhận kết quả không chính xác | High | High | Chạy eval hằng tuần; chọn model dựa trên eval (DEC-GEN-010) | Nhóm dự án | APPROVED |
 | RISK-GEN-005 | Số token của hợp đồng tiếng Việt cao hơn ước lượng | Tiếng Việt có dấu tốn nhiều token hơn tiếng Anh | Chi phí và độ trễ cao hơn dự kiến | Low | Low | Đếm token trên hợp đồng mẫu sớm (SD §2.9) | Nhóm dự án | APPROVED |

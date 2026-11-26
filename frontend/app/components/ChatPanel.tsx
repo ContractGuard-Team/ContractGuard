@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type K
 
 import { apiFetch, apiStream, type Schemas } from "~/lib/api";
 import { errorMessage } from "~/lib/errors";
+import { severityOrder } from "~/lib/labels";
 
 import { Button } from "./Button";
 
@@ -15,6 +16,23 @@ interface ChatEventData {
   code?: string | null;
 }
 
+// FR-CHAT-008: questions offered when the chat opens. Built here from the result already on the page, so they
+// need no model: the two clauses with the worst findings, then general questions. A later worker field
+// (docs/06 §3.4) could replace them.
+export function suggestedQuestions(findings: Pick<Schemas["FindingItem"], "clauseKey" | "severity">[], clauseName: (clauseKey: string) => string): string[] {
+  const worstClauses = [...findings]
+    .filter((f) => f.clauseKey !== null)
+    .sort((a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity))
+    .map((f) => f.clauseKey!)
+    .filter((key, index, keys) => keys.indexOf(key) === index)
+    .slice(0, 2);
+  return [
+    ...worstClauses.map((key) => `${clauseName(key)} có rủi ro gì và nên đề nghị sửa thế nào?`),
+    "Rủi ro lớn nhất của hợp đồng này là gì?",
+    "Ai chịu trách nhiệm khi dữ liệu bị lộ?",
+  ].slice(0, 4);
+}
+
 const time = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" });
 
 // UI-GEN-002, F-CHAT-001, F-CHAT-003: the contract's shared conversation beside the document. Answers
@@ -25,9 +43,11 @@ export function ChatPanel({
   hasResult,
   clauseName,
   onCitation,
+  suggestions = [],
 }: {
   contractId: string;
   hasResult: boolean;
+  suggestions?: string[];
   clauseName: (clauseKey: string) => string;
   onCitation: (clauseKey: string) => void;
 }) {
@@ -61,16 +81,19 @@ export function ChatPanel({
 
   const canAsk = thread?.available === true && hasResult;
 
-  async function ask(event?: FormEvent) {
+  // FR-CHAT-009: a suggestion is sent as it stands, like a typed question.
+  async function ask(event?: FormEvent, suggestion?: string) {
     event?.preventDefault();
-    const text = question.trim();
+    const text = (suggestion ?? question).trim();
     if (!text || sending) {
       return;
     }
 
     setSending(true);
     setSendError(null);
-    setQuestion("");
+    if (suggestion === undefined) {
+      setQuestion("");
+    }
     const answer: Message = { chatMessageId: "pending-answer", role: "assistant", authorName: null, content: "", citations: [] };
     setPending([{ chatMessageId: "pending-question", role: "user", authorName: "Bạn", content: text, citations: [] }, answer]);
     let failed = false;
@@ -155,6 +178,21 @@ export function ChatPanel({
         ))}
       </div>
       <form className="flex flex-col gap-2 border-t border-rule p-3" onSubmit={(event) => void ask(event)}>
+        {canAsk && !sending && suggestions.length > 0 && (
+          <ul className="flex flex-wrap gap-1.5" aria-label="Câu hỏi gợi ý">
+            {suggestions.map((suggestion) => (
+              <li key={suggestion}>
+                <button
+                  type="button"
+                  onClick={() => void ask(undefined, suggestion)}
+                  className="rounded-md border border-rule-strong px-2 py-1 text-left text-label text-ink transition-colors duration-150 hover:bg-desk"
+                >
+                  {suggestion}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         <label htmlFor={inputId} className="sr-only">
           Câu hỏi về hợp đồng
         </label>
