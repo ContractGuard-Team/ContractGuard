@@ -2167,6 +2167,7 @@ export interface components {
             /** Format: int32 */
             overallScore: null | number | string;
             riskLevel: null | components["schemas"]["RiskLevel"];
+            hasResult: boolean;
         };
         WorkerActivity: {
             /** Format: int32 */

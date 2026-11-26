@@ -2,7 +2,7 @@
 
 | Mục | Giá trị |
 |---|---|
-| Ngày | 2026-11-10, sửa 2026-11-22 |
+| Ngày | 2026-11-10, sửa 2026-11-26 |
 | Người viết | SE (code bởi Claude, chờ review) |
 | Trạng thái | SE đã làm xong phần không cần AI của Phase 2–6. Worker AI đã chạy trên EC2 và nối vào bộ dev (`docs/04` C7, `docs/05` §9); handler chat nằm trên nhánh `feat/chatbotAI` của repo AI, chờ nhóm AI review. Các điểm ở §3 **chờ AI + IA + SE thống nhất** |
 | Tìm trong code | `grep -rn "AI-HOOKUP" backend/` cho ra đúng các chỗ ở §2 |
@@ -100,13 +100,13 @@ Chờ nhóm AI chọn.
 
 ### 3.4 Câu hỏi gợi ý (F-CHAT-002)
 
-Chưa làm vì cần model. Gợi ý: thêm `suggested_questions` vào `extraction.v2` để worker sinh một lần lúc phân tích. Khi đó backend chỉ cần lưu và hiển thị.
+**Đã làm 2026-11-26, không cần model:** frontend sinh tối đa 4 câu từ kết quả đang có (`suggestedQuestions` trong `ChatPanel.tsx`): hai điều khoản có finding nặng nhất, rồi câu chung. Bấm vào thì gửi như câu hỏi thường (FR-CHAT-009). Nếu sau này muốn câu do model sinh: thêm `suggested_questions` vào `extraction.v2` (cần cả ba bên duyệt `contracts/`), frontend dùng danh sách đó thay cho danh sách tự sinh.
 
 ### 3.5 Dừng phân tích (CR-ANA-001, 2026-11-23; nối với worker 2026-11-24)
 
 Người dùng dừng được một lần đang chạy (`POST /api/v1/jobs/{jobId}/cancel`). Backend đánh lần đó `cancelled`, bỏ qua mọi `progress`/`completed`/`failed` đến sau của job đó, rồi gửi `cancel_requested` lên queue riêng `analysis-cancels`. Worker dừng job (hoặc bỏ qua khi job còn trong queue) và trả `failed` + `ERR-AI-003`. Chi tiết, mã lỗi, quyền: `docs/07` §15.
 
-**Trạng thái (2026-11-24):** nhóm AI viết luồng hủy và chọn queue SQS riêng (repo AI `13785369`, `docs/partner_cancel_and_failure.md`); backend đã nối. Queue AWS dev đã tạo (2026-11-24). Còn chờ: nhóm AI cấp quyền và đặt `WORKER_CANCEL_QUEUE_URL`, rồi hai bên chạy nghiệm thu.
+**Trạng thái (2026-11-26):** nhóm AI viết luồng hủy và chọn queue SQS riêng (repo AI `13785369`, `docs/partner_cancel_and_failure.md`); backend đã nối. Queue AWS dev đã tạo (2026-11-24), quyền đã có (2026-11-25), `WORKER_CANCEL_QUEUE_URL` đã đặt trên worker (2026-11-26). Còn chờ: hai bên chạy nghiệm thu.
 
 Gửi lệnh hủy là best-effort: nếu SQS lỗi, run vẫn `cancelled` và worker chạy nốt job như trước. Vì vậy backend vẫn giữ bản chép riêng `quarantine/{owner}/{jobId}{ext}` cho lần chạy lại sau một lần bị dừng.
 
@@ -120,6 +120,9 @@ Lần gọi model đang chạy dở vẫn tính token, vì không ngắt đượ
 | 3 | Tổng quan, tờ hợp đồng có ghi chú lề, tô vùng trên PDF, checklist, xuất PDF/DOCX | Không |
 | 4 | Lịch sử chat chung, SSE, trích dẫn | Câu trả lời |
 | 5 | Tổ chức, lời mời, vai trò, chia sẻ, thư viện, duyệt, phiên bản, xóa vĩnh viễn, nhật ký, rate limit, giới hạn email | Không |
-| 6 | Trạng thái xử lý finding, tùy chọn báo cáo, lịch sử chat | Câu hỏi gợi ý (§3.4) |
+| 6 | Trạng thái xử lý finding, tùy chọn báo cáo, lịch sử chat, câu hỏi gợi ý (§3.4) | Không |
+| 8 | So sánh hai phiên bản (F-CMP-001): điểm và check của hai kết quả đã lưu, không cần model | Không |
 
-Ngày 2026-11-10 tạm bỏ Google login (F-AUTH-002), Phase 7 (AWS), Phase 8. Ngày 2026-11-17 mở lại Google login (đã code cùng ngày, không cần AI) và Phase 7 (database dùng Supabase); Phase 8 vẫn bỏ.
+Ngày 2026-11-10 tạm bỏ Google login (F-AUTH-002), Phase 7 (AWS), Phase 8. Ngày 2026-11-17 mở lại Google login (đã code cùng ngày, không cần AI) và Phase 7 (database dùng Supabase); Phase 8 vẫn bỏ. Ngày 2026-11-26 làm F-CMP-001 (không cần AI); F-POL-001 vẫn bỏ vì repo AI chưa có luồng đối chiếu chính sách.
+
+**Khi worker tắt (2026-11-26):** hai EC2 của nhóm AI chỉ bật khi web bật. Nếu web chạy mà worker tắt, lần phân tích bị đánh lỗi sau 10 phút không có worker nhận việc (`StaleRunSweeper.PickupLimit`, thông báo "Dịch vụ phân tích AI đang tắt hoặc chưa nhận việc"), câu hỏi chat báo ERR-CHAT-001 sau 3 phút. Không có worker giả; local dùng seed (`dotnet run -- seed`) và `scripts/dev/send-analysis-result.*`.

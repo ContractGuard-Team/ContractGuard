@@ -127,7 +127,8 @@ public sealed class ContractQueries(
             .Select(v =>
             {
                 var run = allRuns.Where(r => r.ContractVersionId == v.ContractVersionId).MaxBy(r => r.StartedAt);
-                return new VersionItem(v.ContractVersionId, v.VersionNumber, v.OriginalFileName, v.UploadedAt, run?.RunStatus, run?.OverallScore, run?.OverallRiskLevel);
+                var hasResult = allRuns.Any(r => r.ContractVersionId == v.ContractVersionId && r.RunStatus == RunStatus.Completed);
+                return new VersionItem(v.ContractVersionId, v.VersionNumber, v.OriginalFileName, v.UploadedAt, run?.RunStatus, run?.OverallScore, run?.OverallRiskLevel, hasResult);
             })
             .ToList();
 

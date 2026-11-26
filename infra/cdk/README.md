@@ -49,7 +49,7 @@ cd infra/cdk && npx aws-cdk@2.1149.0 deploy ContractGuard-GitHubDeploy
 10. CORS của bucket dev: `aws s3api get-bucket-cors --bucket contractguard-dev-documents-699061129385` → thêm `AppUrl` vào `AllowedOrigins` của rule hiện có → `put-bucket-cors`. Không ghi đè các origin cũ (Railway, localhost).
 11. Google OAuth client: thêm redirect URI `<AppUrl>/api/v1/auth/google/callback`. Nếu client còn ở chế độ Testing thì thêm test user.
 
-Tắt API mà vẫn giữ stack: `deploy ContractGuard-StagingAws -c apiTasks=0`. Không gửi job cho worker: `-c workerEnabled=false`. Xem hướng dẫn chi tiết và script tắt/bật nhanh tại [OPERATIONS.md](OPERATIONS.md). Sau showcase: `cdk destroy ContractGuard-StagingAws` (giữ `ContractGuard-GitHubDeploy`), rồi bật lại Railway `api`.
+Tắt API mà vẫn giữ stack: `deploy ContractGuard-StagingAws -c apiTasks=0`. Không gửi job cho worker: `-c workerEnabled=false`. Xem hướng dẫn chi tiết và script tắt/bật nhanh tại [OPERATIONS.md](OPERATIONS.md); script bật/tắt kèm 2 EC2 của nhóm AI (proxy, worker) bằng profile `se-cli`, vì máy AI chỉ chạy khi web chạy. Sau showcase: `cdk destroy ContractGuard-StagingAws` (giữ `ContractGuard-GitHubDeploy`), rồi bật lại Railway `api`.
 
 ## Staging trên Railway
 

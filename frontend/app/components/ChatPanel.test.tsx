@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { parseSse } from "~/lib/api";
 
-import { ChatPanel } from "./ChatPanel";
+import { ChatPanel, suggestedQuestions } from "./ChatPanel";
 
 function jsonResponse(body: unknown) {
   return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
@@ -57,6 +57,25 @@ describe("ChatPanel", () => {
     await userEvent.click(screen.getByRole("button", { name: "Điều cl-006" }));
     expect(onCitation).toHaveBeenCalledWith("cl-006");
   });
+
+  it("sends a suggested question as a question (FR-CHAT-008, FR-CHAT-009)", async () => {
+    // By request rather than by order: the antiforgery token may already be cached by an earlier test.
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = String(input);
+      if (url.endsWith("/chat") && init?.method === "POST") {
+        return Promise.resolve(sseResponse('event: token\ndata: {"text":"Có."}\n\nevent: done\ndata: {"messageId":"a"}\n\n'));
+      }
+
+      return Promise.resolve(jsonResponse(url.endsWith("/chat") ? stored([]) : { token: "t" }));
+    });
+    render(<ChatPanel contractId="c" hasResult clauseName={(k) => k} onCitation={vi.fn()} suggestions={["Rủi ro lớn nhất là gì?"]} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Rủi ro lớn nhất là gì?" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true));
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === "POST")!;
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ question: "Rủi ro lớn nhất là gì?" });
+  });
 });
 
 describe("parseSse", () => {
@@ -68,5 +87,28 @@ describe("parseSse", () => {
       { event: "done", data: "{}" },
     ]);
     expect(rest).toBe("event: tok");
+  });
+});
+
+describe("suggestedQuestions", () => {
+  it("asks first about the clauses with the worst findings, each once", () => {
+    const questions = suggestedQuestions(
+      [
+        { clauseKey: "cl-1", severity: "low" },
+        { clauseKey: "cl-2", severity: "critical" },
+        { clauseKey: "cl-2", severity: "high" },
+        { clauseKey: null, severity: "critical" },
+        { clauseKey: "cl-3", severity: "high" },
+      ],
+      (k) => `Điều ${k}`,
+    );
+
+    expect(questions).toHaveLength(4);
+    expect(questions[0]).toContain("Điều cl-2");
+    expect(questions[1]).toContain("Điều cl-3");
+  });
+
+  it("still offers general questions without findings", () => {
+    expect(suggestedQuestions([], (k) => k).length).toBeGreaterThan(0);
   });
 });

@@ -5,6 +5,7 @@ import { uploadVersion } from "~/lib/upload";
 
 import { ContractDropzone } from "./ContractDropzone";
 import { SeverityTag } from "./SeverityTag";
+import { VersionCompare } from "./VersionCompare";
 
 const dateFormat = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" });
 const runLabels: Record<NonNullable<Schemas["RunStatus"]>, string> = { running: "Đang phân tích", completed: "Đã phân tích", failed: "Phân tích thất bại", cancelled: "Đã dừng phân tích" };
@@ -64,6 +65,8 @@ export function VersionsPanel({
           );
         })}
       </ol>
+
+      <VersionCompare contractId={contractId} versions={versions} />
 
       <div className="flex flex-col gap-2">
         <h3 className="text-label">Tải lên phiên bản mới</h3>

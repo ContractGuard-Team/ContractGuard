@@ -28,6 +28,10 @@ describe("failureMessage", () => {
     expect(message).not.toContain("/clauses");
   });
 
+  it("says the AI service is off when no worker picked the job up", () => {
+    expect(failureMessage("The analysis worker did not pick up the job within 10 minutes.")).toContain("đang tắt");
+  });
+
   it("shows any other reason as written", () => {
     expect(failureMessage("Không nhận diện được điều khoản")).toBe("Không nhận diện được điều khoản");
   });

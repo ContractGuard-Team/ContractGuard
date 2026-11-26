@@ -56,7 +56,11 @@ public sealed record VersionItem(
     DateTimeOffset UploadedAt,
     RunStatus? LatestRunStatus,
     int? OverallScore,
-    RiskLevel? RiskLevel);
+    RiskLevel? RiskLevel,
+
+    // Some run of this version completed: its result is still shown after a failed re-run (FR-ANA-015),
+    // so the version can be compared (F-CMP-001) even when LatestRunStatus is failed.
+    bool HasResult);
 
 public sealed record ContractDetail(
     Guid ContractId,

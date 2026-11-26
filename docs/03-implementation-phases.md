@@ -171,12 +171,12 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 | Track | Việc |
 |---|---|
 | SE | Dựng staging ở `ap-southeast-1` bằng CDK, deploy bằng GitHub Actions và ECR. Database là Supabase (`04` mục C1); GitHub OIDC cần admin của org |
-| AI | Dựng máy GPU chạy model tự host và nền tảng chạy worker do nhóm chọn (`04` mục C2, C3); trả lời 3 câu hỏi ở mục C3 (API của model, đường mạng từ API tới model, model embedding) |
-| SE, AI | Chính sách bật/tắt để tiết kiệm credit (SD §2.7): API, máy GPU của model; worker chạy sẵn hay scale từ 0 do nhóm AI quyết (SD Q1, `04` mục C2) |
+| AI | ~~Dựng máy GPU chạy model tự host~~ Đã có 2026-11-25: worker 9 container trên EC2 trong VPC riêng, ra Internet qua Squid, model gọi qua API (DEC-GEN-034, `docs/07` §5) |
+| SE, AI | ~~Chính sách bật/tắt để tiết kiệm credit~~ Đã xong 2026-11-26: EC2 AI chỉ bật khi web bật, `infra/cdk/manage-aws-staging.*` bật/tắt cả API lẫn 2 EC2; web bật mà worker tắt thì báo lỗi sau 10 phút |
 | Cả nhóm | Trước khi dựng AWS: mọi thành viên cấu hình billing và cảnh báo ngân sách trên tài khoản của mình (SD-20) |
-| SE | OpenTelemetry gửi sang CloudWatch và X-Ray, dùng `job_id` làm correlation ID |
-| SE | Đọc IP thật qua `X-Forwarded-For` sau ALB để rate limit hoạt động đúng |
-| SE | Security group chỉ cho ALB gọi API, vì API tin header `X-Forwarded-Proto` từ mọi nguồn; CloudFront gọi ALB bằng HTTPS, nếu không API ở Production trả 500 (SD-03) |
+| SE | ~~OpenTelemetry gửi sang CloudWatch và X-Ray~~ Hoãn theo SD-19 (`04`): MVP chỉ có log JSON lên CloudWatch Logs, mỗi dòng mang correlation ID của job |
+| SE | ~~Đọc IP thật qua `X-Forwarded-For` sau ALB~~ Đã xong (`Program.cs` `UseForwardedHeaders`, test `AuthLimitTests`) |
+| SE | ~~Security group chỉ cho ALB gọi API~~ Đã xong (`infra/cdk/AppStack.cs`): ALB nội bộ chỉ nhận prefix list của CloudFront, task chỉ nhận từ ALB; không domain nên ALB nghe HTTP, API lấy scheme từ `CloudFront-Forwarded-Proto` (`04` C9) |
 | SE | ~~Dọn code demo của frontend~~ Đã xong: trang `/demo` bỏ cùng landing mới (2026-11-17) |
 | SE, AI | Đo NFR hiệu năng trên staging: p50 ≤ 2 phút, p95 ≤ 5 phút với hợp đồng text 20 trang |
 | AI | Chạy eval lần cuối, chốt model cho từng bước (DEC-GEN-010) |
@@ -187,8 +187,8 @@ Phase 0–5 và 7 là phần tối thiểu để đạt SC-GEN-005 (luồng demo
 
 ### Phase 8 — Nếu còn thời gian (Could)
 
-- So sánh hai phiên bản, chỉ ra điểm bị yếu đi và mức thay đổi điểm rủi ro (F-CMP-001).
-- Company Policy: tổ chức upload chính sách nội bộ (F-POL-001). Chỉ có ở tổ chức.
+- ~~So sánh hai phiên bản, chỉ ra điểm bị yếu đi và mức thay đổi điểm rủi ro (F-CMP-001).~~ Đã xong 2026-11-26 (`VersionCompare.tsx`, `lib/compare.ts`): so điểm và check của hai kết quả đã lưu, không cần model.
+- Company Policy: tổ chức upload chính sách nội bộ (F-POL-001). Chỉ có ở tổ chức. **Không làm** (2026-11-26): repo AI chưa có luồng đối chiếu chính sách.
 
 ## 3. Bảng phủ feature
 
