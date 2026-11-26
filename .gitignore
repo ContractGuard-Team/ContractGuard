@@ -91,6 +91,9 @@ ContractGuard-Architecture*.drawio
 # Personal Obsidian vault: a git repo of its own, never part of this repo
 Obsidian-Vault/
 
+# Local clone of the AI team's repo (contract-risk-management), a git repo of its own
+AI/
+
 # Secrets of one environment on a developer machine (backend Program.cs), e.g. Supabase for "Cloud"
 appsettings.*.local.json
 
