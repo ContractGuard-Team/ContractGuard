@@ -24,7 +24,7 @@ public sealed partial class ContractCommands(
     public async Task EditMetadataAsync(Guid contractId, Guid contractVersionId, ContractMetadata metadata, CancellationToken cancellationToken)
     {
         var version = await db.ContractVersions
-            .SingleOrDefaultAsync(v => v.ContractId == contractId && v.ContractVersionId == contractVersionId, cancellationToken)
+            .SingleOrDefaultAsync(v => v.ContractId == contractId && v.ContractVersionId == contractVersionId && v.DeletedAt == null, cancellationToken)
             ?? throw new DomainException(ErrorCodes.NotFound, "Contract version not found.");
         version.EditMetadata(metadata, workspace.UserId, clock.GetUtcNow());
         audit.Record(contractId, AuditAction.MetadataEdited, $"V{version.VersionNumber}");
@@ -128,6 +128,31 @@ public sealed partial class ContractCommands(
         contract.RestoreFromTrash();
         audit.Record(contractId, AuditAction.Restored);
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    // Soft delete of one version, Owner only like deleting the contract. ERR-CTR-003 while analyzing.
+    public async Task DeleteVersionAsync(Guid contractId, Guid contractVersionId, CancellationToken cancellationToken)
+    {
+        var contract = await LoadOwnedWithVersionsAsync(contractId, cancellationToken);
+        contract.DeleteVersion(contractVersionId, workspace.UserId, clock.GetUtcNow());
+        audit.Record(contractId, AuditAction.VersionDeleted, $"V{contract.GetVersion(contractVersionId).VersionNumber}");
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RestoreVersionAsync(Guid contractId, Guid contractVersionId, CancellationToken cancellationToken)
+    {
+        var contract = await LoadOwnedWithVersionsAsync(contractId, cancellationToken);
+        contract.RestoreVersion(contractVersionId, clock.GetUtcNow());
+        audit.Record(contractId, AuditAction.VersionRestored, $"V{contract.GetVersion(contractVersionId).VersionNumber}");
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<Contract> LoadOwnedWithVersionsAsync(Guid contractId, CancellationToken cancellationToken)
+    {
+        var contract = await db.Contracts.Include(c => c.Versions).SingleOrDefaultAsync(c => c.ContractId == contractId, cancellationToken)
+            ?? throw new DomainException(ErrorCodes.NotFound, "Contract not found.");
+        ContractAccess.EnsureOwner(contract, workspace);
+        return contract;
     }
 
     // FR-CTR-018: only from the trash, so one click in the library can never destroy a contract.

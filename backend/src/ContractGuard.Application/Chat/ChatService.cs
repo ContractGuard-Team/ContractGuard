@@ -55,7 +55,7 @@ public sealed partial class ChatService(
             .Include(c => c.Versions)
             .SingleOrDefaultAsync(c => c.ContractId == contractId, cancellationToken)
             ?? throw new DomainException(ErrorCodes.NotFound, "Contract not found.");
-        var version = contractVersionId is { } id ? contract.GetVersion(id) : contract.LatestVersion;
+        var version = contractVersionId is { } id ? contract.GetActiveVersion(id) : contract.LatestVersion;
 
         var runId = await db.AnalysisRuns
             .Where(r => r.ContractVersionId == version.ContractVersionId && r.RunStatus == RunStatus.Completed)

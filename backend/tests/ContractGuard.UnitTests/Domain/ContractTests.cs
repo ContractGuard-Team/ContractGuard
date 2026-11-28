@@ -139,6 +139,49 @@ public sealed class ContractTests
         Assert.Equal(ErrorCodes.ContractBusy, error.ErrorCode);
     }
 
+    [Fact]
+    public void Deleting_the_newest_version_makes_the_one_before_latest_and_numbers_are_not_reused()
+    {
+        var contract = TestData.ReadyContract();
+        var v1 = contract.LatestVersion;
+        var v2 = contract.AddVersion(TestData.PdfFile("quarantine/v2.pdf"), contract.OwnerUserAccountId, Now);
+
+        contract.DeleteVersion(v2.ContractVersionId, contract.OwnerUserAccountId, Now);
+
+        Assert.Same(v1, contract.LatestVersion);
+        Assert.NotNull(v2.DeletedAt);
+        Assert.Throws<DomainException>(() => contract.GetActiveVersion(v2.ContractVersionId));
+        Assert.Equal(3, contract.AddVersion(TestData.PdfFile("quarantine/v3.pdf"), contract.OwnerUserAccountId, Now).VersionNumber);
+
+        contract.RestoreVersion(v2.ContractVersionId, Now);
+        Assert.Null(v2.DeletedAt);
+    }
+
+    [Fact]
+    public void The_last_active_version_cannot_be_deleted()
+    {
+        var contract = TestData.ReadyContract();
+
+        var error = Assert.Throws<DomainException>(() =>
+            contract.DeleteVersion(contract.LatestVersion.ContractVersionId, contract.OwnerUserAccountId, Now));
+
+        Assert.Equal(ErrorCodes.Validation, error.ErrorCode);
+    }
+
+    [Fact]
+    public void Version_delete_is_refused_while_analyzing()
+    {
+        var contract = TestData.ReadyContract();
+        var v2 = contract.AddVersion(TestData.PdfFile("quarantine/v2.pdf"), contract.OwnerUserAccountId, Now);
+        contract.ConfirmContext(v2.ContractVersionId, contract.Versions.First().Context!.ToDetails(), Now);
+        contract.MarkAnalysisStarted(v2.ContractVersionId, Now);
+
+        var error = Assert.Throws<DomainException>(() =>
+            contract.DeleteVersion(contract.Versions.First().ContractVersionId, contract.OwnerUserAccountId, Now));
+
+        Assert.Equal(ErrorCodes.ContractBusy, error.ErrorCode);
+    }
+
     private static Contract ContractIn(ApprovalStatus status)
     {
         var contract = TestData.ReadyContract();

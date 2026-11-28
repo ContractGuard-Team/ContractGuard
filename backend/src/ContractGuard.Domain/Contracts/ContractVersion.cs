@@ -30,6 +30,10 @@ public sealed partial class ContractVersion
     public int? PageCount { get; private set; }
     public Guid UploadedByUserAccountId { get; private set; }
     public DateTimeOffset UploadedAt { get; private set; }
+
+    // Soft delete of one version: it stays in the version list (with a restore button) but is out of everything else.
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public Guid? DeletedByUserAccountId { get; private set; }
     public ContractContext? Context { get; private set; }
 
     // F-CTR-002 (ENT-DATA-008): what the worker extracted, and what a user corrected. A re-run replaces
@@ -61,6 +65,18 @@ public sealed partial class ContractVersion
             UploadedByUserAccountId = uploadedBy,
             UploadedAt = now
         };
+    }
+
+    internal void MoveToTrash(Guid userAccountId, DateTimeOffset now)
+    {
+        DeletedAt = now;
+        DeletedByUserAccountId = userAccountId;
+    }
+
+    internal void Restore()
+    {
+        DeletedAt = null;
+        DeletedByUserAccountId = null;
     }
 
     internal void ConfirmContext(ContextDetails details, DateTimeOffset now)

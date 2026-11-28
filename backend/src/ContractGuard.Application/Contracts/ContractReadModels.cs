@@ -60,7 +60,10 @@ public sealed record VersionItem(
 
     // Some run of this version completed: its result is still shown after a failed re-run (FR-ANA-015),
     // so the version can be compared (F-CMP-001) even when LatestRunStatus is failed.
-    bool HasResult);
+    bool HasResult,
+
+    // Set when the version was deleted: listed with a restore button, out of everything else.
+    DateTimeOffset? DeletedAt);
 
 public sealed record ContractDetail(
     Guid ContractId,
