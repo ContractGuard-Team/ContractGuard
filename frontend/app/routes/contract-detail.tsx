@@ -133,7 +133,12 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
   const clauseName = useCallback(
     (key: string) => {
       const clause = clauses.find((c) => c.clauseKey === key);
-      return clause ? [clause.clauseNumber, clause.heading].filter(Boolean).join(". ") || key : key;
+      // Never the worker's raw id ("<uuid>-C0016"): a clause without number and heading gets its position,
+      // and one of another version (old chat answers) its short id.
+      if (!clause) {
+        return `Điều khoản ${key.split("-").pop()}`;
+      }
+      return [clause.clauseNumber, clause.heading].filter(Boolean).join(". ") || `Điều khoản ${clause.clauseOrder}`;
     },
     [clauses],
   );
@@ -340,8 +345,12 @@ export default function ContractDetail({ loaderData }: Route.ComponentProps) {
                       versions={contract.versions}
                       shownVersionId={version.contractVersionId}
                       busy={running}
+                      isOwner={isOwner}
                       onUploaded={async () => {
                         await navigate(`/contracts/${contract.contractId}`);
+                      }}
+                      onChanged={async () => {
+                        await revalidate();
                       }}
                     />
                   )}

@@ -31,7 +31,7 @@ public sealed class ContractQueries(
 
         var rows =
             from c in db.Contracts
-            let v = c.Versions.OrderByDescending(v => v.VersionNumber).First()
+            let v = c.Versions.Where(v => v.DeletedAt == null).OrderByDescending(v => v.VersionNumber).First()
             let run = db.AnalysisRuns
                 .Where(r => r.ContractVersionId == v.ContractVersionId && r.RunStatus == RunStatus.Completed)
                 .OrderByDescending(r => r.StartedAt)
@@ -128,7 +128,7 @@ public sealed class ContractQueries(
             {
                 var run = allRuns.Where(r => r.ContractVersionId == v.ContractVersionId).MaxBy(r => r.StartedAt);
                 var hasResult = allRuns.Any(r => r.ContractVersionId == v.ContractVersionId && r.RunStatus == RunStatus.Completed);
-                return new VersionItem(v.ContractVersionId, v.VersionNumber, v.OriginalFileName, v.UploadedAt, run?.RunStatus, run?.OverallScore, run?.OverallRiskLevel, hasResult);
+                return new VersionItem(v.ContractVersionId, v.VersionNumber, v.OriginalFileName, v.UploadedAt, run?.RunStatus, run?.OverallScore, run?.OverallRiskLevel, hasResult, v.DeletedAt);
             })
             .ToList();
 

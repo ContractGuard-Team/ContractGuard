@@ -1721,7 +1721,7 @@ export interface components {
             contractVersionId?: null | string;
         };
         /** @enum {unknown} */
-        AuditAction: "uploaded" | "viewed" | "version_uploaded" | "context_confirmed" | "metadata_edited" | "status_changed" | "finding_handled" | "shared" | "share_revoked" | "owner_transferred" | "report_exported" | "renamed" | "trashed" | "restored" | "analysis_cancelled";
+        AuditAction: "uploaded" | "viewed" | "version_uploaded" | "context_confirmed" | "metadata_edited" | "status_changed" | "finding_handled" | "shared" | "share_revoked" | "owner_transferred" | "report_exported" | "renamed" | "trashed" | "restored" | "analysis_cancelled" | "version_deleted" | "version_restored";
         AuditEntry: {
             /** Format: uuid */
             auditEventId: string;
@@ -2168,6 +2168,8 @@ export interface components {
             overallScore: null | number | string;
             riskLevel: null | components["schemas"]["RiskLevel"];
             hasResult: boolean;
+            /** Format: date-time */
+            deletedAt: null | string;
         };
         WorkerActivity: {
             /** Format: int32 */

@@ -30,6 +30,8 @@ internal static class ContractEndpoints
         contracts.MapPut("/{contractId:guid}/versions/{versionId:guid}/metadata", EditMetadata);
         contracts.MapPut("/{contractId:guid}/approval-status", ChangeApprovalStatus);
         contracts.MapPost("/{contractId:guid}/versions", AddVersion);
+        contracts.MapDelete("/{contractId:guid}/versions/{versionId:guid}", DeleteVersion);
+        contracts.MapPost("/{contractId:guid}/versions/{versionId:guid}/restore", RestoreVersion);
         contracts.MapPut("/{contractId:guid}/name", RenameContract);
         contracts.MapDelete("/{contractId:guid}", MoveToTrash);
         contracts.MapPost("/{contractId:guid}/restore", RestoreContract);
@@ -91,6 +93,18 @@ internal static class ContractEndpoints
 
     private static async Task<Ok<CreatedContract>> AddVersion(Guid contractId, CreateContractRequest request, ContractUploadService uploads, CancellationToken cancellationToken) =>
         TypedResults.Ok(await uploads.AddVersionAsync(contractId, request.UploadId, request.FileName, cancellationToken));
+
+    private static async Task<NoContent> DeleteVersion(Guid contractId, Guid versionId, ContractCommands commands, CancellationToken cancellationToken)
+    {
+        await commands.DeleteVersionAsync(contractId, versionId, cancellationToken);
+        return TypedResults.NoContent();
+    }
+
+    private static async Task<NoContent> RestoreVersion(Guid contractId, Guid versionId, ContractCommands commands, CancellationToken cancellationToken)
+    {
+        await commands.RestoreVersionAsync(contractId, versionId, cancellationToken);
+        return TypedResults.NoContent();
+    }
 
     private static async Task<NoContent> RenameContract(Guid contractId, RenameRequest request, ContractCommands commands, CancellationToken cancellationToken)
     {

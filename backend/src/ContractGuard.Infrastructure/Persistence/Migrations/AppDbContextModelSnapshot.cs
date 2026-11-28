@@ -554,6 +554,14 @@ namespace ContractGuard.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("contract_id");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by_user_account_id");
+
                     b.Property<string>("EditedMetadata")
                         .HasColumnType("jsonb")
                         .HasColumnName("edited_metadata");

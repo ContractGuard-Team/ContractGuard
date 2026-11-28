@@ -44,7 +44,8 @@ public sealed class Contract
     public Guid? DeletedByUserAccountId { get; private set; }
     public IReadOnlyCollection<ContractVersion> Versions => _versions;
 
-    public ContractVersion LatestVersion => _versions.MaxBy(v => v.VersionNumber)
+    // Deleted versions do not count: deleting the newest makes the one before it the latest.
+    public ContractVersion LatestVersion => _versions.Where(v => v.DeletedAt is null).MaxBy(v => v.VersionNumber)
         ?? throw new InvalidOperationException("A contract always has at least one version.");
 
     public static Contract Create(string name, Guid? organizationId, Guid ownerUserAccountId, ContractFile file, DateTimeOffset now)
@@ -92,11 +93,43 @@ public sealed class Contract
     public ContractVersion AddVersion(ContractFile file, Guid uploadedBy, DateTimeOffset now)
     {
         EnsureNotAnalyzing();
-        var version = ContractVersion.Create(ContractId, LatestVersion.VersionNumber + 1, file, uploadedBy, now);
+        // Numbered after every version, deleted ones too, so a restored version never clashes with a new one.
+        var version = ContractVersion.Create(ContractId, _versions.Max(v => v.VersionNumber) + 1, file, uploadedBy, now);
         _versions.Add(version);
         UpdatedAt = now;
         return version;
     }
+
+    // Not while an analysis runs, and never the last active version (delete the contract instead).
+    public void DeleteVersion(Guid contractVersionId, Guid userAccountId, DateTimeOffset now)
+    {
+        EnsureNotAnalyzing();
+        var version = GetVersion(contractVersionId);
+        if (version.DeletedAt is not null)
+        {
+            return;
+        }
+
+        if (_versions.Count(v => v.DeletedAt is null) == 1)
+        {
+            throw new DomainException(ErrorCodes.Validation, "The last version cannot be deleted; delete the contract instead.");
+        }
+
+        version.MoveToTrash(userAccountId, now);
+        UpdatedAt = now;
+    }
+
+    public void RestoreVersion(Guid contractVersionId, DateTimeOffset now)
+    {
+        GetVersion(contractVersionId).Restore();
+        UpdatedAt = now;
+    }
+
+    // A deleted version is only viewable from the version list, never worked on.
+    public ContractVersion GetActiveVersion(Guid contractVersionId) =>
+        GetVersion(contractVersionId) is { DeletedAt: null } version
+            ? version
+            : throw new DomainException(ErrorCodes.NotFound, "Contract version not found.");
 
     public ContractVersion GetVersion(Guid contractVersionId) =>
         _versions.SingleOrDefault(v => v.ContractVersionId == contractVersionId)
@@ -105,7 +138,7 @@ public sealed class Contract
     public void ConfirmContext(Guid contractVersionId, ContextDetails details, DateTimeOffset now)
     {
         EnsureNotAnalyzing();
-        GetVersion(contractVersionId).ConfirmContext(details, now);
+        GetActiveVersion(contractVersionId).ConfirmContext(details, now);
         UpdatedAt = now;
     }
 
@@ -113,7 +146,7 @@ public sealed class Contract
     public void MarkAnalysisStarted(Guid contractVersionId, DateTimeOffset now)
     {
         EnsureNotAnalyzing();
-        if (GetVersion(contractVersionId).Context is null)
+        if (GetActiveVersion(contractVersionId).Context is null)
         {
             throw new DomainException(ErrorCodes.ContextIncomplete, "Context must be confirmed before analysis.");
         }

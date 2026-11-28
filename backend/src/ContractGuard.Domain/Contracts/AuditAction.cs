@@ -17,5 +17,7 @@ public enum AuditAction
     Renamed,
     Trashed,
     Restored,
-    AnalysisCancelled
+    AnalysisCancelled,
+    VersionDeleted,
+    VersionRestored
 }
